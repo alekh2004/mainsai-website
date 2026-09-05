@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/common/Navbar';
 import { MobileNav } from './components/common/MobileNav';
+import { DashboardSidebar } from './components/common/DashboardSidebar';
 import { ThemeSwitcher } from './components/common/ThemeSwitcher';
 import { AuthModal } from './components/auth/AuthModal';
 import { ApiKeyModal } from './components/common/ApiKeyModal';
@@ -28,8 +29,9 @@ import { ArrowLeft, Heart, Home, Sparkles, History, BarChart3, User, Layers, Boo
 
 import { BackgroundRenderer } from './components/common/BackgroundRenderer';
 
+
 function MainAppContent() {
-  const { user } = useAuth();
+  const { user, setShowPayModal: openPayModal } = useAuth();
   const { activeMode, language, adminQuestions, evaluations } = useApp();
   const isHi = language === 'hi';
 
@@ -40,7 +42,7 @@ function MainAppContent() {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [showStudentTeacherModal, setShowStudentTeacherModal] = useState(false);
-  const [showPayModal, setShowPayModal] = useState(false);
+
   const [showFlashcardsModal, setShowFlashcardsModal] = useState(false);
   const [showMainsNotesModal, setShowMainsNotesModal] = useState(false);
   const [showDeepChecker, setShowDeepChecker] = useState(false);
@@ -101,7 +103,7 @@ function MainAppContent() {
 
       <div className="content-layer flex flex-col min-h-screen">
 
-        {/* Navbar — pass theme switcher as slot */}
+        {/* Navbar â€” pass theme switcher as slot */}
         <Navbar
           onOpenApiKey={() => setShowApiKeyModal(true)}
           onOpenAdmin={() => setShowAdminModal(true)}
@@ -112,108 +114,103 @@ function MainAppContent() {
           rightSlot={<ThemeSwitcher />}
         />
 
-        {/* Pill Tab Nav (Desktop only; Mobile uses bottom dock) */}
-        <div className="hidden md:block max-w-6xl mx-auto w-full px-4 lg:px-8 pt-4">
-          <div className="flex items-center gap-1 p-1.5 glass-card-clean rounded-2xl border border-white/40 overflow-x-auto">
-            {[
-              { id: 'home',     icon: Home,     label: isHi ? 'होम'       : 'Home' },
-              { id: 'evaluate', icon: Sparkles, label: isHi ? 'मूल्यांकन' : 'Evaluate' },
-              { id: 'history',  icon: History,  label: isHi ? 'इतिहास'    : 'History' },
-              { id: 'insights', icon: BarChart3, label: isHi ? 'इंसाइट्स' : 'Insights' },
-              { id: 'profile',  icon: User,     label: isHi ? 'प्रोफाइल'  : 'Profile' }
-            ].map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => { setActiveTab(id); if (id === 'evaluate') setSelectedPaper(null); }}
-                className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold transition-all"
-                style={activeTab === id
-                  ? { background: 'rgb(var(--accent))', color: '#fff', boxShadow: '0 4px 14px rgb(var(--accent)/0.35)' }
-                  : { color: 'var(--text-secondary)' }
-                }
-              >
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* â”€â”€ Main Layout: Sidebar (desktop) + Content â”€â”€ */}
+        <div className="flex flex-1 overflow-hidden">
 
-        {/* Main Content */}
-        <main className="flex-1 max-w-6xl mx-auto w-full px-4 lg:px-8 py-6 space-y-6 pb-24 md:pb-12">
+          {/* Desktop Sidebar */}
+          <DashboardSidebar
+            activeTab={activeTab}
+            setActiveTab={(tab) => { setActiveTab(tab); if (tab === 'evaluate') setSelectedPaper(null); }}
+            onOpenFlashcards={() => setShowFlashcardsModal(true)}
+            onOpenMainsNotes={() => setShowMainsNotesModal(true)}
+            onOpenSubscription={() => openPayModal(true)}
+          />
 
-          {activeTab === 'home' && (
-            <div className="animate-fadeIn">
-              <StatsOverview
-                onQuickAction={handleQuickActionFromHome}
-                onViewEvaluation={(evalItem) => setActiveEvaluationResult(evalItem)}
-                onOpenFlashcards={() => setShowFlashcardsModal(true)}
-                onOpenMainsNotes={() => setShowMainsNotesModal(true)}
-              />
-            </div>
-          )}
+          {/* Content Area */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-          {activeTab === 'evaluate' && (
-            <div className="space-y-5 animate-fadeIn">
-              {!selectedPaper ? (
-                <>
-                  <ExamSelector />
-                  <PaperSelector onSelectPaper={setSelectedPaper} />
-                </>
-              ) : (
-                <div className="space-y-5">
-                  <button
-                    onClick={() => setSelectedPaper(null)}
-                    className="glass-card-clean px-3.5 py-2 rounded-xl border border-white/40 text-xs font-bold flex items-center gap-1.5 transition-all hover:border-white/70"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
-                    {isHi ? 'पेपर चयन पर वापस' : 'Back to Paper Selection'}
-                  </button>
-                  <ModeSelector />
-                  {activeMode === 'ai_gen'
-                    ? <AiQuestionGenerator onAttemptQuestion={setSelectedAttemptQuestion} onGoBack={() => setSelectedPaper(null)} />
-                    : <ManualQuestionBank onAttemptQuestion={setSelectedAttemptQuestion} onOpenAdmin={() => setShowAdminModal(true)} onGoBack={() => setSelectedPaper(null)} />
-                  }
+            {/* Main Content */}
+            <main className="flex-1 w-full px-4 lg:px-8 py-6 space-y-6 pb-24 md:pb-12 max-w-5xl">
+
+              {activeTab === 'home' && (
+                <div className="animate-fadeIn">
+                  <StatsOverview
+                    onQuickAction={handleQuickActionFromHome}
+                    onViewEvaluation={(evalItem) => setActiveEvaluationResult(evalItem)}
+                    onOpenFlashcards={() => setShowFlashcardsModal(true)}
+                    onOpenMainsNotes={() => setShowMainsNotesModal(true)}
+                  />
                 </div>
               )}
-            </div>
-          )}
 
-          {activeTab === 'history' && (
-            <div className="animate-fadeIn">
-              <TestHistory onViewReport={setActiveEvaluationResult} onGoBack={handleResetToHome} />
-            </div>
-          )}
+              {activeTab === 'evaluate' && (
+                <div className="space-y-5 animate-fadeIn">
+                  {!selectedPaper ? (
+                    <>
+                      <ExamSelector />
+                      <PaperSelector onSelectPaper={setSelectedPaper} />
+                    </>
+                  ) : (
+                    <div className="space-y-5">
+                      <button
+                        onClick={() => setSelectedPaper(null)}
+                        className="glass-card-clean px-3.5 py-2 rounded-xl border border-white/40 text-xs font-bold flex items-center gap-1.5 transition-all hover:border-white/70"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
+                        {isHi ? 'à¤ªà¥‡à¤ªà¤° à¤šà¤¯à¤¨ à¤ªà¤° à¤µà¤¾à¤ªà¤¸' : 'Back to Paper Selection'}
+                      </button>
+                      <ModeSelector />
+                      {activeMode === 'ai_gen'
+                        ? <AiQuestionGenerator onAttemptQuestion={setSelectedAttemptQuestion} onGoBack={() => setSelectedPaper(null)} />
+                        : <ManualQuestionBank onAttemptQuestion={setSelectedAttemptQuestion} onOpenAdmin={() => setShowAdminModal(true)} onGoBack={() => setSelectedPaper(null)} />
+                      }
+                    </div>
+                  )}
+                </div>
+              )}
 
-          {activeTab === 'insights' && (
-            <div className="animate-fadeIn">
-              <InsightsView />
-            </div>
-          )}
+              {activeTab === 'history' && (
+                <div className="animate-fadeIn">
+                  <TestHistory onViewReport={setActiveEvaluationResult} onGoBack={handleResetToHome} />
+                </div>
+              )}
 
-          {activeTab === 'profile' && (
-            <div className="animate-fadeIn">
-              <ProfileView onOpenSubscription={() => setShowPayModal(true)} onOpenSettings={() => setShowApiKeyModal(true)} />
-            </div>
-          )}
+              {activeTab === 'insights' && (
+                <div className="animate-fadeIn">
+                  <InsightsView />
+                </div>
+              )}
 
-        </main>
+              {activeTab === 'profile' && (
+                <div className="animate-fadeIn">
+                  <ProfileView onOpenSubscription={() => openPayModal(true)} onOpenSettings={() => setShowApiKeyModal(true)} />
+                </div>
+              )}
 
-        {/* Footer */}
-        <footer className="max-w-6xl mx-auto w-full px-4 lg:px-8 py-5 border-t text-center text-xs font-medium"
-          style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}>
-          <div className="flex items-center justify-center gap-1.5">
-            <span>Made with</span>
-            <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-            <span>for UPSC & BPSC Aspirants • Gemini Vision AI Evaluation</span>
+            </main>
+
+            {/* Footer */}
+            <footer
+              className="w-full px-4 lg:px-8 py-5 border-t text-center text-xs font-medium"
+              style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
+            >
+              <div className="flex items-center justify-center gap-1.5">
+                <span>Made with</span>
+                <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
+                <span>for UPSC &amp; BPSC Aspirants â€¢ Gemini Vision AI Evaluation</span>
+              </div>
+            </footer>
+
           </div>
-        </footer>
+        </div>
 
         {/* Mobile Bottom Dock */}
         <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 
-      {/* ── Modals ── */}
+
+      {/* â”€â”€ Modals â”€â”€ */}
       <ApiKeyModal isOpen={showApiKeyModal} onClose={() => setShowApiKeyModal(false)} />
       <AdminQuestionUpload isOpen={showAdminModal} onClose={() => setShowAdminModal(false)} />
       <TeacherReviewQueue isOpen={showTeacherModal} onClose={() => setShowTeacherModal(false)} />
@@ -228,7 +225,7 @@ function MainAppContent() {
           setSelectedPaper(null);
         }}
       />
-      <SubscriptionModal isOpen={showPayModal} onClose={() => setShowPayModal(false)} />
+      <SubscriptionModal />
       <AiFlashcardsModal isOpen={showFlashcardsModal} onClose={() => setShowFlashcardsModal(false)} />
       <AiMainsNotesModal isOpen={showMainsNotesModal} onClose={() => setShowMainsNotesModal(false)} />
 
@@ -276,3 +273,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

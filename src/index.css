@@ -727,3 +727,38 @@ html, body {
   }
 }
 
+/* ── Student Hero Float Animation ── */
+@keyframes studentFloat {
+  0%   { transform: translateY(0px) scale(1); }
+  25%  { transform: translateY(-8px) scale(1.005); }
+  50%  { transform: translateY(-14px) scale(1.008); }
+  75%  { transform: translateY(-6px) scale(1.003); }
+  100% { transform: translateY(0px) scale(1); }
+}
+
+/* ── Sidebar layout height fix ── */
+.content-layer {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-layer > .flex.flex-1 {
+  height: calc(100vh - 56px); /* navbar height */
+  overflow: hidden;
+}
+
+/* Ensure sidebar scrolls content independently */
+.content-layer .overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.content-layer .overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+.content-layer .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.content-layer .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+}
