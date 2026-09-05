@@ -235,28 +235,28 @@ export function AuthModal({ isFullScreen = false }) {
 
       {/* ── Top Bar / Header ── */}
       <header className="relative z-10 w-full px-6 lg:px-12 py-5 flex items-center justify-between">
-        {/* Brand Logo & Subtitle */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/25 border border-white/60">
+        {/* Brand Logo & Subtitle — High-Contrast Acrylic Badge */}
+        <div className="flex items-center gap-3 bg-slate-950/70 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/20 shadow-xl">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/40 border border-white/40">
             {/* Custom Stylized Dual-Page Book Icon */}
-            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-white" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-white" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
             </svg>
           </div>
           <div>
-            <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 leading-none m-0 drop-shadow-sm">
+            <h1 className="text-base sm:text-lg font-black tracking-tight text-white leading-none m-0 drop-shadow-md">
               AI Mains Evaluator
             </h1>
-            <p className="text-[10px] sm:text-[11px] font-bold text-slate-600 tracking-wider uppercase mt-1 m-0">
-              Evaluate · Learn · Excel
+            <p className="text-[11px] sm:text-[12px] font-black text-cyan-400 tracking-wider uppercase mt-1 m-0 drop-shadow-sm">
+              EVALUATE · LEARN · EXCEL
             </p>
           </div>
         </div>
 
         {/* Top Right Tagline */}
-        <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-700/90 tracking-wide bg-white/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/60 shadow-sm">
-          <span className="text-blue-600">—</span>
-          <span>For a Better, More Informed Bharat</span>
+        <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-white tracking-wide bg-slate-950/70 backdrop-blur-xl px-4 py-2.5 rounded-full border border-white/20 shadow-xl">
+          <span className="text-cyan-400 font-black">—</span>
+          <span className="text-slate-100">For a Better, More Informed Bharat</span>
         </div>
       </header>
 
@@ -266,72 +266,73 @@ export function AuthModal({ isFullScreen = false }) {
         {/* ── LEFT COLUMN: Hero Headline, Value Pillars & Study Quote ── */}
         <div className="lg:col-span-6 xl:col-span-7 flex flex-col justify-center space-y-6 lg:space-y-8 pr-0 lg:pr-4">
 
-          {/* Big Punchy Headline */}
+          {/* Big Punchy Headline with High-Contrast Light Colors */}
           <div className="space-y-2">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.12] m-0 drop-shadow-sm">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.12] m-0 drop-shadow-[0_4px_12px_rgba(0,0,0,0.85)]">
               Practice Smarter
               <br />
-              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-400 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(56,189,248,0.5)]">
                 Score Higher
               </span>
             </h2>
-            <p className="text-xs sm:text-sm lg:text-base font-semibold text-slate-700 max-w-lg leading-relaxed m-0 pt-1 drop-shadow-sm">
+            <p className="text-sm sm:text-base font-bold text-slate-100 max-w-lg leading-relaxed m-0 pt-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
               AI-powered answer evaluation for BPSC, UPSC and beyond.
             </p>
           </div>
 
-          {/* 3 Core Feature Badges (Matching Image 1) */}
+          {/* 3 Core Feature Badges (High Contrast Acrylic Dark Glass) */}
           <div className="space-y-3.5 max-w-md">
             {/* 1. AI Evaluation */}
-            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-white/65 hover:bg-white/85 backdrop-blur-md border border-white/80 shadow-sm transition-all duration-200">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 flex items-center justify-center shrink-0 text-blue-600 shadow-sm">
+            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-950/70 hover:bg-slate-950/85 backdrop-blur-xl border border-white/20 shadow-xl transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 border border-cyan-400/40 flex items-center justify-center shrink-0 text-white shadow-md shadow-blue-500/30">
                 <Cpu className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-black text-slate-900 m-0">
+                <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition-colors m-0">
                   AI Evaluation
                 </h3>
-                <p className="text-[11px] sm:text-xs font-medium text-slate-600 m-0">
+                <p className="text-[11px] sm:text-xs font-semibold text-slate-200 m-0">
                   Get detailed, structured feedback
                 </p>
               </div>
             </div>
 
             {/* 2. Performance Insights */}
-            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-white/65 hover:bg-white/85 backdrop-blur-md border border-white/80 shadow-sm transition-all duration-200">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 border border-indigo-500/30 flex items-center justify-center shrink-0 text-indigo-600 shadow-sm">
+            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-950/70 hover:bg-slate-950/85 backdrop-blur-xl border border-white/20 shadow-xl transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 border border-purple-400/40 flex items-center justify-center shrink-0 text-white shadow-md shadow-purple-500/30">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-black text-slate-900 m-0">
+                <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition-colors m-0">
                   Performance Insights
                 </h3>
-                <p className="text-[11px] sm:text-xs font-medium text-slate-600 m-0">
+                <p className="text-[11px] sm:text-xs font-semibold text-slate-200 m-0">
                   Track progress &amp; improve faster
                 </p>
               </div>
             </div>
 
             {/* 3. Built for Aspirants */}
-            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-white/65 hover:bg-white/85 backdrop-blur-md border border-white/80 shadow-sm transition-all duration-200">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 flex items-center justify-center shrink-0 text-purple-600 shadow-sm">
+            <div className="flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl bg-slate-950/70 hover:bg-slate-950/85 backdrop-blur-xl border border-white/20 shadow-xl transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 border border-pink-400/40 flex items-center justify-center shrink-0 text-white shadow-md shadow-pink-500/30">
                 <BookOpen className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-black text-slate-900 m-0">
+                <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition-colors m-0">
                   Built for Aspirants
                 </h3>
-                <p className="text-[11px] sm:text-xs font-medium text-slate-600 m-0">
+                <p className="text-[11px] sm:text-xs font-semibold text-slate-200 m-0">
                   Made for serious learners of BPSC, UPSC
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Inspirational Study Quote */}
+          {/* Inspirational Study Quote (Golden Luminous Badge) */}
           <div className="pt-2">
-            <div className="inline-block px-4 py-2.5 rounded-2xl bg-slate-900/10 backdrop-blur-md border border-slate-900/10">
-              <p className="text-xs sm:text-sm italic font-bold text-slate-800 tracking-wide m-0">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-950/75 backdrop-blur-xl border border-amber-400/40 shadow-xl shadow-black/40">
+              <span className="text-amber-400 text-sm">✨</span>
+              <p className="text-xs sm:text-sm italic font-extrabold text-amber-200 tracking-wide m-0 drop-shadow-sm">
                 &ldquo;Discipline Today · A Brighter Bharat Tomorrow&rdquo;
               </p>
             </div>
@@ -739,8 +740,8 @@ export function AuthModal({ isFullScreen = false }) {
       </main>
 
       {/* ── Bottom Footer Bar (Matching Image 1) ── */}
-      <footer className="relative z-10 w-full px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600/90 bg-white/40 backdrop-blur-md border-t border-white/60">
-        <div className="flex items-center gap-2 text-[11px] sm:text-xs">
+      <footer className="relative z-10 w-full px-6 lg:px-12 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-slate-200 bg-slate-950/75 backdrop-blur-xl border-t border-white/15 shadow-2xl">
+        <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-300">
           <span>Learn</span>
           <span className="opacity-40">|</span>
           <span>Practice</span>
@@ -750,20 +751,20 @@ export function AuthModal({ isFullScreen = false }) {
           <span>Grow</span>
         </div>
 
-        <div className="text-[11px] sm:text-xs text-slate-500 font-medium">
+        <div className="text-[11px] sm:text-xs text-slate-400 font-semibold">
           &copy; 2024–2026 AI Mains Evaluator. All rights reserved.
         </div>
 
         <div className="flex items-center gap-3 text-[11px] sm:text-xs">
-          <a href="#privacy" onClick={(e) => { e.preventDefault(); alert('UPSC/BPSC Mains AI strictly adheres to data privacy standards.'); }} className="hover:text-blue-600 transition-colors">
+          <a href="#privacy" onClick={(e) => { e.preventDefault(); alert('UPSC/BPSC Mains AI strictly adheres to data privacy standards.'); }} className="text-slate-300 hover:text-cyan-400 transition-colors">
             Privacy
           </a>
           <span className="opacity-40">|</span>
-          <a href="#terms" onClick={(e) => { e.preventDefault(); alert('Terms of Service: For UPSC and State PCS exam preparation.'); }} className="hover:text-blue-600 transition-colors">
+          <a href="#terms" onClick={(e) => { e.preventDefault(); alert('Terms of Service: For UPSC and State PCS exam preparation.'); }} className="text-slate-300 hover:text-cyan-400 transition-colors">
             Terms
           </a>
           <span className="opacity-40">|</span>
-          <a href="#support" onClick={(e) => { e.preventDefault(); alert('Contact: support@mainsai.edu or watch official YouTube channel.'); }} className="hover:text-blue-600 transition-colors">
+          <a href="#support" onClick={(e) => { e.preventDefault(); alert('Contact: support@mainsai.edu or watch official YouTube channel.'); }} className="text-slate-300 hover:text-cyan-400 transition-colors">
             Support
           </a>
         </div>
