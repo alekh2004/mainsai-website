@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -11,6 +11,14 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  collection,
+  addDoc
+} from 'firebase/firestore';
 
 const AuthContext = createContext();
 const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
@@ -36,19 +44,34 @@ export function AuthProvider({ children }) {
   const [showPayModal, setShowPayModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // ── Listen to Firebase Auth state ─────────────────────────────────────
+  // ── Listen to Firebase Auth state & sync with Firestore ───────────────
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Load profile from localStorage
+        // 1. Immediate local cache load for zero UI latency
         const students = getStudents();
-        const profile = students[firebaseUser.uid];
+        let profile = students[firebaseUser.uid];
         if (profile) {
           setUser(profile);
-        } else {
-          // Firebase session exists but no local profile — sign out cleanly
-          signOut(auth);
-          setUser(null);
+        }
+
+        // 2. Fetch latest from Cloud Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            profile = { ...profile, ...userDoc.data() };
+            students[firebaseUser.uid] = profile;
+            saveStudents(students);
+            setUser(profile);
+          } else {
+            // Document doesn't exist in Firestore yet, sync it up
+            profile = await saveStudentProfile(firebaseUser, profile || {});
+          }
+        } catch (err) {
+          console.warn('Firestore user fetch fallback:', err);
+          if (!profile) {
+            profile = await saveStudentProfile(firebaseUser);
+          }
         }
       } else {
         setUser(null);
@@ -58,23 +81,23 @@ export function AuthProvider({ children }) {
     return () => unsub();
   }, []);
 
-  // ── Create & save student profile to localStorage ─────────────────────
-  const saveStudentProfile = (firebaseUser, extra = {}) => {
+  // ── Create & save student profile to localStorage & Firestore ────────
+  const saveStudentProfile = async (firebaseUser, extra = {}) => {
     const students = getStudents();
     const existing = students[firebaseUser.uid];
 
     const profile = {
       uid: firebaseUser.uid,
-      name: firebaseUser.displayName || extra.name || 'Aspirant Student',
-      email: firebaseUser.email || extra.email || '',
-      phone: firebaseUser.phoneNumber || extra.phone || '',
+      name: firebaseUser.displayName || extra.name || existing?.name || 'Aspirant Student',
+      email: firebaseUser.email || extra.email || existing?.email || '',
+      phone: firebaseUser.phoneNumber || extra.phone || existing?.phone || '',
       photoURL: firebaseUser.photoURL || '',
-      loginType: extra.loginType || 'email',
-      avatar: extra.avatar || '👨‍🎓',
-      role: 'student',
-      plan: 'pro',
-      evaluationsLeft: 9999,
-      teacherReviewsLeft: 5,
+      loginType: extra.loginType || existing?.loginType || 'email',
+      avatar: extra.avatar || existing?.avatar || '👨‍🎓',
+      role: existing?.role || 'student',
+      plan: existing?.plan || 'pro',
+      evaluationsLeft: existing?.evaluationsLeft ?? 9999,
+      teacherReviewsLeft: existing?.teacherReviewsLeft ?? 5,
       verificationStatus: 'approved',
       createdAt: existing?.createdAt || new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
@@ -103,6 +126,14 @@ export function AuthProvider({ children }) {
     }
 
     setUser(profile);
+
+    // Persist to Cloud Firestore
+    try {
+      await setDoc(doc(db, 'users', firebaseUser.uid), profile, { merge: true });
+    } catch (e) {
+      console.warn('Firestore setDoc user profile fallback:', e);
+    }
+
     return profile;
   };
 
@@ -215,7 +246,7 @@ export function AuthProvider({ children }) {
     setAdminInbox(inbox);
   };
 
-  const switchRole = (newRole) => {
+  const switchRole = async (newRole) => {
     if (!user) return;
     const updated = { ...user, role: newRole };
     setUser(updated);
@@ -224,6 +255,11 @@ export function AuthProvider({ children }) {
       students[user.uid].role = newRole;
       saveStudents(students);
     }
+    try {
+      await updateDoc(doc(db, 'users', user.uid), { role: newRole });
+    } catch (e) {
+      console.warn('Firestore switchRole fallback:', e);
+    }
   };
 
   const updateApiKey = (key) => {
@@ -231,8 +267,49 @@ export function AuthProvider({ children }) {
     localStorage.setItem('gemini_api_key', key || DEFAULT_API_KEY);
   };
 
-  const upgradePlan = (planName) => {
-    setUser(prev => prev ? { ...prev, plan: planName } : prev);
+  const upgradePlan = async (planName, paymentMeta = {}) => {
+    if (!user) return;
+    const updated = {
+      ...user,
+      plan: planName,
+      planUpdatedAt: new Date().toISOString()
+    };
+    setUser(updated);
+
+    // 1. Save to local cache
+    const students = getStudents();
+    if (students[user.uid]) {
+      students[user.uid] = updated;
+      saveStudents(students);
+    }
+
+    // 2. Save to Cloud Firestore users collection
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        plan: planName,
+        planUpdatedAt: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn('Firestore user plan update fallback:', e);
+    }
+
+    // 3. Record subscription transaction in Firestore subscriptions collection
+    try {
+      const subRecord = {
+        userId: user.uid,
+        userName: user.name || '',
+        userEmail: user.email || '',
+        userPhone: user.phone || '',
+        plan: planName,
+        amount: planName === 'ultimate' ? 999 : planName === 'pro' ? 499 : 0,
+        paymentMethod: paymentMeta.method || 'upi',
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
+      await addDoc(collection(db, 'subscriptions'), subRecord);
+    } catch (e) {
+      console.warn('Firestore subscription record fallback:', e);
+    }
   };
 
   const loginAsDemo = (role = 'student', customName = 'Aspirant Student') => {

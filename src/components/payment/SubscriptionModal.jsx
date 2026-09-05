@@ -19,7 +19,7 @@ export function SubscriptionModal() {
 
     setTimeout(() => {
       setIsProcessing(false);
-      upgradePlan(selectedPlan);
+      upgradePlan(selectedPlan, { method: paymentMethod });
       setPaySuccess(true);
 
       confetti({

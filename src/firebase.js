@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZj4rgMjvRKVZwWJwibqJUt_QU5_RTLSM",
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 // Use localStorage persistence so session survives page refresh
 setPersistence(auth, browserLocalPersistence).catch(() => {});

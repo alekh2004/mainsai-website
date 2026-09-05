@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
+import { db } from '../firebase';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 const AppContext = createContext();
 
@@ -111,6 +113,7 @@ export function AppProvider({ children }) {
     const storageKey = getEvaluationStorageKey(currentUid);
     loadedUidRef.current = currentUid;
 
+    // 1. Immediate local cache load for zero UI latency
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -124,6 +127,35 @@ export function AppProvider({ children }) {
       setEvaluations([]);
     }
     isInitialLoadRef.current = true;
+
+    // 2. Fetch latest from Cloud Firestore
+    if (currentUid) {
+      (async () => {
+        try {
+          const q = query(
+            collection(db, 'evaluations'),
+            where('userId', '==', currentUid)
+          );
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            const cloudEvals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setEvaluations(prev => {
+              const map = new Map();
+              cloudEvals.forEach(e => map.set(e.id, e));
+              prev.forEach(e => {
+                if (!map.has(e.id)) map.set(e.id, e);
+              });
+              const merged = Array.from(map.values()).sort(
+                (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+              );
+              return purgeExpiredUploads(merged);
+            });
+          }
+        } catch (cloudErr) {
+          console.warn('Firestore evaluations sync fallback:', cloudErr);
+        }
+      })();
+    }
   }, [user?.uid]);
 
   // Persist evaluations whenever evaluations change, for the currently active user
@@ -162,6 +194,21 @@ export function AppProvider({ children }) {
       ...evalObj
     };
     setEvaluations(prev => purgeExpiredUploads([newEval, ...prev]));
+
+    // Sync to Cloud Firestore (strip big raw binary/base64 to stay well below Firestore's 1MB document limit)
+    if (user?.uid) {
+      try {
+        const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = newEval;
+        setDoc(doc(db, 'evaluations', newEval.id), {
+          ...cloudData,
+          hasUploadedFile: !!uploadedFileBase64,
+          syncedAt: new Date().toISOString()
+        }).catch(err => console.warn('Firestore evaluation upload fallback:', err));
+      } catch (e) {
+        console.warn('Firestore evaluation upload error:', e);
+      }
+    }
+
     return newEval;
   };
 
@@ -309,6 +356,18 @@ export function AppProvider({ children }) {
 
     setTeacherQueue(prev => [newQueueItem, ...prev]);
 
+    // Persist to Cloud Firestore teacherQueue collection
+    try {
+      const { uploadedFileBase64, annotatedFileBase64, ...cloudQueueData } = newQueueItem;
+      setDoc(doc(db, 'teacherQueue', newQueueItem.id), {
+        ...cloudQueueData,
+        hasUploadedFile: !!uploadedFileBase64,
+        syncedAt: new Date().toISOString()
+      }).catch(err => console.warn('Firestore teacherQueue upload fallback:', err));
+    } catch (e) {
+      console.warn('Firestore teacherQueue error:', e);
+    }
+
     // Also save in student's evaluations history as pending
     saveEvaluationResult({
       ...evalObj,
@@ -367,6 +426,19 @@ export function AppProvider({ children }) {
       }
       return ev;
     }));
+
+    // Update Cloud Firestore teacherQueue
+    try {
+      updateDoc(doc(db, 'teacherQueue', queueId), {
+        status: 'reviewed',
+        score,
+        feedback: feedback || '',
+        scoreBreakdown: scoreBreakdown || {},
+        reviewedAt: new Date().toISOString()
+      }).catch(err => console.warn('Firestore teacherQueue update fallback:', err));
+    } catch (e) {
+      console.warn('Firestore teacherQueue update error:', e);
+    }
 
     // Notify student that copy is evaluated
     addNotification({
