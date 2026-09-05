@@ -22,6 +22,16 @@ function isFileValid(evalItem) {
   return Date.now() < evalItem.uploadExpiresAt;
 }
 
+function formatDateSafe(val) {
+  if (!val) return 'Recent';
+  try {
+    const d = typeof val?.toDate === 'function' ? val.toDate() : (val?.seconds ? new Date(val.seconds * 1000) : new Date(val));
+    return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString('en-IN');
+  } catch (e) {
+    return 'Recent';
+  }
+}
+
 export function TestHistory({ onViewReport, onGoBack }) {
   const { evaluations, language } = useApp();
   const isHi = language === 'hi';
@@ -110,7 +120,7 @@ export function TestHistory({ onViewReport, onGoBack }) {
                   </span>
                   <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {new Date(item.createdAt).toLocaleDateString('en-IN')}
+                    {formatDateSafe(item.createdAt)}
                   </span>
                 </div>
                 <h4 className="text-sm font-extrabold text-slate-800 m-0 truncate group-hover:text-blue-700 transition-colors">

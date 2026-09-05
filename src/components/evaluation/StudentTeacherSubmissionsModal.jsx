@@ -6,6 +6,16 @@ import {
   ArrowRight, ShieldCheck, Sparkles, BookOpen, UserCheck
 } from 'lucide-react';
 
+function formatDateSafe(val) {
+  if (!val) return 'Recent';
+  try {
+    const d = typeof val?.toDate === 'function' ? val.toDate() : (val?.seconds ? new Date(val.seconds * 1000) : new Date(val));
+    return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } catch (e) {
+    return 'Recent';
+  }
+}
+
 export function StudentTeacherSubmissionsModal({ isOpen, onClose, onViewCheckedResult, onOpenSubmitModal }) {
   const { user } = useAuth();
   const { teacherQueue = [], evaluations = [], language, activeExam } = useApp();
@@ -187,7 +197,7 @@ export function StudentTeacherSubmissionsModal({ isOpen, onClose, onViewCheckedR
                         </span>
                       )}
                       <span className="text-[10px] font-mono opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                        {new Date(item.submittedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        {formatDateSafe(item.submittedAt)}
                       </span>
                     </div>
 

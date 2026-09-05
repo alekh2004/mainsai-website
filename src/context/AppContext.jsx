@@ -212,46 +212,79 @@ export function AppProvider({ children }) {
     return newEval;
   };
 
-  // ── Computed insights helpers ──
+  // ── Computed insights helpers (Crash-proof against NaN, missing properties, or invalid dates) ──
   const getInsightsData = () => {
-    const evals = evaluations.filter(e => e.score != null);
-    if (!evals.length) return null;
+    try {
+      const evals = (evaluations || []).filter(e => e && e.score != null);
+      if (!evals.length) return null;
 
-    const avgPct = Math.round(evals.reduce((s, e) => s + (e.percentage || (e.score / e.maxMarks * 100)), 0) / evals.length);
-    const best = evals.reduce((a, b) => (b.percentage || 0) > (a.percentage || 0) ? b : a, evals[0]);
-    const weakest = evals.reduce((a, b) => (b.percentage || 100) < (a.percentage || 100) ? b : a, evals[0]);
+      const calcPct = (e) => {
+        if (typeof e.percentage === 'number' && !isNaN(e.percentage)) {
+          return Math.max(0, Math.min(100, Math.round(e.percentage)));
+        }
+        const s = Number(e.score) || 0;
+        const m = Number(e.maxMarks) || 15;
+        return m > 0 ? Math.max(0, Math.min(100, Math.round((s / m) * 100))) : 0;
+      };
 
-    // Group by paper
-    const byPaper = {};
-    evals.forEach(e => {
-      const key = e.paper || 'Unknown';
-      if (!byPaper[key]) byPaper[key] = { scores: [], titles: [] };
-      byPaper[key].scores.push(e.percentage || Math.round(e.score / e.maxMarks * 100));
-      byPaper[key].titles.push(e.questionTitle);
-    });
+      const sumPct = evals.reduce((s, e) => s + calcPct(e), 0);
+      const avgPct = Math.round(sumPct / evals.length) || 0;
+      const best = evals.reduce((a, b) => calcPct(b) > calcPct(a) ? b : a, evals[0]);
+      const weakest = evals.reduce((a, b) => calcPct(b) < calcPct(a) ? b : a, evals[0]);
 
-    // Trend over last 10
-    const trend = evals.slice(0, 10).reverse().map((e, i) => ({
-      index: i + 1,
-      date: new Date(e.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-      pct: e.percentage || Math.round(e.score / e.maxMarks * 100),
-      tag: e.tag,
-      questionTitle: e.questionTitle
-    }));
-
-    // Missed demand points frequency
-    const missedFreq = {};
-    evals.forEach(e => {
-      (e.missedDemandPoints || []).forEach(p => {
-        missedFreq[p] = (missedFreq[p] || 0) + 1;
+      // Group by paper
+      const byPaper = {};
+      evals.forEach(e => {
+        const key = e.paper || 'GS';
+        if (!byPaper[key]) byPaper[key] = { scores: [], titles: [] };
+        byPaper[key].scores.push(calcPct(e));
+        byPaper[key].titles.push(e.questionTitle || 'Test');
       });
-    });
-    const topMissed = Object.entries(missedFreq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([point, count]) => ({ point, count }));
 
-    return { avgPct, best, weakest, byPaper, trend, topMissed, totalTests: evals.length };
+      // Trend over last 10
+      const trend = evals.slice(0, 10).reverse().map((e, i) => {
+        let dateStr = 'Recent';
+        try {
+          if (e.createdAt) {
+            let d;
+            if (typeof e.createdAt?.toDate === 'function') {
+              d = e.createdAt.toDate();
+            } else if (e.createdAt?.seconds) {
+              d = new Date(e.createdAt.seconds * 1000);
+            } else {
+              d = new Date(e.createdAt);
+            }
+            if (!isNaN(d.getTime())) {
+              dateStr = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+            }
+          }
+        } catch (_) {}
+        return {
+          index: i + 1,
+          date: dateStr,
+          pct: calcPct(e),
+          tag: e.tag || 'Checked',
+          questionTitle: e.questionTitle || 'Test'
+        };
+      });
+
+      // Missed demand points frequency
+      const missedFreq = {};
+      evals.forEach(e => {
+        (e.missedDemandPoints || []).forEach(p => {
+          if (p) missedFreq[p] = (missedFreq[p] || 0) + 1;
+        });
+      });
+      const topMissed = Object.entries(missedFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([point, count]) => ({ point, count }));
+
+      return { avgPct, best, weakest, byPaper, trend, topMissed, totalTests: evals.length };
+    } catch (err) {
+      console.warn('Error computing insights:', err);
+      return null;
+    }
   };
 
   // ── Notifications System ──

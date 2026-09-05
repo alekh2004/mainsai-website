@@ -22,6 +22,16 @@ function ScoreBar({ pct, color = 'blue' }) {
   );
 }
 
+function formatDateSafe(val) {
+  if (!val) return 'Recent';
+  try {
+    const d = typeof val?.toDate === 'function' ? val.toDate() : (val?.seconds ? new Date(val.seconds * 1000) : new Date(val));
+    return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
+  } catch (e) {
+    return 'Recent';
+  }
+}
+
 // Mini sparkline SVG
 function SparkLine({ data }) {
   if (!data || data.length < 2) return null;
@@ -282,7 +292,7 @@ export function InsightsView() {
                     {e.paper}
                   </span>
                   <span className="text-[10px] font-mono" style={{ color: 'var(--text-secondary)' }}>
-                    {new Date(e.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
+                    {formatDateSafe(e.createdAt)}
                   </span>
                   <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg ${tagBadge(e.tag)}`}>{e.tag}</span>
                 </div>

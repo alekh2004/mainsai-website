@@ -15,16 +15,36 @@ function tagBadge(tag) {
   return 'badge-poor';
 }
 
+function formatDateSafe(val) {
+  if (!val) return 'Recently';
+  try {
+    let d;
+    if (typeof val?.toDate === 'function') {
+      d = val.toDate();
+    } else if (val?.seconds) {
+      d = new Date(val.seconds * 1000);
+    } else {
+      d = new Date(val);
+    }
+    if (isNaN(d.getTime())) return 'Recently';
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  } catch (e) {
+    return 'Recently';
+  }
+}
+
 // YouTube & Upcoming Features widget — replaces the complex bottom teacher section
 function AnnouncementsWidget({ isHi }) {
   const YOUTUBE_URL = 'https://www.youtube.com/@UPSCBPSCMainsAI'; // placeholder — user will update
 
   return (
     <div className="rounded-3xl glass-card-clean border border-white/80 overflow-hidden">
-      {/* YouTube section */}
-      <div
-        className="p-5 cursor-pointer group transition-all hover:bg-red-500/5"
-        onClick={() => window.open(YOUTUBE_URL, '_blank', 'noopener')}
+      {/* YouTube section — standard anchor tag prevents mobile webview crashes */}
+      <a
+        href={YOUTUBE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="p-5 cursor-pointer group transition-all hover:bg-red-500/5 block no-underline"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.3)' }}
       >
         <div className="flex items-center gap-4">
@@ -48,7 +68,7 @@ function AnnouncementsWidget({ isHi }) {
             <ArrowRight className="w-5 h-5" />
           </div>
         </div>
-      </div>
+      </a>
 
       {/* Upcoming features / new batch */}
       <div className="p-5">
@@ -108,14 +128,15 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
   const isHi = language === 'hi';
 
   const insights = getInsightsData();
-  const realEvals = evaluations || [];
+  const realEvals = Array.isArray(evaluations) ? evaluations : [];
   const recentList = realEvals.slice(0, 3);
 
   const totalCount = realEvals.length;
-  const avgPct = insights?.avgPct ?? 0;
+  const rawAvgPct = insights?.avgPct ?? 0;
+  const safeAvgPct = Math.max(0, Math.min(100, Math.round(Number(rawAvgPct) || 0)));
   const percentile = totalCount === 0
     ? '—'
-    : (avgPct >= 75 ? 'Top 5%' : avgPct >= 65 ? 'Top 15%' : avgPct >= 50 ? 'Top 35%' : 'Top 50%');
+    : (safeAvgPct >= 75 ? 'Top 5%' : safeAvgPct >= 65 ? 'Top 15%' : safeAvgPct >= 50 ? 'Top 35%' : 'Top 50%');
 
   return (
     <div className="w-full space-y-5 animate-fadeIn">
@@ -130,13 +151,13 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
               <path strokeWidth="3.5" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 style={{ color: 'var(--text-secondary)', opacity: 0.2 }} />
-              <path strokeDasharray={`${avgPct}, 100`} strokeWidth="3.5" strokeLinecap="round"
+              <path strokeDasharray={`${safeAvgPct}, 100`} strokeWidth="3.5" strokeLinecap="round"
                 stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 style={{ color: 'rgb(var(--accent))' }} />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-lg font-black" style={{ color: 'rgb(var(--accent))' }}>{avgPct}%</span>
+              <span className="text-lg font-black" style={{ color: 'rgb(var(--accent))' }}>{safeAvgPct}%</span>
               <span className="text-[9px] font-bold uppercase opacity-60" style={{ color: 'var(--text-secondary)' }}>Score</span>
             </div>
           </div>
@@ -307,8 +328,8 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
           </div>
         ) : (
           <div className="space-y-2">
-            {recentList.map((item) => (
-              <div key={item.id} onClick={() => onViewEvaluation?.(item)}
+            {recentList.map((item, idx) => (
+              <div key={item.id || item.queueId || `eval-${idx}`} onClick={() => onViewEvaluation?.(item)}
                 className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 flex items-center justify-between gap-3 cursor-pointer group">
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -317,7 +338,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
                       {item.paper || 'GS'}
                     </span>
                     <span className="text-[10px] opacity-60 font-mono" style={{ color: 'var(--text-secondary)' }}>
-                      {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                      {formatDateSafe(item.createdAt)}
                     </span>
                   </div>
                   <h5 className="text-xs font-extrabold m-0 truncate group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>

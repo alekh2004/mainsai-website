@@ -73,10 +73,20 @@
    NEON UNIVERSE 3D GLASSMORPHIC BACKGROUND
 ════════════════════════════════════════════════ */
 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 .app-root {
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
 }
@@ -116,17 +126,79 @@
   100% { transform: translateY(20%) rotate(3deg); }
 }
 
-/* ── Mobile: disable heavy animations that cause white flash & repaint ── */
-@media (max-width: 768px) {
-  .neon-orb { animation: none !important; will-change: auto !important; }
-  .neon-scanline { animation: none !important; display: none !important; }
-  .radar-scanner { animation: none !important; }
-  .pulse-ring, .pulse-ring-inner, .pulse-ring-slow { animation: none !important; }
-  .cyber-arc { animation: none !important; }
-  .worldmap-svg { animation: none !important; }
-  .neon-universe::before { animation: none !important; }
-  .aurora-wave { animation: none !important; }
-  .india-continent-glow { animation: none !important; }
+/* ── Mobile & Touch Hardware Optimization (Eliminates GPU crashes, whiteout, and tap lag) ── */
+@media (max-width: 1024px), (pointer: coarse), (hover: none) {
+  /* 1. Turn off heavy blurred radial gradient orbs (80px blur) to prevent GPU memory exhaustion */
+  .neon-orb {
+    display: none !important;
+    animation: none !important;
+    filter: none !important;
+    will-change: auto !important;
+  }
+
+  /* 2. Disable SVG feGaussianBlur and continuous vector animations */
+  .continents-group {
+    filter: none !important;
+  }
+
+  .worldmap-svg {
+    filter: none !important;
+    animation: none !important;
+  }
+
+  /* 3. Disable continuous rendering loops on mobile/touch */
+  .neon-scanline {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .radar-scanner {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .pulse-ring, .pulse-ring-inner, .pulse-ring-slow {
+    animation: none !important;
+  }
+
+  .cyber-arc {
+    animation: none !important;
+  }
+
+  .neon-universe::before {
+    animation: none !important;
+    opacity: 0.25 !important;
+  }
+
+  .aurora-wave {
+    animation: none !important;
+    filter: none !important;
+    display: none !important;
+  }
+
+  .india-continent-glow {
+    animation: none !important;
+  }
+
+  /* 4. Cap glass blur at lightweight 8px so mobile WebKit/Blink does not crash */
+  :root, .theme-dark, .theme-medium, .glass-intensity-med, .glass-intensity-high {
+    --glass-blur: 8px !important;
+  }
+
+  .glass-card-clean {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .glass-bottom-nav {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* 5. Mobile viewport height fix */
+  .app-root {
+    min-height: 100dvh !important;
+  }
 }
 /* ── Reduced motion preference ── */
 @media (prefers-reduced-motion: reduce) {
