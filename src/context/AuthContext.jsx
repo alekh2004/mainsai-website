@@ -235,11 +235,11 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, plan: planName } : prev);
   };
 
-  const loginAsDemo = (role = 'student', customName = 'Jasmeet (Aspirant)') => {
+  const loginAsDemo = (role = 'student', customName = 'Aspirant Student') => {
     const demoUser = {
       uid: `user_${Date.now()}`,
       name: role === 'teacher' ? 'Faculty Senior Examiner' : customName,
-      email: role === 'teacher' ? 'faculty@mainsai.edu' : 'jasmeet@mainsai.edu',
+      email: role === 'teacher' ? 'faculty@mainsai.edu' : 'aspirant@mainsai.edu',
       phone: '+91 9876543210',
       photoURL: '',
       loginType: 'instant',
