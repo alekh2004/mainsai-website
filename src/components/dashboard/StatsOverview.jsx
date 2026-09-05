@@ -112,8 +112,10 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
   const recentList = realEvals.slice(0, 3);
 
   const totalCount = realEvals.length;
-  const avgPct = insights?.avgPct ?? (totalCount > 0 ? 68 : 0);
-  const percentile = avgPct >= 75 ? 'Top 5%' : avgPct >= 65 ? 'Top 15%' : avgPct >= 50 ? 'Top 35%' : 'Top 50%';
+  const avgPct = insights?.avgPct ?? 0;
+  const percentile = totalCount === 0
+    ? '—'
+    : (avgPct >= 75 ? 'Top 5%' : avgPct >= 65 ? 'Top 15%' : avgPct >= 50 ? 'Top 35%' : 'Top 50%');
 
   return (
     <div className="w-full space-y-5 animate-fadeIn">

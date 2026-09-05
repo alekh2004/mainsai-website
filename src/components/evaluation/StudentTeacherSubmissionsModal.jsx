@@ -16,7 +16,9 @@ export function StudentTeacherSubmissionsModal({ isOpen, onClose, onViewCheckedR
   if (!isOpen) return null;
 
   // Combine submissions from teacherQueue and evaluations that have teacher verification
-  const allSubmissions = teacherQueue.map(item => {
+  const allSubmissions = teacherQueue
+    .filter(item => (user?.uid && item.userId === user.uid) || evaluations.some(ev => ev.queueId === item.id || ev.id === item.id))
+    .map(item => {
     // Check if there is an evaluation record matching this queue item
     const matchingEval = evaluations.find(ev => ev.queueId === item.id || ev.id === item.id);
     return {

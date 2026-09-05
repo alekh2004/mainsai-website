@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext();
 
@@ -15,6 +16,7 @@ function purgeExpiredUploads(evals) {
 }
 
 export function AppProvider({ children }) {
+  const { user } = useAuth();
   const [activeExam, setActiveExam] = useState(() =>
     localStorage.getItem('active_exam') || 'upsc'
   );
@@ -89,98 +91,56 @@ export function AppProvider({ children }) {
     ];
   });
 
-  // ── Evaluations History — with auto-expiry ──
-  const [evaluations, setEvaluations] = useState(() => {
-    const saved = localStorage.getItem('bpsc_upsc_evaluations_v3');
-    const parsed = saved ? JSON.parse(saved) : getDemoEvaluations();
-    return purgeExpiredUploads(parsed);
-  });
+  // ── Evaluations History (Isolated per User) ──
+  const getEvaluationStorageKey = (uid) => uid ? `mainsai_evaluations_${uid}` : 'mainsai_evaluations_guest';
 
-  function getDemoEvaluations() {
-    const now = Date.now();
-    return [
-      {
-        id: 'eval-demo-1',
-        examType: 'upsc',
-        paper: 'GS 2',
-        questionTitle: 'Judicial Activism vs Overreach',
-        questionText: 'Examine the fine line between Judicial Activism and Judicial Overreach. (15 Marks)',
-        maxMarks: 15,
-        wordLimit: 250,
-        keyDemandPoints: ['Article 32/226', 'Kesavananda Bharati', 'Overreach examples', 'Separation of Powers'],
-        modelAnswer: 'Introduction: Judicial Activism = proactive role under Art 32/226.\nBody: Kesavananda (Basic Structure), Vishaka Guidelines.\nOverreach: Highway Liquor Ban.\nConclusion: Judicial restraint ensures balance.',
-        score: 11,
-        percentage: 73,
-        tag: 'Good',
-        handwritingLegibility: 'Clear',
-        wordCountEstimate: 230,
-        hasDiagram: true,
-        diagramQuality: 'Basic',
-        lineByLineReview: [
-          { section: 'Introduction', studentContent: 'Judicial Activism refers to proactive role under Art 32...', assessment: 'Strong', marksAwarded: 2, marksMaximum: 2, comment: 'Excellent constitutional reference to Article 32 cited in first para.' },
-          { section: 'Body — Point 1 (Activism)', studentContent: 'Kesavananda Bharati case established Basic Structure...', assessment: 'Strong', marksAwarded: 3, marksMaximum: 3, comment: 'Correct case citation with holding — full marks.' },
-          { section: 'Body — Point 2 (Overreach)', studentContent: 'Highway liquor ban — judiciary stepped into executive...', assessment: 'Adequate', marksAwarded: 2, marksMaximum: 3, comment: 'Good example but NJAC judgment also required — 1 mark deducted.' },
-          { section: 'Conclusion', studentContent: 'Need for judicial restraint to preserve democracy...', assessment: 'Adequate', marksAwarded: 1, marksMaximum: 2, comment: 'Forward-looking but missing specific policy recommendation.' }
-        ],
-        scoreBreakdown: { introduction: 2, bodyContent: 5, examples: 2, conclusion: 1, presentation: 1 },
-        keyStrengths: ['Article 32/226 correctly cited in intro', 'Kesavananda Bharati judgment with correct holding'],
-        keyMistakes: ['NJAC judgment missed as overreach example', 'Conclusion lacked specific policy suggestion'],
-        missedDemandPoints: ['NJAC judgment as overreach example'],
-        improvementSuggestions: ['Add NJAC 2015 judgment as overreach', 'Cite Article 50 (Separation of Powers) in conclusion', 'Draw a Venn diagram — Activism vs Overreach'],
-        overallFeedback: 'Strong answer! Constitutional references are accurate. The NJAC judgment would have fetched the missing mark in overreach section. [हिंदी]: अच्छा उत्तर! NJAC निर्णय का उल्लेख अवश्य करें।',
-        modelComparisonNote: 'Covered ~78% of official model answer key demands.',
-        uploadedFileType: 'image',
-        uploadExpiresAt: now + (24 * 60 * 60 * 1000),
-        uploadedFileBase64: null,
-        modelUsed: 'gemini-2.5-flash',
-        createdAt: new Date(now - 86400000).toISOString()
-      },
-      {
-        id: 'eval-demo-2',
-        examType: 'bpsc',
-        paper: 'GS 1',
-        questionTitle: '1942 Quit India — Bihar & Azad Dasta',
-        questionText: '1942 के भारत छोड़ो आंदोलन में बिहार की भूमिका। (38 अंक)',
-        maxMarks: 38,
-        wordLimit: 400,
-        keyDemandPoints: ['Secretariat Shooting 11 Aug 1942', 'JP Hazaribagh escape', 'Azad Dasta', 'Rural parallel government'],
-        modelAnswer: 'Introduction: August 1942 — Do or Die call.\nBody: Secretariat Shooting, JP Escape, Azad Dasta Nepal.\nConclusion: Bihar\'s heroic resistance.',
-        score: 26,
-        percentage: 68,
-        tag: 'Good',
-        handwritingLegibility: 'Moderate',
-        wordCountEstimate: 360,
-        hasDiagram: false,
-        diagramQuality: 'None',
-        lineByLineReview: [
-          { section: 'Introduction', studentContent: 'Gandhi ne August 1942 mein Do or Die ka naara diya...', assessment: 'Strong', marksAwarded: 5, marksMaximum: 6, comment: 'Good context. Missing "Gandhi Maidan Patna" specific reference.' },
-          { section: 'Body — Secretariat Shooting', studentContent: '11 August 1942 ko 7 chhatron ki shahdat hui...', assessment: 'Strong', marksAwarded: 8, marksMaximum: 8, comment: 'Excellent — exact date, location, and martyrs count all correct.' },
-          { section: 'Body — JP Escape', studentContent: 'Hazaribagh jail se JP ki natak jaisi bhagadaud...', assessment: 'Adequate', marksAwarded: 5, marksMaximum: 8, comment: 'JP escape mentioned but Azad Dasta operations not detailed.' },
-          { section: 'Body — Azad Dasta', studentContent: 'Nepal jungle mein aazad dasta ne guerilla yudh kiya...', assessment: 'Weak', marksAwarded: 4, marksMaximum: 8, comment: 'Radio broadcast mention missing. Nepal camp name "Rajvilas" not written.' },
-          { section: 'Conclusion', studentContent: 'Bihar ka yogdan bharat ki azadi mein amulya raha...', assessment: 'Adequate', marksAwarded: 4, marksMaximum: 8, comment: 'Generic conclusion. Should reference legacy for 1952 elections.' }
-        ],
-        scoreBreakdown: { introduction: 5, bodyContent: 13, examples: 4, conclusion: 2, presentation: 2 },
-        keyStrengths: ['Secretariat Shooting date (11 Aug) correctly cited', 'Guerilla warfare context explained well'],
-        keyMistakes: ['Azad Dasta — Rajvilas camp in Nepal not named', 'Underground radio broadcast detail missing'],
-        missedDemandPoints: ['Rajvilas Forest camp name', 'Underground radio broadcasts by JP'],
-        improvementSuggestions: ['Write "Rajvilas Forest, Nepal" specifically', 'Add that JP broadcast radio messages from Nepal', 'Mention parallel government in Bhojpur district'],
-        overallFeedback: 'Good answer with accurate Secretariat Shooting details. Azad Dasta section needs depth — Rajvilas camp + radio broadcasts are scoring points. [हिंदी]: अच्छा उत्तर। आजाद दस्ता खंड में राजविलास शिविर एवं रेडियो प्रसारण का उल्लेख आवश्यक है।',
-        modelComparisonNote: 'Covered ~72% of official model answer key demands.',
-        uploadedFileType: 'image',
-        uploadExpiresAt: now - (25 * 60 * 60 * 1000), // already expired
-        uploadedFileExpired: true,
-        uploadedFileBase64: null,
-        modelUsed: 'gemini-2.5-flash',
-        createdAt: new Date(now - 3 * 86400000).toISOString()
-      }
-    ];
-  }
+  const [evaluations, setEvaluations] = useState([]);
+  const loadedUidRef = useRef(user?.uid || null);
+  const isInitialLoadRef = useRef(false);
 
-  // Persist evaluations (without big base64 data in key to save space)
+  // Clean legacy global key once if present
   useEffect(() => {
-    const purged = purgeExpiredUploads(evaluations);
-    localStorage.setItem('bpsc_upsc_evaluations_v3', JSON.stringify(purged));
-  }, [evaluations]);
+    try {
+      localStorage.removeItem('bpsc_upsc_evaluations_v3');
+    } catch (e) {}
+  }, []);
+
+  // Sync evaluations whenever user?.uid changes (login, logout, switch account)
+  useEffect(() => {
+    const currentUid = user?.uid || null;
+    const storageKey = getEvaluationStorageKey(currentUid);
+    loadedUidRef.current = currentUid;
+
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setEvaluations(purgeExpiredUploads(Array.isArray(parsed) ? parsed : []));
+      } else {
+        setEvaluations([]);
+      }
+    } catch (err) {
+      console.error('Error loading user evaluations:', err);
+      setEvaluations([]);
+    }
+    isInitialLoadRef.current = true;
+  }, [user?.uid]);
+
+  // Persist evaluations whenever evaluations change, for the currently active user
+  useEffect(() => {
+    if (!isInitialLoadRef.current) return;
+    const currentUid = user?.uid || null;
+    // Guard against saving to wrong user during switch
+    if (loadedUidRef.current !== currentUid) return;
+
+    const storageKey = getEvaluationStorageKey(currentUid);
+    try {
+      const purged = purgeExpiredUploads(evaluations);
+      localStorage.setItem(storageKey, JSON.stringify(purged));
+    } catch (err) {
+      console.error('Error persisting user evaluations:', err);
+    }
+  }, [evaluations, user?.uid]);
 
   useEffect(() => { localStorage.setItem('active_exam', activeExam); }, [activeExam]);
   useEffect(() => { localStorage.setItem('app_language', language); }, [language]);
@@ -194,7 +154,13 @@ export function AppProvider({ children }) {
   };
 
   const saveEvaluationResult = (evalObj) => {
-    const newEval = { id: `eval-${Date.now()}`, createdAt: new Date().toISOString(), ...evalObj };
+    const newEval = {
+      id: `eval-${Date.now()}`,
+      userId: user?.uid || null,
+      userEmail: user?.email || null,
+      createdAt: new Date().toISOString(),
+      ...evalObj
+    };
     setEvaluations(prev => purgeExpiredUploads([newEval, ...prev]));
     return newEval;
   };
@@ -322,7 +288,9 @@ export function AppProvider({ children }) {
   const submitToTeacherQueue = (evalObj) => {
     const newQueueItem = {
       id: `tq-${Date.now()}`,
-      studentName: evalObj.studentName || 'Aspirant Student',
+      userId: user?.uid || null,
+      userEmail: user?.email || null,
+      studentName: evalObj.studentName || user?.name || 'Aspirant Student',
       rollNumber: evalObj.rollNumber || 'UPSC-2025-8819',
       paper: evalObj.paper,
       examType: evalObj.examType || activeExam,

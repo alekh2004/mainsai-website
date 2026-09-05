@@ -5,9 +5,15 @@ import { User, Mail, Shield, Crown, Settings, HelpCircle, Info, LogOut, ChevronR
 
 export function ProfileView({ onOpenSubscription, onOpenSettings }) {
   const { user, logout } = useAuth();
-  const { language } = useApp();
+  const { evaluations = [], getInsightsData, language } = useApp();
 
   const isHi = language === 'hi';
+  const insights = getInsightsData();
+  const totalCount = evaluations.length;
+  const avgScore = totalCount > 0 && insights?.avgPct != null ? `${insights.avgPct}%` : '—';
+  const highScore = totalCount > 0 && insights?.best
+    ? `${insights.best.percentage || Math.round((insights.best.score / insights.best.maxMarks) * 100)}%`
+    : '—';
 
   return (
     <div className="w-full space-y-6 animate-fadeIn max-w-2xl mx-auto">
@@ -22,10 +28,10 @@ export function ProfileView({ onOpenSubscription, onOpenSettings }) {
 
         <div className="space-y-1">
           <h3 className="text-xl font-extrabold text-white m-0">
-            {user?.name || 'Rider Alex'}
+            {user?.name || (isHi ? 'अभ्यर्थी' : 'Aspirant Student')}
           </h3>
           <p className="text-xs opacity-75 font-mono m-0">
-            {user?.email || 'alexrider@gmail.com'}
+            {user?.email || user?.phone || (isHi ? 'खाता सक्रिय' : 'Account Active')}
           </p>
           <span className="inline-block px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-extrabold uppercase tracking-wider mt-1">
             {isHi ? 'UPSC एवं BPSC अभ्यर्थी' : 'UPSC & BPSC Aspirant'}
@@ -36,17 +42,17 @@ export function ProfileView({ onOpenSubscription, onOpenSettings }) {
         <div className="grid grid-cols-3 gap-3 pt-2">
           <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/10 text-center">
             <span className="text-[10px] opacity-70 block font-bold uppercase">{isHi ? 'कुल मूल्यांकन' : 'Evaluations'}</span>
-            <span className="text-base font-extrabold text-white">18</span>
+            <span className="text-base font-extrabold text-white">{totalCount}</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/10 text-center">
             <span className="text-[10px] opacity-70 block font-bold uppercase">{isHi ? 'औसत स्कोर' : 'Avg Score'}</span>
-            <span className="text-base font-extrabold text-cyan-400">128<span className="text-[10px] opacity-60">/250</span></span>
+            <span className="text-base font-extrabold text-cyan-400">{avgScore}</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/10 text-center">
             <span className="text-[10px] opacity-70 block font-bold uppercase">{isHi ? 'सर्वोच्च स्कोर' : 'High Score'}</span>
-            <span className="text-base font-extrabold text-amber-400">140<span className="text-[10px] opacity-60">/250</span></span>
+            <span className="text-base font-extrabold text-amber-400">{highScore}</span>
           </div>
         </div>
 
