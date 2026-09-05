@@ -235,6 +235,30 @@ export function AuthProvider({ children }) {
     setUser(prev => prev ? { ...prev, plan: planName } : prev);
   };
 
+  const loginAsDemo = (role = 'student', customName = 'Jasmeet (Aspirant)') => {
+    const demoUser = {
+      uid: `user_${Date.now()}`,
+      name: role === 'teacher' ? 'Faculty Senior Examiner' : customName,
+      email: role === 'teacher' ? 'faculty@mainsai.edu' : 'jasmeet@mainsai.edu',
+      phone: '+91 9876543210',
+      photoURL: '',
+      loginType: 'instant',
+      avatar: role === 'teacher' ? '👨‍🏫' : '👨‍🎓',
+      role: role,
+      plan: 'pro',
+      evaluationsLeft: 9999,
+      teacherReviewsLeft: 20,
+      verificationStatus: 'approved',
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+    };
+    const students = getStudents();
+    students[demoUser.uid] = demoUser;
+    saveStudents(students);
+    setUser(demoUser);
+    return demoUser;
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -243,6 +267,7 @@ export function AuthProvider({ children }) {
       apiKey,
       updateApiKey,
       loginWithGoogle,
+      loginAsDemo,
       sendPhoneOtp,
       verifyPhoneOtp,
       signupWithEmail,

@@ -12,6 +12,7 @@ export function AuthModal({ isFullScreen = false }) {
     loginWithGoogle,
     loginWithEmail,
     signupWithEmail,
+    loginAsDemo,
     sendPhoneOtp,
     verifyPhoneOtp,
     user,
@@ -108,12 +109,13 @@ export function AuthModal({ isFullScreen = false }) {
     return map[code] || raw?.split('(')[0]?.trim() || (isHi ? 'कुछ त्रुटि हुई। पुनः प्रयास करें।' : 'Something went wrong. Please try again.');
   };
 
-  // ── Email Sign-In / Sign-Up ──────────────────────────────────────────
+  // ── Email Sign-In / Smart Auto-Registration ─────────────────────────
   const handleEmailAuth = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMsg(isHi ? 'कृपया सही ईमेल दर्ज करें' : 'Please enter a valid email address');
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setErrorMsg(isHi ? 'कृपया सही ईमेल दर्ज करें (उदा. jasmeet@gmail.com)' : 'Please enter a valid email address');
       return;
     }
     if (password.length < 6) {
@@ -123,14 +125,27 @@ export function AuthModal({ isFullScreen = false }) {
     setIsEmailLoading(true);
     try {
       if (isSignUp) {
-        if (!fullName.trim()) {
-          setErrorMsg(isHi ? 'कृपया अपना पूरा नाम दर्ज करें' : 'Please enter your full name');
-          setIsEmailLoading(false);
-          return;
-        }
-        await signupWithEmail(email.trim(), password, fullName.trim());
+        await signupWithEmail(cleanEmail, password, fullName.trim() || cleanEmail.split('@')[0]);
       } else {
-        await loginWithEmail(email.trim(), password);
+        try {
+          // 1. First try signing in
+          await loginWithEmail(cleanEmail, password);
+        } catch (loginErr) {
+          // 2. If user is new / not yet registered, automatically create the account!
+          if (
+            loginErr.code === 'auth/user-not-found' ||
+            loginErr.code === 'auth/invalid-credential' ||
+            loginErr.code === 'auth/invalid-login-credentials'
+          ) {
+            try {
+              await signupWithEmail(cleanEmail, password, fullName.trim() || cleanEmail.split('@')[0]);
+            } catch (signupErr) {
+              throw loginErr; // If signup also failed (e.g. wrong password on existing account), throw original
+            }
+          } else {
+            throw loginErr;
+          }
+        }
       }
       try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch (err) {}
     } catch (e) {
@@ -208,6 +223,47 @@ export function AuthModal({ isFullScreen = false }) {
           <p className="text-xs text-gray-400 m-0">
             {isHi ? 'सुरक्षित प्रमाणीकरण • UPSC & BPSC टेस्ट पोर्टल' : 'Secured Authentication • UPSC & BPSC Test Portal'}
           </p>
+        </div>
+
+        {/* ── 1-TAP INSTANT ACCESS (No Password/OTP required) ── */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-purple-500/10 border border-amber-500/30 space-y-2.5">
+          <div className="flex items-center justify-between text-xs font-black text-amber-400">
+            <span className="flex items-center gap-1.5">⚡ {isHi ? 'त्वरित 1-टैप प्रवेश (डायरेक्ट डेमो)' : 'Instant 1-Tap Access (Fast Demo)'}</span>
+            <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">बिना पासवर्ड / OTP</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                loginAsDemo('student', 'Jasmeet (Aspirant)');
+                try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch (e) {}
+              }}
+              className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-extrabold text-xs shadow-lg shadow-blue-500/25 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all border border-cyan-400/30"
+            >
+              <span className="text-sm">👨‍🎓</span>
+              <span>Jasmeet (छात्र)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                loginAsDemo('teacher', 'Faculty Senior Examiner');
+                try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch (e) {}
+              }}
+              className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-extrabold text-xs shadow-lg shadow-purple-500/25 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all border border-purple-400/30"
+            >
+              <span className="text-sm">👨‍🏫</span>
+              <span>शिक्षक (Faculty)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-white/10"></div>
+          <span className="text-[10px] font-extrabold uppercase text-gray-500 tracking-wider">
+            {isHi ? 'या अपने अकाउंट से लॉगिन करें' : 'Or sign in with your account'}
+          </span>
+          <div className="flex-1 h-px bg-white/10"></div>
         </div>
 
         {/* ── 3-WAY METHOD SWITCHER ── */}
@@ -375,6 +431,18 @@ export function AuthModal({ isFullScreen = false }) {
         {/* ── METHOD 3: Mobile OTP ─────────────────────────────────────── */}
         {authMethod === 'mobile' && (
           <div className="animate-fadeIn space-y-4">
+            {/* Sample Testing Number Banner */}
+            <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-cyan-200 space-y-1">
+              <div className="font-bold flex items-center justify-between">
+                <span>🧪 {isHi ? 'सैम्पल टेस्टिंग नंबर & OTP:' : 'Sample Test Number & OTP:'}</span>
+                <span className="text-[10px] text-cyan-300 font-bold bg-cyan-900/60 px-2 py-0.5 rounded border border-cyan-400/30">100% Free / No SMS</span>
+              </div>
+              <div className="flex items-center justify-between font-mono text-cyan-300 text-xs pt-0.5">
+                <span><b>Mobile:</b> 9876543210</span>
+                <span><b>OTP:</b> 123456</span>
+              </div>
+            </div>
+
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <div>
