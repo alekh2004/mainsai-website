@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
       plan: 'pro',
       evaluationsLeft: 9999,
       teacherReviewsLeft: 5,
-      verificationStatus: existing ? existing.verificationStatus : 'pending_admin_approval',
+      verificationStatus: 'approved',
       createdAt: existing?.createdAt || new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
     };
