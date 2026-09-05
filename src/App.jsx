@@ -112,8 +112,8 @@ function MainAppContent() {
           rightSlot={<ThemeSwitcher />}
         />
 
-        {/* Pill Tab Nav */}
-        <div className="max-w-6xl mx-auto w-full px-4 lg:px-8 pt-4">
+        {/* Pill Tab Nav (Desktop only; Mobile uses bottom dock) */}
+        <div className="hidden md:block max-w-6xl mx-auto w-full px-4 lg:px-8 pt-4">
           <div className="flex items-center gap-1 p-1.5 glass-card-clean rounded-2xl border border-white/40 overflow-x-auto">
             {[
               { id: 'home',     icon: Home,     label: isHi ? 'होम'       : 'Home' },

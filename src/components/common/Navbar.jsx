@@ -12,6 +12,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
   const isHi = language === 'hi';
 
   const [showFacultyPinModal, setShowFacultyPinModal] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState('');
 
@@ -43,37 +44,20 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
       <header className="sticky top-0 z-40 w-full glass-header px-4 lg:px-8 py-3" style={{ color: 'var(--text-primary)' }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
-          {/* Brand & Back Button */}
-          <div className="flex items-center gap-3">
-            {onGoHome && (
-              <button
-                onClick={onGoHome}
-                className="px-3 py-1.5 rounded-xl glass-card-clean border transition-all text-xs font-bold flex items-center gap-1.5 hover:border-blue-400"
-                style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
-                title="Return to Home Dashboard"
-              >
-                <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
-                <span className="hidden sm:inline">{isHi ? 'होम' : 'Home'}</span>
-              </button>
-            )}
-
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={onGoHome}>
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                style={{ background: 'rgb(var(--accent)/0.15)', border: '1px solid rgb(var(--accent)/0.35)' }}
-              >
-                <Sparkles className="w-5 h-5" style={{ color: 'rgb(var(--accent))' }} />
+          {/* Brand Title: Direct UPSC / BPSC (No extra Home button, no bulky symbol box) */}
+          <div className="flex items-center gap-2 cursor-pointer select-none" onClick={onGoHome}>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-base sm:text-lg font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
+                  UPSC / BPSC
+                </span>
+                <span className="gradient-text text-xs sm:text-sm font-black hidden sm:inline">
+                  Mains AI
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base sm:text-lg font-black tracking-tight m-0 leading-none" style={{ color: 'var(--text-primary)' }}>
-                    UPSC / BPSC <span className="gradient-text">Mains AI Evaluator</span>
-                  </h1>
-                </div>
-                <p className="text-[11px] opacity-75 m-0 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  {isHi ? 'स्मार्ट AI मूल्यांकन एवं शिक्षक सत्यापन' : 'Smart AI Evaluation & Faculty Verification'}
-                </p>
-              </div>
+              <p className="text-[10px] sm:text-[11px] opacity-75 m-0 font-medium hidden xs:block" style={{ color: 'var(--text-secondary)' }}>
+                {isHi ? 'स्मार्ट AI मूल्यांकन' : 'Smart AI Evaluation'}
+              </p>
             </div>
           </div>
 
@@ -125,65 +109,78 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
               <span>{isHi ? 'हिंदी' : 'EN'}</span>
             </button>
 
-            {/* Dynamic Active Portal Badge */}
+            {/* Dynamic Active Portal Badge (Toggles Role Switcher) */}
             {isTeacher ? (
               <button
-                onClick={onOpenTeacherQueue}
-                className="px-3 py-1.5 rounded-xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-sm hover:scale-105"
+                onClick={() => setShowProfileMenu(prev => !prev)}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-sm active:scale-95"
                 style={{
-                  background: 'rgba(147, 51, 234, 0.15)',
-                  borderColor: 'rgba(147, 51, 234, 0.4)',
+                  background: 'rgba(147, 51, 234, 0.18)',
+                  borderColor: 'rgba(147, 51, 234, 0.45)',
                   color: 'rgb(168, 85, 247)'
                 }}
-                title="Open Faculty Checking Queue"
+                title="Switch Role / Faculty Portal"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                <span>{isHi ? 'शिक्षक पोर्टल' : 'Teacher Portal'}</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-500" />
+                <span>{isHi ? 'शिक्षक' : 'Teacher'}</span>
               </button>
             ) : (
-              <div
-                className="px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 opacity-90"
+              <button
+                onClick={() => setShowProfileMenu(prev => !prev)}
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 transition-all opacity-95 hover:opacity-100 active:scale-95"
                 style={{
-                  background: 'rgba(37, 99, 235, 0.1)',
-                  borderColor: 'rgba(37, 99, 235, 0.3)',
+                  background: 'rgba(37, 99, 235, 0.12)',
+                  borderColor: 'rgba(37, 99, 235, 0.35)',
                   color: 'rgb(37, 99, 235)'
                 }}
-                title="Student Mode Active"
+                title="Switch Role / Student Mode"
               >
                 <span>👨‍🎓</span>
                 <span className="hidden sm:inline">{isHi ? 'छात्र मोड' : 'Student Mode'}</span>
-              </div>
+              </button>
             )}
 
-            {/* API Key */}
+            {/* API Key (hidden on tiny screens to avoid crowding) */}
             <button
               onClick={onOpenApiKey}
-              className="p-2 rounded-xl glass-card-clean border transition-all text-xs flex items-center gap-1.5 font-medium hover:border-blue-400"
+              className="hidden sm:flex p-2 rounded-xl glass-card-clean border transition-all text-xs items-center gap-1.5 font-medium hover:border-blue-400"
               style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
               title="Configure Gemini API Key"
             >
               <Key className="w-3.5 h-3.5 text-blue-500" />
             </button>
 
-            {/* User Profile */}
+            {/* User Profile Avatar with Tap-Friendly Mobile Dropdown */}
             {user && (
-              <div className="relative group">
+              <div className="relative">
                 <button
-                  className="flex items-center gap-2 p-1.5 px-2.5 rounded-xl glass-card-clean border text-left text-xs hover:border-blue-400 transition-all"
+                  onClick={() => setShowProfileMenu(prev => !prev)}
+                  className="flex items-center gap-1.5 sm:gap-2 p-1.5 px-2 rounded-xl glass-card-clean border text-left text-xs hover:border-blue-400 active:scale-95 transition-all"
                   style={{ borderColor: 'var(--glass-border)' }}
+                  title="Account & Role Switcher"
                 >
-                  <span className="text-base">{user.avatar || (isTeacher ? '👨‍🏫' : '👨‍🎓')}</span>
+                  <span className="text-base leading-none">{user.avatar || (isTeacher ? '👨‍🏫' : '👨‍🎓')}</span>
                   <div className="hidden lg:block">
-                    <div className="font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>{user.name}</div>
+                    <div className="font-bold leading-tight truncate max-w-[100px]" style={{ color: 'var(--text-primary)' }}>{user.name}</div>
                     <div className="text-[10px] text-blue-600 dark:text-blue-400 capitalize font-extrabold">
                       {isTeacher ? 'Teacher' : 'Student'}
                     </div>
                   </div>
                 </button>
 
-                {/* Profile Dropdown */}
+                {/* Backdrop for mobile outside click */}
+                {showProfileMenu && (
+                  <div
+                    className="fixed inset-0 z-40 bg-black/10"
+                    onClick={() => setShowProfileMenu(false)}
+                  />
+                )}
+
+                {/* Profile Dropdown — Works on both tap (mobile) and hover (desktop) */}
                 <div
-                  className="absolute right-0 top-full mt-2 w-56 py-2 glass-card-clean rounded-2xl shadow-2xl border hidden group-hover:block transition-all z-50 animate-fadeIn"
+                  className={`absolute right-0 top-full mt-2 w-56 py-2 glass-card-clean rounded-2xl shadow-2xl border transition-all z-50 animate-fadeIn ${
+                    showProfileMenu ? 'block' : 'hidden lg:group-hover:block'
+                  }`}
                   style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}
                 >
                   <div className="px-3 py-1 text-[10px] uppercase font-black opacity-60 tracking-wider" style={{ color: 'var(--text-secondary)' }}>
@@ -192,8 +189,11 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                   
                   {/* Switch to Student */}
                   <button
-                    onClick={() => switchRole('student')}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all ${!isTeacher ? 'text-blue-600 font-bold' : ''}`}
+                    onClick={() => {
+                      switchRole('student');
+                      setShowProfileMenu(false);
+                    }}
+                    className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all ${!isTeacher ? 'text-blue-600 font-bold' : ''}`}
                     style={isTeacher ? { color: 'var(--text-primary)' } : {}}
                   >
                     <span className="flex items-center gap-2">
@@ -206,6 +206,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                   {/* Switch to Teacher (Protected with PIN) */}
                   <button
                     onClick={() => {
+                      setShowProfileMenu(false);
                       if (isTeacher) {
                         onOpenTeacherQueue();
                       } else {
@@ -214,7 +215,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                         setShowFacultyPinModal(true);
                       }
                     }}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all ${isTeacher ? 'text-purple-600 font-bold' : ''}`}
+                    className={`w-full text-left px-3 py-2.5 text-xs flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-all ${isTeacher ? 'text-purple-600 font-bold' : ''}`}
                     style={!isTeacher ? { color: 'var(--text-primary)' } : {}}
                   >
                     <span className="flex items-center gap-2">
@@ -226,9 +227,25 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
 
                   <div className="my-1 border-t" style={{ borderColor: 'var(--glass-border)' }} />
 
+                  {/* API Key in menu for mobile */}
                   <button
-                    onClick={logout}
-                    className="w-full text-left px-3 py-2 text-xs text-rose-500 hover:bg-rose-500/10 transition-all font-bold flex items-center gap-1.5"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      onOpenApiKey();
+                    }}
+                    className="sm:hidden w-full text-left px-3 py-2 text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-all font-medium flex items-center gap-2"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    <Key className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Gemini API Key</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      logout();
+                    }}
+                    className="w-full text-left px-3 py-2.5 text-xs text-rose-500 hover:bg-rose-500/10 transition-all font-bold flex items-center gap-1.5"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     <span>{isHi ? 'लॉगआउट' : 'Sign Out'}</span>
