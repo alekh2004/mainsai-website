@@ -40,7 +40,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
             src="/et_logo.png"
             alt="ET Academy"
             className="et-logo-animate et-logo-glow"
-            style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '10px', flexShrink: 0 }}
+            style={{ width: '56px', height: '56px', objectFit: 'contain', borderRadius: '12px', flexShrink: 0 }}
           />
           <div>
             <div className="text-sm font-black text-white leading-tight">ET Academy</div>

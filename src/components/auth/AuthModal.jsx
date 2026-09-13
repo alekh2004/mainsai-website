@@ -241,7 +241,7 @@ export function AuthModal({ isFullScreen = false }) {
             src="/et_logo.png"
             alt="ET Academy"
             className="et-logo-animate et-logo-glow"
-            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', flexShrink: 0 }}
+            style={{ width: '64px', height: '64px', objectFit: 'contain', borderRadius: '14px', flexShrink: 0 }}
           />
           <div>
             <h1 className="text-base sm:text-lg font-black tracking-tight text-white leading-none m-0 drop-shadow-md">
@@ -263,8 +263,8 @@ export function AuthModal({ isFullScreen = false }) {
       {/* ── Main Content Area: Left Value Props + Right Glass Login Card ── */}
       <main className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-12 py-4 lg:py-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
-        {/* ── LEFT COLUMN: Hero Headline, Value Pillars & Study Quote ── */}
-        <div className="lg:col-span-6 xl:col-span-7 flex flex-col justify-center space-y-6 lg:space-y-8 pr-0 lg:pr-4">
+        {/* ── LEFT COLUMN: Hero — shows SECOND on mobile, FIRST on desktop ── */}
+        <div className="lg:col-span-6 xl:col-span-7 flex flex-col justify-center space-y-6 lg:space-y-8 pr-0 lg:pr-4 order-2 lg:order-1">
 
           {/* Big Punchy Headline with High-Contrast Light Colors */}
           <div className="space-y-2">
@@ -339,8 +339,8 @@ export function AuthModal({ isFullScreen = false }) {
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN: Glassmorphism Login / Auth Prototype Card ── */}
-        <div className="lg:col-span-6 xl:col-span-5 w-full flex justify-center lg:justify-end">
+        {/* ── RIGHT COLUMN: Login Card — shows FIRST on mobile, SECOND on desktop ── */}
+        <div className="lg:col-span-6 xl:col-span-5 w-full flex justify-center lg:justify-end order-1 lg:order-2">
           <div className="relative w-full max-w-[460px] bg-white/80 hover:bg-white/85 transition-all duration-300 backdrop-blur-2xl rounded-[2.2rem] p-6 sm:p-8 border border-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.30),0_0_0_1px_rgba(255,255,255,0.7)_inset] space-y-5">
 
             {/* Card Header: Title + Switch Link */}

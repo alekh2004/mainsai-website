@@ -289,10 +289,34 @@ export async function generateAiFlashcards({ topic = 'Polity', count = 10, examT
     try {
       const contents = [{
         parts: [{
-          text: `You are an expert ${examType.toUpperCase()} Mains Topper & Faculty. Generate exactly ${cardCount} high-yield revision flashcards on the topic: "${topic}".
-Language preference: ${isHi ? 'Hindi & English mixed (Hindi keywords with English technical terms)' : 'English'}.
+          text: `You are a Premier IAS/BPSC Mains Topper & Senior Faculty with 15+ years experience. Generate exactly ${cardCount} HIGH-YIELD, UPSC-TOPPER LEVEL revision flashcards on: "${topic}".
 
-Return strict JSON format:
+LANGUAGE RULE (STRICT):
+${isHi
+  ? `- Write ALL content in HINDI (Devanagari). Technical terms like "Article 32", "GDP", case names stay in English.
+- frontPrompt: Hindi mein question likho
+- backAnswer: Detailed Hindi answer, topper style`
+  : `- Write ALL content in ENGLISH only.
+- frontPrompt: English question
+- backAnswer: Detailed English topper answer`}
+
+COMPULSORY SECTIONS in backAnswer (include all that apply):
+1. CORE ANSWER — Topper-style structured analytical answer, 8-12 bullet points minimum
+2. CONSTITUTIONAL PROVISIONS (if any) — exact Article numbers with clauses
+3. SUPREME COURT JUDGMENTS (if any) — case name, year, key holding
+4. GOVERNMENT POLICIES & SCHEMES (if any) — name, year, budget, targets
+5. DATA & STATISTICS (if any) — specific numbers, percentages, report names
+6. CURRENT UPDATES 2023-2025 — latest developments, amendments
+7. CASE STUDIES & EXAMPLES — real examples, state examples, global comparisons
+8. MAP/GEOGRAPHIC CONTEXT (if relevant) — regions, corridors, districts
+9. FLOWCHART/DIAGRAM IDEA — describe a diagram or table structure for this answer
+10. TOPPER CONCLUSION (Nishkarsh) — forward-looking, policy-oriented 2-3 lines
+
+Use emoji markers: 📌 Core Answer, 📜 Constitutional, 🏛️ SC Judgments, 🏦 Policies, 📊 Data, 🌍 Current Updates, 📚 Case Studies, 🗺️ Map Context, 📈 Diagram Idea, 🎯 Conclusion
+
+The backAnswer should be DETAILED and COMPREHENSIVE — topper level that scores 13+/15 or 35+/38.
+
+Return STRICT JSON only:
 {
   "topic": "${topic}",
   "totalCards": ${cardCount},
@@ -300,11 +324,11 @@ Return strict JSON format:
     {
       "id": "card-1",
       "cardNumber": 1,
-      "badge": "Polity / History / Economy / Scheme",
-      "frontPrompt": "Core Question / Landmark Article / Controversy / Concept to test",
-      "backAnswer": "Concise high-scoring answer: 3-4 bullet points, exact Article/Committee, landmark SC judgment or data",
-      "keyKeywords": ["Keyword 1", "Keyword 2", "Article XX"],
-      "pyqReference": "UPSC 2023 15M / BPSC 68th 38M"
+      "badge": "Polity / History / Economy / Environment / Ethics / Bihar",
+      "frontPrompt": "Core UPSC concept question",
+      "backAnswer": "Detailed topper-level answer with all applicable sections above",
+      "keyKeywords": ["Keyword1", "Article XX", "Scheme Name", "SC Case Name"],
+      "pyqReference": "UPSC 2023 15M / BPSC 68th 38M / Not asked yet"
     }
   ]
 }`
@@ -431,30 +455,37 @@ export async function generateAiMainsNotes({ topic = 'Judicial Activism vs Overr
         parts: [{
           text: `You are a premier IAS/BPSC mentor. Generate comprehensive, topper-grade Mains Notes for topic: "${topic}".
 Include exact previous year questions (PYQs) asked in UPSC / BPSC with years and marks.
-Language preference: ${isHi ? 'Hindi & English mixed with structured headings' : 'English'}.
+
+LANGUAGE RULE (STRICT):
+${isHi
+  ? `- Write ALL content in HINDI (Devanagari script). 
+- Technical terms like "Article 32", "GDP", "PIL", case names, scheme names can stay in English.
+- All headings, points, explanations, conclusion MUST be in Hindi.`
+  : `- Write ALL content in ENGLISH only.
+- All headings, points, explanations, conclusion in English.`}
 
 Return strict JSON format:
 {
   "topic": "${topic}",
   "examType": "${examType.toUpperCase()}",
   "paper": "GS Paper 1 / 2 / 3 / 4",
-  "executiveSummary": "2-3 crisp lines on core essence...",
-  "constitutionalAndData": ["Article XX / Section YY", "Data statistic / Report citation"],
+  "executiveSummary": "2-3 crisp lines on core essence in ${isHi ? 'Hindi' : 'English'}",
+  "constitutionalAndData": ["Article XX / Section YY in ${isHi ? 'Hindi' : 'English'}", "Data statistic / Report citation"],
   "dimensions": [
-    { "title": "Dimension Name", "points": ["Point 1 with case/data", "Point 2 with example"] }
+    { "title": "Dimension Name in ${isHi ? 'Hindi' : 'English'}", "points": ["Point 1 with case/data", "Point 2 with example"] }
   ],
-  "bottlenecksAndChallenges": ["Challenge 1", "Challenge 2"],
+  "bottlenecksAndChallenges": ["Challenge 1 in ${isHi ? 'Hindi' : 'English'}", "Challenge 2"],
   "schemesAndCommittees": ["Committee Name (Year) - Recommendation", "Scheme Name - Target"],
-  "diagramSchematic": "Flowchart / Diagram ASCII or descriptive node structure",
+  "diagramSchematic": "Flowchart / Diagram ASCII or descriptive node structure in ${isHi ? 'Hindi' : 'English'}",
   "pyqsAsked": [
     {
       "exam": "UPSC CSE / BPSC Mains",
       "year": "2023",
       "marks": 15,
-      "questionText": "Exact PYQ question text here..."
+      "questionText": "Exact PYQ question text here in ${isHi ? 'Hindi' : 'English'}"
     }
   ],
-  "topperConclusion": "Forward-looking, balanced 2-3 line solution conclusion"
+  "topperConclusion": "Forward-looking, balanced 2-3 line solution conclusion in ${isHi ? 'Hindi' : 'English'}"
 }`
         }]
       }];

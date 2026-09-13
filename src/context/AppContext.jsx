@@ -23,20 +23,27 @@ export function AppProvider({ children }) {
     localStorage.getItem('active_exam') || 'upsc'
   );
   const [activeMode, setActiveMode] = useState('ai_gen');
-  const [language, setLanguage] = useState(() =>
-    localStorage.getItem('app_language') || 'hi'
-  );
+  const [language, setLanguage] = useState(() => {
+    const saved = localStorage.getItem('app_language');
+    // Default to English if never set before
+    if (!saved) return 'en';
+    return saved;
+  });
 
-  // ── Theme & Background System ──
-  const [theme, setTheme] = useState(() =>
-    localStorage.getItem('app_theme') || 'dark'
-  );
+  // ── Theme & Background System (Defaults: Light + Minimal) ──
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('app_theme');
+    if (!saved) return 'light'; // Default: light
+    return saved;
+  });
   const [accentColor, setAccentColor] = useState(() =>
     localStorage.getItem('app_accent') || 'cyan'
   );
-  const [bgStyle, setBgStyle] = useState(() =>
-    localStorage.getItem('app_bg_style') || 'world-map'
-  );
+  const [bgStyle, setBgStyle] = useState(() => {
+    const saved = localStorage.getItem('app_bg_style');
+    if (!saved) return 'minimal'; // Default: minimal clean gradient
+    return saved;
+  });
   const [glassIntensity, setGlassIntensity] = useState(() =>
     localStorage.getItem('app_glass_intensity') || 'med'
   );

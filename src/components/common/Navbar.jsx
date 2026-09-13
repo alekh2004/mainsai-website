@@ -50,7 +50,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
               src="/et_logo.png"
               alt="ET Academy"
               className="et-logo-animate"
-              style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '10px' }}
+              style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '12px' }}
             />
             <div>
               <div className="flex items-center gap-1.5">
