@@ -44,27 +44,31 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
       <div className="flex items-center gap-3">
         <button
           onClick={onGoBack}
-          className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-all"
+          className="p-2 rounded-xl glass-card-clean border text-slate-700 hover:bg-slate-50 transition-all"
+          style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div>
-          <h1 className="text-xl font-black text-slate-900 m-0">
+          <h1 className="text-xl font-black m-0" style={{ color: 'var(--text-primary)' }}>
             {isHi ? 'निर्देश एवं नियम' : 'Test Instructions'}
           </h1>
-          <p className="text-xs font-medium text-slate-500 m-0">
+          <p className="text-xs font-medium opacity-70 m-0" style={{ color: 'var(--text-secondary)' }}>
             {isBpsc ? 'BPSC 70th Prelims Test Series' : 'UPSC Prelims GS Paper I'}
           </p>
         </div>
       </div>
 
       {/* Main Instructions Card */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6 text-left text-slate-900">
+      <div
+        className="glass-card-clean p-6 md:p-8 rounded-3xl border shadow-sm space-y-6 text-left"
+        style={{ borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }}
+      >
 
         {/* Test Name & Badges */}
-        <div className="p-5 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-3">
+        <div className="p-5 rounded-2xl bg-blue-500/10 border border-blue-500/30 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-black text-slate-900 m-0">
+            <h3 className="text-base font-black m-0" style={{ color: 'var(--text-primary)' }}>
               {isBpsc ? 'BPSC 70th Prelims Mock Test' : 'UPSC Prelims Mock Test'}
             </h3>
             <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-blue-600 text-white">
@@ -73,20 +77,20 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-black">
-            <div className="p-2.5 rounded-xl bg-white border border-blue-200 text-slate-700 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-blue-600" />
+            <div className="p-2.5 rounded-xl glass-card-clean border border-blue-500/30 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <HelpCircle className="w-4 h-4 text-blue-500" />
               <span>{qCount} Qs</span>
             </div>
-            <div className="p-2.5 rounded-xl bg-white border border-blue-200 text-slate-700 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="p-2.5 rounded-xl glass-card-clean border border-emerald-500/30 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
               <span>{totalMarks} Marks</span>
             </div>
-            <div className="p-2.5 rounded-xl bg-white border border-blue-200 text-slate-700 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-600" />
+            <div className="p-2.5 rounded-xl glass-card-clean border border-amber-500/30 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <Clock className="w-4 h-4 text-amber-500" />
               <span>{durationMins} Mins</span>
             </div>
-            <div className="p-2.5 rounded-xl bg-white border border-blue-200 text-slate-700 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+            <div className="p-2.5 rounded-xl glass-card-clean border border-rose-500/30 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <AlertCircle className="w-4 h-4 text-rose-500" />
               <span>-{negMark} Neg</span>
             </div>
           </div>
@@ -94,14 +98,14 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
 
         {/* Numbered Rules List */}
         <div className="space-y-4">
-          <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 m-0">
+          <h4 className="text-xs font-extrabold uppercase tracking-wider opacity-60 m-0" style={{ color: 'var(--text-secondary)' }}>
             {isHi ? 'महत्वपूर्ण निर्देश:' : 'Important Guidelines:'}
           </h4>
 
           <div className="space-y-3">
             {instructionsList.map((inst, idx) => (
-              <div key={idx} className="flex items-start gap-3 text-xs leading-relaxed text-slate-700 font-medium">
-                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-black flex items-center justify-center shrink-0 text-[11px]">
+              <div key={idx} className="flex items-start gap-3 text-xs leading-relaxed font-medium" style={{ color: 'var(--text-primary)' }}>
+                <span className="w-5 h-5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30 font-black flex items-center justify-center shrink-0 text-[11px]">
                   {idx + 1}
                 </span>
                 <span className="pt-0.5">{inst}</span>
@@ -111,8 +115,8 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
         </div>
 
         {/* Agreement Checkbox */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-          <label className="flex items-center gap-3 cursor-pointer text-xs font-extrabold text-slate-900">
+        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+          <label className="flex items-center gap-3 cursor-pointer text-xs font-extrabold" style={{ color: 'var(--text-primary)' }}>
             <input
               type="checkbox"
               checked={hasAgreed}
@@ -131,7 +135,7 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
         <button
           onClick={onStartTest}
           disabled={!hasAgreed}
-          className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+          className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
         >
           <Play className="w-4 h-4 fill-white" />
           <span>{isHi ? 'टेस्ट शुरू करें (Start Test)' : 'I am ready, Start Test'}</span>

@@ -8,6 +8,7 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
 
   const [testType, setTestType] = useState('full_length'); // 'full_length' | 'short' | 'subject_wise' | 'custom'
   const [questionCount, setQuestionCount] = useState(100);
+  const [difficulty, setDifficulty] = useState('mixed'); // 'easy' | 'medium' | 'hard' | 'mixed'
   const [selectAllSubjects, setSelectAllSubjects] = useState(true);
 
   const defaultSubjects = activeExam === 'bpsc'
@@ -65,6 +66,7 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
       exam: activeExam,
       testType,
       questionCount,
+      difficulty,
       selectedSubjects,
       negMarking: activeExam === 'bpsc' ? 0.33 : 0.66,
       posMarking: activeExam === 'bpsc' ? 1.0 : (testType === 'csat' ? 2.5 : 2.0)
@@ -165,7 +167,7 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">2</span>
-            <h3 className="text-sm font-black text-slate-900 m-0">
+            <h3 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
               {isHi ? 'प्रश्नों की संख्या' : 'Number of Questions'}
             </h3>
           </div>
@@ -178,10 +180,43 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
                 className={`flex-1 py-2.5 rounded-xl border text-xs font-black transition-all ${
                   questionCount === count
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    : 'glass-card-clean hover:border-blue-400'
                 }`}
+                style={questionCount !== count ? { borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' } : {}}
               >
                 {count}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Difficulty Level Selector */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">3</span>
+            <h3 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
+              {isHi ? 'कठिनाई स्तर (Difficulty Level)' : 'Difficulty Level'}
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            {[
+              { id: 'mixed', label: isHi ? '⚡ मिक्स्ड (Mixed)' : '⚡ Mixed' },
+              { id: 'easy', label: isHi ? '🟢 आसान (Easy)' : '🟢 Easy' },
+              { id: 'medium', label: isHi ? '🟡 मध्यम (Medium)' : '🟡 Medium' },
+              { id: 'hard', label: isHi ? '🔴 कठिन (Hard)' : '🔴 Hard' },
+            ].map(diff => (
+              <button
+                key={diff.id}
+                onClick={() => setDifficulty(diff.id)}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-black transition-all ${
+                  difficulty === diff.id
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'glass-card-clean hover:border-blue-400'
+                }`}
+                style={difficulty !== diff.id ? { borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' } : {}}
+              >
+                {diff.label}
               </button>
             ))}
           </div>

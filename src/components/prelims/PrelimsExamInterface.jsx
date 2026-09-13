@@ -98,29 +98,30 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-4 animate-fadeIn pb-10 text-slate-900">
+    <div className="w-full max-w-5xl mx-auto space-y-4 animate-fadeIn pb-10">
 
       {/* ── Top Timer & Control Bar ── */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+      <div className="glass-card-clean p-4 rounded-2xl border shadow-sm flex flex-wrap items-center justify-between gap-3" style={{ borderColor: 'var(--glass-border)' }}>
         <div>
-          <h2 className="text-sm font-black text-slate-900 m-0">
+          <h2 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
             {isBpsc ? 'BPSC 70th Prelims 2024' : 'UPSC Prelims 2024'}
           </h2>
-          <p className="text-[11px] font-bold text-slate-500 m-0">
-            {config.testType === 'full_length' ? 'Full Length Test (GS Paper I)' : 'Practice Test'}
+          <p className="text-[11px] font-bold opacity-70 m-0" style={{ color: 'var(--text-secondary)' }}>
+            {config.testType === 'full_length' ? 'Full Length Test (GS Paper I)' : 'Practice Test'} • [{config.difficulty || 'Mixed'}]
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Timer Badge */}
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-mono text-sm font-black">
-            <Clock className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-500 font-mono text-sm font-black">
+            <Clock className="w-4 h-4 text-blue-500" />
             <span>{formatTime(timeLeft)}</span>
           </div>
 
           <button
             onClick={() => setIsPaused(p => !p)}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200"
+            className="px-3 py-1.5 rounded-xl glass-card-clean border text-xs font-bold flex items-center gap-1.5 hover:border-blue-400"
+            style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
           >
             {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             <span>{isPaused ? (isHi ? 'पुनः शुरू' : 'Resume') : (isHi ? 'विराम' : 'Pause')}</span>
@@ -128,9 +129,10 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
 
           <button
             onClick={() => setShowPaletteModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 hover:bg-slate-200 md:hidden"
+            className="px-3 py-1.5 rounded-xl glass-card-clean border text-xs font-bold flex items-center gap-1.5 hover:border-purple-400 md:hidden"
+            style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}
           >
-            <Grid className="w-3.5 h-3.5 text-purple-600" />
+            <Grid className="w-3.5 h-3.5 text-purple-500" />
             <span>{isHi ? 'पैलेट' : 'Palette'}</span>
           </button>
 

@@ -51,20 +51,20 @@ export function TestHistory({ onViewReport, onGoBack }) {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
-            <History className="w-5 h-5 text-blue-600" />
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
+            <History className="w-5 h-5 text-blue-500" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 m-0 tracking-tight">
+            <h2 className="text-xl font-extrabold m-0 tracking-tight" style={{ color: 'var(--text-primary)' }}>
               {isHi ? 'मूल्यांकन इतिहास' : 'Test History'}
             </h2>
-            <p className="text-xs text-slate-500 m-0 font-medium">
+            <p className="text-xs m-0 font-medium opacity-80" style={{ color: 'var(--text-secondary)' }}>
               {isHi ? 'सभी AI-जांचित उत्तरपुस्तिकाएं' : 'All AI-evaluated answer sheets'} • {filtered.length} records
             </p>
           </div>
         </div>
         {onGoBack && (
-          <button onClick={onGoBack} className="glass-card-clean px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:border-blue-400 transition-all">
+          <button onClick={onGoBack} className="glass-card-clean px-3.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:border-blue-400 transition-all" style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)' }}>
             <ArrowLeft className="w-4 h-4" /> {isHi ? 'वापस' : 'Back'}
           </button>
         )}
@@ -78,19 +78,20 @@ export function TestHistory({ onViewReport, onGoBack }) {
           onChange={e => setSearch(e.target.value)}
           placeholder={isHi ? 'प्रश्न या पेपर खोजें...' : 'Search by question or paper...'}
           className="w-full pl-10 pr-4 py-2.5 glass-input-clean text-xs font-medium rounded-2xl"
+          style={{ color: 'var(--text-primary)' }}
         />
       </div>
 
       {/* Empty State */}
       {filtered.length === 0 && (
-        <div className="text-center py-14 glass-card-clean rounded-3xl border border-slate-200/80 space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto">
-            <FileText className="w-7 h-7 text-slate-400" />
+        <div className="text-center py-14 glass-card-clean rounded-3xl border space-y-3" style={{ borderColor: 'var(--glass-border)' }}>
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto">
+            <FileText className="w-7 h-7 text-blue-500" />
           </div>
-          <h4 className="text-base font-extrabold text-slate-700 m-0">
+          <h4 className="text-base font-extrabold m-0" style={{ color: 'var(--text-primary)' }}>
             {isHi ? 'कोई परीक्षा रिकॉर्ड नहीं मिला' : 'No test records found'}
           </h4>
-          <p className="text-xs text-slate-500 m-0 font-medium">
+          <p className="text-xs m-0 font-medium opacity-80" style={{ color: 'var(--text-secondary)' }}>
             {isHi ? 'पहला टेस्ट देकर AI मूल्यांकन कराएं' : 'Attempt a test to get your first AI evaluation'}
           </p>
         </div>
@@ -102,11 +103,12 @@ export function TestHistory({ onViewReport, onGoBack }) {
           <div
             key={item.id}
             onClick={() => { setSelectedEval(item); setActiveSection('overview'); }}
-            className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-slate-200/80 cursor-pointer flex items-center justify-between gap-4 group"
+            className="p-5 rounded-3xl glass-card-clean glass-card-hover border cursor-pointer flex items-center justify-between gap-4 group"
+            style={{ borderColor: 'var(--glass-border)' }}
           >
             <div className="flex items-start gap-4 flex-1 min-w-0">
               {/* Icon */}
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                 {item.uploadedFileType === 'image'
                   ? <FileImage className="w-5 h-5 text-blue-500" />
                   : <FileText className="w-5 h-5 text-blue-500" />
@@ -115,18 +117,18 @@ export function TestHistory({ onViewReport, onGoBack }) {
 
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[11px] font-extrabold uppercase">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[11px] font-extrabold uppercase">
                     {item.paper || 'GS Paper'}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                  <span className="text-[11px] font-mono flex items-center gap-1 opacity-60" style={{ color: 'var(--text-secondary)' }}>
                     <Calendar className="w-3 h-3" />
                     {formatDateSafe(item.createdAt)}
                   </span>
                 </div>
-                <h4 className="text-sm font-extrabold text-slate-800 m-0 truncate group-hover:text-blue-700 transition-colors">
+                <h4 className="text-sm font-extrabold m-0 truncate group-hover:text-blue-400 transition-colors" style={{ color: 'var(--text-primary)' }}>
                   {item.questionTitle || item.paper}
                 </h4>
-                <p className="text-[11px] text-slate-500 m-0 line-clamp-1 font-medium">
+                <p className="text-[11px] m-0 line-clamp-1 font-medium opacity-70" style={{ color: 'var(--text-secondary)' }}>
                   {item.questionText}
                 </p>
               </div>
