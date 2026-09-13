@@ -96,7 +96,7 @@ export function InsightsView() {
           {isHi ? 'अभी तक कोई टेस्ट नहीं' : 'No Test Data Yet'}
         </h3>
         <p className="text-sm font-medium m-0" style={{ color: 'var(--text-secondary)' }}>
-          {isHi ? 'पहला AI टेस्ट दें और यहाँ अपनी progress देखें' : 'Attempt your first AI test to see your analytics here'}
+          {isHi ? 'पहला टेस्ट दें और यहाँ अपनी progress देखें' : 'Attempt your first test to see your analytics here'}
         </p>
       </div>
     );
@@ -148,7 +148,7 @@ export function InsightsView() {
           </span>
           <div className="text-3xl font-black text-emerald-500">{totalTests}</div>
           <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {isHi ? 'AI द्वारा मूल्यांकित' : 'AI evaluated'}
+            {isHi ? 'मूल्यांकित किए गए' : 'Evaluated'}
           </div>
         </div>
 
@@ -421,7 +421,7 @@ export function InsightsView() {
                   <div className="p-4 rounded-2xl space-y-1"
                     style={{ background: 'rgb(var(--accent)/0.06)', border: '1px solid rgb(var(--accent)/0.18)' }}>
                     <h5 className="text-xs font-extrabold flex items-center gap-1.5 m-0" style={{ color: 'rgb(var(--accent))' }}>
-                      <Sparkles className="w-4 h-4" /> AI {isHi ? 'परीक्षक फीडबैक' : 'Examiner Feedback'}
+                      <Sparkles className="w-4 h-4" /> {isHi ? 'परीक्षक फीडबैक' : 'Examiner Feedback'}
                       {selectedEval.modelUsed && (
                         <span className="text-[10px] ml-auto font-mono" style={{ color: 'var(--text-secondary)' }}>via {selectedEval.modelUsed}</span>
                       )}
@@ -480,7 +480,7 @@ export function InsightsView() {
                 <div className="p-4 rounded-2xl space-y-2"
                   style={{ background: 'rgb(var(--accent)/0.06)', border: '1px solid rgb(var(--accent)/0.18)' }}>
                   <h5 className="text-xs font-extrabold flex items-center gap-2 m-0" style={{ color: 'rgb(var(--accent))' }}>
-                    <Sparkles className="w-4 h-4" /> {isHi ? 'AI टॉपर्स मॉडल उत्तर' : 'AI Toppers Model Answer Key'}
+                    <Sparkles className="w-4 h-4" /> {isHi ? 'टॉपर्स मॉडल उत्तर' : 'Toppers Model Answer Key'}
                   </h5>
                   <pre className="text-xs leading-relaxed m-0 font-medium whitespace-pre-wrap" style={{ color: 'var(--text-primary)', fontFamily: 'inherit' }}>
                     {selectedEval.modelAnswer || 'Model answer not available.'}

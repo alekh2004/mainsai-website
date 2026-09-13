@@ -302,7 +302,7 @@ export function AnswerSubmitModal({ isOpen, onClose, question, onEvaluationCompl
               >
                 <div className="flex items-center gap-2 text-xs font-extrabold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                   <Sparkles className="w-4 h-4 text-blue-500" />
-                  {isHi ? 'AI त्वरित जांच (Instant Check)' : 'Instant AI Check'}
+                  {isHi ? 'त्वरित जांच (Instant Check)' : 'Instant Check'}
                 </div>
                 <div className="text-[11px] font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   {isHi ? '10 सेकंड में विस्तृत अंक एवं लाइन-बाय-लाइन जांच' : 'Quick score in ~10 sec — line-by-line feedback'}
@@ -324,7 +324,7 @@ export function AnswerSubmitModal({ isOpen, onClose, question, onEvaluationCompl
                 </div>
                 <div className="flex items-center gap-2 text-xs font-extrabold mb-1.5" style={{ color: 'var(--text-primary)' }}>
                   <Brain className="w-4 h-4 text-indigo-500" />
-                  {isHi ? 'AI डीप परीक्षक (Deep AI)' : 'Deep AI Checker'}
+                  {isHi ? 'डीप परीक्षक (Deep Checker)' : 'Deep Checker'}
                 </div>
                 <div className="text-[11px] font-medium leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   {isHi ? 'हस्तलेखन का गहन विश्लेषण + मॉडल उत्तर तुलना' : 'Deep handwriting reading & model key comparison'}
@@ -359,12 +359,12 @@ export function AnswerSubmitModal({ isOpen, onClose, question, onEvaluationCompl
               {isSubmitting ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>{isHi ? 'AI उत्तरपुस्तिका जांच रहा है...' : 'Scanning & Evaluating via Gemini AI...'}</span>
+                  <span>{isHi ? 'उत्तरपुस्तिका जांच रहा है...' : 'Scanning & Evaluating your answer sheet...'}</span>
                 </>
               ) : evalMode === 'deep' ? (
                 <>
                   <Brain className="w-5 h-5" />
-                  <span>{isHi ? 'AI डीप चेकर खोलें' : 'Open Deep AI Checker'}</span>
+                  <span>{isHi ? 'डीप चेकर खोलें' : 'Open Deep Checker'}</span>
                 </>
               ) : (
                 <>

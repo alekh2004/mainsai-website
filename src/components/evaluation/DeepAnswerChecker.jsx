@@ -90,7 +90,7 @@ Reply concisely (2-4 sentences), academically. If asking about a specific line, 
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all ${
           open ? 'bg-rose-500 rotate-45' : 'bg-gradient-to-br from-blue-600 to-indigo-600 hover:scale-105 shadow-blue-500/30'
         }`}
-        title="Ask AI about your evaluation"
+        title="Ask about your evaluation"
       >
         {open ? <X className="w-6 h-6 text-white" /> : <Bot className="w-7 h-7 text-white" />}
       </button>
@@ -110,7 +110,7 @@ Reply concisely (2-4 sentences), academically. If asking about a specific line, 
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-2 text-white">
             <Bot className="w-5 h-5" />
-            <span className="text-sm font-extrabold flex-1">Ask AI Evaluator</span>
+            <span className="text-sm font-extrabold flex-1">Ask Evaluator</span>
             <span className="text-blue-200 text-[10px] font-medium">Gemini 2.5</span>
           </div>
 
@@ -305,7 +305,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
             {isHi ? 'साफ फोटो (JPG / PNG) या PDF स्कैन' : 'Clear photo (JPG / PNG) or PDF scan'}
           </div>
           <div className="mt-3 inline-block text-[11px] font-bold px-3 py-1.5 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25">
-            Gemini Vision AI will evaluate against official rubric
+            Expert evaluation against official rubric
           </div>
         </div>
       ) : (
@@ -339,7 +339,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
         className="w-full py-4 rounded-2xl btn-primary-clean text-sm font-extrabold flex items-center justify-center gap-2 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <Sparkles className="w-5 h-5" />
-        {isHi ? 'उत्तर की जांच करें — AI मूल्यांकन शुरू करें' : 'Check My Answer — Start AI Evaluation'}
+        {isHi ? 'उत्तर की जांच करें — मूल्यांकन शुरू करें' : 'Check My Answer — Start Evaluation'}
       </button>
     </div>
   );
@@ -359,7 +359,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
       </div>
       <div className="text-center space-y-2">
         <div className="text-base font-extrabold" style={{ color: 'var(--text-primary)' }}>
-          {isHi ? 'AI आपकी उत्तरपुस्तिका का मूल्यांकन कर रहा है…' : 'AI Reading & Scoring Your Answer…'}
+          {isHi ? 'आपकी उत्तरपुस्तिका का मूल्यांकन हो रहा है…' : 'Reading & Scoring Your Answer…'}
         </div>
         <div className="text-xs font-medium max-w-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
           Gemini is analyzing handwriting, line by line, comparing against model rubric and awarding dimension marks.
@@ -389,7 +389,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-widest opacity-80 mb-1" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'प्राप्तांक स्कोर' : 'AI Evaluation Score'}
+                {isHi ? 'प्राप्तांक स्कोर' : 'Evaluation Score'}
               </div>
               <div className={`text-4xl sm:text-5xl font-black ${col.text}`}>
                 {evalResult.score}
@@ -434,7 +434,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-4 rounded-full bg-blue-600 inline-block" />
             <h4 className="text-xs font-black uppercase tracking-wider m-0" style={{ color: 'var(--text-primary)' }}>
-              {isHi ? 'उत्तरपुस्तिका एवं AI विश्लेषण (Side-by-Side)' : 'Answer Copy & AI Line-by-Line Review'}
+              {isHi ? 'उत्तरपुस्तिका एवं विश्लेषण (Side-by-Side)' : 'Answer Copy & Line-by-Line Review'}
             </h4>
           </div>
 
@@ -483,7 +483,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
             <div className="rounded-2xl border overflow-hidden flex flex-col" style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}>
               <div className="px-4 py-2.5 border-b shrink-0" style={{ borderColor: 'var(--glass-border)', background: 'var(--nav-bg)' }}>
                 <span className="text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                  {isHi ? 'AI जांच व मॉडल सुधार' : 'AI Corrections & Model Answer'}
+                  {isHi ? 'सुधार व मॉडल उत्तर' : 'Corrections & Model Answer'}
                 </span>
               </div>
               <div className="overflow-y-auto custom-scroll divide-y" style={{ maxHeight: '420px', borderColor: 'var(--glass-border)' }}>
@@ -607,7 +607,7 @@ export function DeepAnswerChecker({ isOpen, onClose, question, onEvaluationCompl
   // ── Phase labels ──
   const phaseLabel = {
     [PHASE.UPLOAD]: isHi ? 'उत्तरपुस्तिका अपलोड' : 'Upload Answer Copy',
-    [PHASE.EVALUATING]: isHi ? 'AI मूल्यांकन प्रगति पर…' : 'AI Evaluating…',
+    [PHASE.EVALUATING]: isHi ? 'मूल्यांकन प्रगति पर…' : 'Evaluating…',
     [PHASE.RESULT]: isHi ? 'मूल्यांकन परिणाम' : 'Evaluation Result'
   };
 

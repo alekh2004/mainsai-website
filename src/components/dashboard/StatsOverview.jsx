@@ -59,7 +59,7 @@ function AnnouncementsWidget({ isHi }) {
               Official YouTube Channel
             </div>
             <div className="text-sm font-black truncate" style={{ color: 'var(--text-primary)' }}>
-              UPSC/BPSC Mains AI Evaluator
+              ET Academy
             </div>
             <div className="text-xs font-medium mt-0.5" style={{ color: 'var(--text-secondary)' }}>
               {isHi ? 'Free strategy, PYQ analysis & tips - Subscribe करें' : 'Free strategy, PYQ analysis & tips - Subscribe Now'}
@@ -80,7 +80,7 @@ function AnnouncementsWidget({ isHi }) {
         <div className="space-y-2.5">
           {[
             { icon: Star,     color: 'text-amber-500',   bg: 'bg-amber-500/10',   title: 'Live Batch - UPSC Mains 2025', sub: isHi ? 'जल्द शुरू होने वाला है - YouTube पर नजर रखें' : 'Starting soon - Watch YouTube for updates' },
-            { icon: Sparkles, color: 'text-blue-500',    bg: 'bg-blue-500/10',    title: 'AI Voice Evaluation (Coming)', sub: isHi ? 'बोलकर उत्तर दें, AI जांचेगा' : 'Speak your answer, AI will evaluate' },
+            { icon: Sparkles, color: 'text-blue-500',    bg: 'bg-blue-500/10',    title: 'Voice Evaluation (Coming)', sub: isHi ? 'बोलकर उत्तर दें, Expert जांचेगा' : 'Speak your answer, expert will evaluate' },
             { icon: Trophy,   color: 'text-emerald-500', bg: 'bg-emerald-500/10', title: 'Student Leaderboard (Coming)', sub: isHi ? 'अन्य Aspirants से अपनी रैंक जानें' : 'Compare your rank with other aspirants' },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -210,13 +210,13 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
       </div>
 
 
-      {/* \u2500\u2500 2. AI STUDY TOOLS \u2500\u2500 */}
+      {/* ── 2. STUDY TOOLS ── */}
       <div>
         <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-          {isHi ? 'AI \u0905\u0927\u094d\u092f\u092f\u0928 \u0909\u092a\u0915\u0930\u0923' : 'AI Study Tools'}
+          {isHi ? 'अध्ययन उपकरण' : 'Study Tools'}
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* AI Flashcards */}
+          {/* Flashcards */}
           <div
             onClick={() => onOpenFlashcards?.()}
             className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 cursor-pointer group space-y-3"
@@ -233,7 +233,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
             </div>
             <div>
               <h4 className="text-sm font-black m-0 group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'AI फ्लैशकार्ड रिवीजन' : 'AI Flashcards Revision'}
+                {isHi ? 'फ्लैशकार्ड रिवीजन' : 'Flashcards Revision'}
               </h4>
               <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {isHi ? 'टॉपिक चुनें → 5-20 3D कार्ड' : 'Select topic → 5-20 interactive 3D flip cards'}
@@ -245,7 +245,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
             </div>
           </div>
 
-          {/* AI Mains Notes */}
+          {/* Mains Notes */}
           <div
             onClick={() => onOpenMainsNotes?.()}
             className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 cursor-pointer group space-y-3"
@@ -262,7 +262,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
             </div>
             <div>
               <h4 className="text-sm font-black m-0 group-hover:text-emerald-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'AI मेन्स नोट्स + PYQ' : 'AI Mains Notes & PYQ'}
+                {isHi ? 'मेन्स नोट्स + PYQ' : 'Mains Notes & PYQ'}
               </h4>
               <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {isHi ? 'टॉपिक टाइप करें → नोट्स + PYQ + PDF' : 'Type topic → Notes + exact PYQs + PDF download'}
@@ -282,7 +282,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
           {isHi ? 'शॉर्टकट्स' : 'Quick Shortcuts'}
         </h4>
         <div className="grid grid-cols-2 gap-3">
-          {/* AI Question Test */}
+          {/* Smart Test */}
           <button
             onClick={() => onQuickAction?.('ai_test')}
             className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 text-left space-y-2 group"
@@ -293,7 +293,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
             </div>
             <div>
               <div className="text-xs font-extrabold group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'AI प्रश्न टेस्ट' : 'AI Question Test'}
+                {isHi ? 'स्मार्ट प्रश्न टेस्ट' : 'Smart Question Test'}
               </div>
               <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
                 {isHi ? 'प्रश्न चुनें और उत्तर जमा करें' : 'Pick a question & submit answer'}

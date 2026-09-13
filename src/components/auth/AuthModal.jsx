@@ -237,17 +237,17 @@ export function AuthModal({ isFullScreen = false }) {
       <header className="relative z-10 w-full px-6 lg:px-12 py-5 flex items-center justify-between">
         {/* Brand Logo & Subtitle — High-Contrast Acrylic Badge */}
         <div className="flex items-center gap-3 bg-slate-950/70 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/20 shadow-xl">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/40 border border-white/40">
-            {/* Custom Stylized Dual-Page Book Icon */}
-            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-white" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-            </svg>
-          </div>
+          <img
+            src="/et_logo.png"
+            alt="ET Academy"
+            className="et-logo-animate et-logo-glow"
+            style={{ width: '44px', height: '44px', objectFit: 'contain', borderRadius: '12px', flexShrink: 0 }}
+          />
           <div>
             <h1 className="text-base sm:text-lg font-black tracking-tight text-white leading-none m-0 drop-shadow-md">
-              AI Mains Evaluator
+              ET Academy
             </h1>
-            <p className="text-[11px] sm:text-[12px] font-black text-cyan-400 tracking-wider uppercase mt-1 m-0 drop-shadow-sm">
+            <p className="text-[11px] sm:text-[12px] font-black text-green-400 tracking-wider uppercase mt-1 m-0 drop-shadow-sm">
               EVALUATE · LEARN · EXCEL
             </p>
           </div>
@@ -276,7 +276,7 @@ export function AuthModal({ isFullScreen = false }) {
               </span>
             </h2>
             <p className="text-sm sm:text-base font-bold text-slate-100 max-w-lg leading-relaxed m-0 pt-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              AI-powered answer evaluation for BPSC, UPSC and beyond.
+              Expert answer evaluation for BPSC, UPSC and beyond.
             </p>
           </div>
 
@@ -289,8 +289,8 @@ export function AuthModal({ isFullScreen = false }) {
               </div>
               <div className="min-w-0">
                 <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition-colors m-0">
-                  AI Evaluation
-                </h3>
+                Smart Evaluation
+              </h3>
                 <p className="text-[11px] sm:text-xs font-semibold text-slate-200 m-0">
                   Get detailed, structured feedback
                 </p>
@@ -362,7 +362,7 @@ export function AuthModal({ isFullScreen = false }) {
                     ? 'Enter mobile number to receive 6-digit OTP'
                     : isSignUp
                     ? 'Join thousands of serious aspirants today'
-                    : 'Sign in to continue to AI Mains Evaluator'}
+                    : 'Sign in to continue to ET Academy'}
                 </p>
               </div>
 
@@ -752,11 +752,11 @@ export function AuthModal({ isFullScreen = false }) {
         </div>
 
         <div className="text-[11px] sm:text-xs text-slate-400 font-semibold">
-          &copy; 2024–2026 AI Mains Evaluator. All rights reserved.
+          © 2024–2026 ET Academy. All rights reserved.
         </div>
 
         <div className="flex items-center gap-3 text-[11px] sm:text-xs">
-          <a href="#privacy" onClick={(e) => { e.preventDefault(); alert('UPSC/BPSC Mains AI strictly adheres to data privacy standards.'); }} className="text-slate-300 hover:text-cyan-400 transition-colors">
+          <a href="#privacy" onClick={(e) => { e.preventDefault(); alert('ET Academy strictly adheres to data privacy standards.'); }} className="text-slate-300 hover:text-cyan-400 transition-colors">
             Privacy
           </a>
           <span className="opacity-40">|</span>

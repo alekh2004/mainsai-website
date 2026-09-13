@@ -46,17 +46,20 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
           
           {/* Brand Title: Direct UPSC / BPSC (No extra Home button, no bulky symbol box) */}
           <div className="flex items-center gap-2 cursor-pointer select-none" onClick={onGoHome}>
+            <img
+              src="/et_logo.png"
+              alt="ET Academy"
+              className="et-logo-animate"
+              style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '10px' }}
+            />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base sm:text-lg font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
-                  UPSC / BPSC
-                </span>
-                <span className="gradient-text text-xs sm:text-sm font-black hidden sm:inline">
-                  Mains AI
+                  ET Academy
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] opacity-75 m-0 font-medium hidden xs:block" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'स्मार्ट AI मूल्यांकन' : 'Smart AI Evaluation'}
+                {isHi ? 'स्मार्ट मूल्यांकन' : 'Smart Evaluation'}
               </p>
             </div>
           </div>

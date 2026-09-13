@@ -213,7 +213,7 @@ export function ProfileView({ onOpenSubscription, onOpenSettings }) {
         className="text-center text-[10px] font-medium pb-2"
         style={{ color: 'var(--text-muted)' }}
       >
-        UPSC/BPSC Mains AI Evaluator • v2.0 • Powered by Gemini Vision
+        ET Academy • v2.0 • UPSC/BPSC Mains Evaluator
       </p>
 
     </div>

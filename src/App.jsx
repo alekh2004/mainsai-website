@@ -198,7 +198,7 @@ function MainAppContent() {
               <div className="flex items-center justify-center gap-1.5">
                 <span>Made with</span>
                 <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-                <span>for UPSC &amp; BPSC Aspirants â€¢ Gemini Vision AI Evaluation</span>
+                <span>for UPSC &amp; BPSC Aspirants • ET Academy Smart Evaluation</span>
               </div>
             </footer>
 

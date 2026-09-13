@@ -18,8 +18,8 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
     { id: 'evaluate',   icon: Sparkles,  label: isHi ? 'मूल्यांकन'      : 'Evaluate',       onClick: () => setActiveTab('evaluate') },
     { id: 'history',    icon: History,   label: isHi ? 'इतिहास'         : 'History',        onClick: () => setActiveTab('history') },
     { id: 'insights',   icon: BarChart3, label: isHi ? 'इंसाइट्स'      : 'Insights',       onClick: () => setActiveTab('insights') },
-    { id: 'flashcards', icon: Layers,    label: isHi ? 'AI फ्लैशकार्ड'  : 'AI Flashcards',  onClick: () => onOpenFlashcards?.(), isModal: true },
-    { id: 'notes',      icon: BookOpen,  label: isHi ? 'AI मेन्स नोट्स' : 'AI Mains Notes', onClick: () => onOpenMainsNotes?.(), isModal: true },
+    { id: 'flashcards', icon: Layers,    label: isHi ? 'फ्लैशकार्ड'  : 'Flashcards',  onClick: () => onOpenFlashcards?.(), isModal: true },
+    { id: 'notes',      icon: BookOpen,  label: isHi ? 'मेन्स नोट्स' : 'Mains Notes', onClick: () => onOpenMainsNotes?.(), isModal: true },
     { id: 'profile',    icon: User,      label: isHi ? 'प्रोफाइल'       : 'Profile',        onClick: () => setActiveTab('profile') },
   ];
 
@@ -36,15 +36,15 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
       {/* Brand */}
       <div className="px-3 pt-1 pb-5">
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent)/0.55))' }}
-          >
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+          <img
+            src="/et_logo.png"
+            alt="ET Academy"
+            className="et-logo-animate et-logo-glow"
+            style={{ width: '38px', height: '38px', objectFit: 'contain', borderRadius: '10px', flexShrink: 0 }}
+          />
           <div>
-            <div className="text-sm font-black text-white leading-tight">UPSC / BPSC</div>
-            <div className="text-[10px] font-extrabold" style={{ color: 'rgb(var(--accent))' }}>Mains AI</div>
+            <div className="text-sm font-black text-white leading-tight">ET Academy</div>
+            <div className="text-[10px] font-extrabold" style={{ color: 'rgb(var(--accent))' }}>UPSC / BPSC</div>
           </div>
         </div>
       </div>
@@ -113,8 +113,8 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
           </div>
           <p className="text-[10px] font-medium leading-relaxed mb-3 text-white/55">
             {isHi
-              ? 'Unlimited मूल्यांकन, AI नोट्स, Flashcards और बहुत कुछ।'
-              : 'Unlimited evaluations, AI Notes, Flashcards & more.'}
+              ? 'Unlimited मूल्यांकन, नोट्स, Flashcards और बहुत कुछ।'
+              : 'Unlimited evaluations, Smart Notes, Flashcards & more.'}
           </p>
           <div
             className="w-full py-1.5 rounded-xl text-xs font-extrabold text-center text-amber-900 group-hover:shadow-lg transition-all"
@@ -142,7 +142,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
       )}
 
       <div className="px-4 pt-2">
-        <span className="text-[9px] font-bold text-white/15">v2.0.0 • UPSC/BPSC Mains AI</span>
+        <span className="text-[9px] font-bold text-white/15">v2.0.0 • ET Academy</span>
       </div>
     </aside>
   );

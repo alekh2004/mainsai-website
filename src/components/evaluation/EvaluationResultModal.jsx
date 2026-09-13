@@ -90,7 +90,7 @@ Reply concisely (2-4 sentences) with academic precision.`;
         className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all ${
           open ? 'bg-rose-500 rotate-45' : 'bg-gradient-to-br from-blue-600 to-indigo-600 hover:scale-105 shadow-blue-500/30'
         }`}
-        title="Ask AI about this copy"
+        title="Ask about this evaluation"
       >
         {open ? <X className="w-6 h-6 text-white" /> : <Bot className="w-7 h-7 text-white" />}
       </button>
@@ -108,7 +108,7 @@ Reply concisely (2-4 sentences) with academic precision.`;
         >
           <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-2 text-white">
             <Bot className="w-5 h-5" />
-            <span className="text-sm font-extrabold flex-1">Ask AI Evaluator</span>
+            <span className="text-sm font-extrabold flex-1">Ask Evaluator</span>
             <span className="text-blue-200 text-[10px] font-medium">Gemini 2.5</span>
           </div>
 
@@ -226,7 +226,7 @@ export function EvaluationResultModal({ isOpen, result, onClose, onRequestTeache
                 {result.questionTitle || 'Evaluation Report'}
               </h3>
               <p className="text-[10px] font-medium m-0 opacity-75" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'विस्तृत AI मूल्यांकन रिपोर्ट' : 'Comprehensive AI Evaluation Report'}
+                {isHi ? 'विस्तृत मूल्यांकन रिपोर्ट' : 'Comprehensive Evaluation Report'}
               </p>
             </div>
           </div>
@@ -318,7 +318,7 @@ export function EvaluationResultModal({ isOpen, result, onClose, onRequestTeache
                 <h4 className="text-xs font-black uppercase tracking-wider m-0" style={{ color: 'var(--text-primary)' }}>
                   {result.annotatedFileBase64
                     ? (isHi ? 'तुलनात्मक समीक्षा: मूल कॉपी (Left) 🆚 शिक्षक जांची गई कॉपी (Right)' : 'Side-by-Side: Original Copy (Left) 🆚 Teacher Evaluated Copy (Right)')
-                    : (isHi ? 'उत्तरपुस्तिका एवं AI विश्लेषण (Side-by-Side)' : 'Answer Copy & AI Line-by-Line Review')}
+                    : (isHi ? 'उत्तरपुस्तिका एवं विश्लेषण (Side-by-Side)' : 'Answer Copy & Line-by-Line Review')}
                 </h4>
               </div>
 
@@ -404,8 +404,8 @@ export function EvaluationResultModal({ isOpen, result, onClose, onRequestTeache
               ) : (
                 <div className="rounded-2xl border overflow-hidden flex flex-col" style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}>
                   <div className="px-4 py-2.5 border-b shrink-0" style={{ borderColor: 'var(--glass-border)', background: 'var(--nav-bg)' }}>
-                    <span className="text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                      {isHi ? 'AI जांच व मॉडल सुधार' : 'AI Corrections & Model Answer'}
+                     <span className="text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                      {isHi ? 'सुधार व मॉडल उत्तर' : 'Corrections & Model Answer'}
                     </span>
                   </div>
 
