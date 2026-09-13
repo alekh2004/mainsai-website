@@ -4,7 +4,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/common/Navbar';
 import { MobileNav } from './components/common/MobileNav';
 import { DashboardSidebar } from './components/common/DashboardSidebar';
-import { ThemeSwitcher } from './components/common/ThemeSwitcher';
+
 import { AuthModal } from './components/auth/AuthModal';
 import { ApiKeyModal } from './components/common/ApiKeyModal';
 import { ExamSelector } from './components/dashboard/ExamSelector';
@@ -111,7 +111,6 @@ function MainAppContent() {
           onOpenQuestion={handleOpenQuestionFromAlert}
           onOpenEvaluation={handleOpenEvaluationFromAlert}
           onGoHome={handleResetToHome}
-          rightSlot={<ThemeSwitcher />}
         />
 
         {/* â”€â”€ Main Layout: Sidebar (desktop) + Content â”€â”€ */}
