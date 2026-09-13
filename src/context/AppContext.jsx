@@ -19,9 +19,22 @@ function purgeExpiredUploads(evals) {
 
 export function AppProvider({ children }) {
   const { user } = useAuth();
-  const [activeExam, setActiveExam] = useState(() =>
+  const [activeExam, setActiveExamState] = useState(() =>
     localStorage.getItem('active_exam') || 'upsc'
   );
+  const [examStage, setExamStageState] = useState(() =>
+    localStorage.getItem('exam_stage') || 'mains'
+  );
+
+  const setActiveExam = (exam) => {
+    setActiveExamState(exam);
+    localStorage.setItem('active_exam', exam);
+  };
+
+  const setExamStage = (stage) => {
+    setExamStageState(stage);
+    localStorage.setItem('exam_stage', stage);
+  };
   const [activeMode, setActiveMode] = useState('ai_gen');
   const [language, setLanguage] = useState(() => {
     const saved = localStorage.getItem('app_language');
@@ -514,6 +527,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={{
       activeExam, setActiveExam,
+      examStage, setExamStage,
       activeMode, setActiveMode,
       language, setLanguage, toggleLanguage,
       theme, setTheme,

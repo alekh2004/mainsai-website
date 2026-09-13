@@ -21,7 +21,7 @@ export class ErrorBoundary extends React.Component {
 
   handleReset = () => {
     try {
-      localStorage.removeItem('active_exam');
+      localStorage.clear();
     } catch (e) {}
     this.setState({ hasError: false, error: null });
     window.location.href = window.location.origin;
@@ -43,21 +43,42 @@ export class ErrorBoundary extends React.Component {
           textAlign: 'center'
         }}>
           <div style={{
-            maxWidth: '440px',
+            maxWidth: '480px',
             width: '100%',
-            background: 'rgba(15, 23, 42, 0.92)',
+            background: 'rgba(15, 23, 42, 0.95)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderRadius: '24px',
-            padding: '28px 24px',
+            padding: '32px 24px',
             boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
           }}>
             <div style={{ fontSize: '42px', marginBottom: '14px' }}>⚡</div>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', margin: '0 0 8px 0', color: '#fff' }}>
-              UPSC/BPSC Mains AI
+            <h2 style={{ fontSize: '20px', fontWeight: '900', margin: '0 0 4px 0', color: '#fff' }}>
+              ET Academy
             </h2>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '11px', color: '#60a5fa', fontWeight: '700', margin: '0 0 16px 0' }}>
+              Your partner in civil services preparation.
+            </p>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px 0', lineHeight: 1.5 }}>
               एक अस्थायी स्क्रीन लोड त्रुटि आई है। कृपया पेज रीलोड करें।
             </p>
+
+            {this.state.error?.message && (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '12px',
+                padding: '10px 14px',
+                fontSize: '11px',
+                color: '#fca5a5',
+                fontFamily: 'monospace',
+                textAlign: 'left',
+                marginBottom: '20px',
+                wordBreak: 'break-word'
+              }}>
+                {this.state.error.message}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <button
                 onClick={this.handleReload}
@@ -87,7 +108,7 @@ export class ErrorBoundary extends React.Component {
                   cursor: 'pointer'
                 }}
               >
-                होम पेज (Home)
+                रिसेट &amp; होम (Reset &amp; Home)
               </button>
             </div>
           </div>

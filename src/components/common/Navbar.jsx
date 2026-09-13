@@ -33,7 +33,7 @@ const BG_STYLES = [
 export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome, onOpenQuestion, onOpenEvaluation }) {
   const { user, logout, switchRole } = useAuth();
   const {
-    activeExam, setActiveExam, language, toggleLanguage,
+    activeExam, setActiveExam, examStage, setExamStage, language, toggleLanguage,
     theme, setTheme, accentColor, setAccentColor, bgStyle, setBgStyle,
     glassIntensity, setGlassIntensity
   } = useApp();
@@ -65,6 +65,13 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
     if (exam === activeExam) return;
     setExamFlash(true);
     setActiveExam(exam);
+    setTimeout(() => setExamFlash(false), 600);
+  };
+
+  const handleStageSwitch = (stage) => {
+    if (stage === examStage) return;
+    setExamFlash(true);
+    setExamStage(stage);
     setTimeout(() => setExamFlash(false), 600);
   };
 
@@ -100,46 +107,74 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
 
           {/* ── Brand ── */}
-          <div className="flex items-center gap-2 cursor-pointer select-none shrink-0" onClick={onGoHome}>
+          <div className="flex items-center gap-2.5 cursor-pointer select-none shrink-0" onClick={onGoHome}>
             <img
               src="/et_logo.png"
               alt="ET Academy"
-              className="et-logo-animate"
-              style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '12px' }}
+              className="et-logo-animate et-logo-glow"
+              style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '14px' }}
             />
             <div className="hidden sm:block">
-              <div className="text-sm font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-base font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
                 ET Academy
               </div>
-              <p className="text-[10px] opacity-75 m-0 font-extrabold truncate" style={{ color: 'rgb(var(--accent))' }}>
-                {isHi ? 'सिविल सेवा तैयारी में आपका साथी' : 'Your partner in civil services preparation.'}
+              <p className="text-[10px] opacity-80 m-0 font-extrabold text-blue-400">
+                {isHi ? 'सिविल सेवा परीक्षा की तैयारी में आपका साथी' : 'Your partner in civil services preparation.'}
               </p>
             </div>
           </div>
 
-          {/* ── Centre: Exam Switcher with high flash ── */}
-          <div
-            className={`hidden md:flex items-center p-1 glass-card-clean rounded-xl border transition-all duration-300 ${examFlash ? 'scale-110 shadow-xl ring-2 ring-blue-400 animate-pulse' : ''}`}
-            style={{ borderColor: 'var(--glass-border)' }}
-          >
-            <button
-              onClick={() => handleExamSwitch('upsc')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black transition-all duration-300 ${
-                activeExam === 'upsc' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105 ring-1 ring-blue-300' : 'opacity-70 hover:opacity-100'
-              }`}
+          {/* ── Centre: Exam & Stage Switcher with High-Flash ── */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* UPSC vs BPSC */}
+            <div
+              className={`flex items-center p-1 glass-card-clean rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-blue-400' : ''}`}
+              style={{ borderColor: 'var(--glass-border)' }}
             >
-              <span>🏛️</span>
-              <span>UPSC</span>
-            </button>
-            <button
-              onClick={() => handleExamSwitch('bpsc')}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black transition-all duration-300 ${
-                activeExam === 'bpsc' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg scale-105 ring-1 ring-amber-300' : 'opacity-70 hover:opacity-100'
-              }`}
+              <button
+                onClick={() => handleExamSwitch('upsc')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                  activeExam === 'upsc' ? 'bg-blue-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                }`}
+              >
+                <span>🏛️</span>
+                <span>UPSC</span>
+              </button>
+              <button
+                onClick={() => handleExamSwitch('bpsc')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                  activeExam === 'bpsc' ? 'bg-amber-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                }`}
+              >
+                <span>🦁</span>
+                <span>BPSC</span>
+              </button>
+            </div>
+
+            {/* Mains vs Prelims */}
+            <div
+              className={`flex items-center p-1 glass-card-clean rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-emerald-400' : ''}`}
+              style={{ borderColor: 'var(--glass-border)' }}
             >
-              <span>🦁</span>
-              <span>BPSC</span>
-            </button>
+              <button
+                onClick={() => handleStageSwitch('mains')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                  examStage === 'mains' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                }`}
+              >
+                <span>✍️</span>
+                <span>Mains</span>
+              </button>
+              <button
+                onClick={() => handleStageSwitch('prelims')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                  examStage === 'prelims' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                }`}
+              >
+                <span>🎯</span>
+                <span>Prelims</span>
+              </button>
+            </div>
           </div>
 
           {/* ── Right Actions ── */}

@@ -23,8 +23,8 @@ export function ExamSelector({ onSelectExam }) {
         <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight m-0">
           {isHi ? 'परीक्षा चुनें' : 'Select Exam'}
         </h2>
-        <p className="text-xs opacity-75 m-0 font-medium">
-          {isHi ? 'कृपया वह परीक्षा चुनें जिसका मूल्यांकन करना है' : 'Choose the exam you want to evaluate your answers for'}
+        <p className="text-xs opacity-85 m-0 font-extrabold text-blue-400">
+          {isHi ? 'सिविल सेवा परीक्षा की तैयारी में आपका साथी' : 'Your partner in civil services preparation.'}
         </p>
       </div>
 

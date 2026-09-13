@@ -150,9 +150,9 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
               className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full"
               style={{ background: 'rgba(251,191,36,0.18)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.35)' }}
             >
-              {activeExam.toUpperCase()} PRELIMS & MAINS
+              {activeExam === 'bpsc' ? 'BPSC Mains AI' : 'UPSC Mains AI'}
             </span>
-            <span className="text-[10px] font-bold text-blue-200">Your partner in civil services preparation.</span>
+            <span className="text-[10px] font-semibold text-white/50">Discipline Today, Brighter Tomorrow</span>
           </div>
 
           {/* Greeting */}
@@ -173,8 +173,10 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
             >
               {user?.name?.split(' ')[0] || 'Aspirant'}
             </h2>
-            <p className="text-xs sm:text-sm font-semibold text-white/90 max-w-md leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
-              "UPSC & BPSC Prelims Practice — Practice. Analyse. Improve. A step closer to a stronger you."
+            <p className="text-sm font-medium text-white/70 max-w-xs leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
+              {isHi
+                ? 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।'
+                : 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.'}
             </p>
           </div>
 
@@ -213,34 +215,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
         <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
           {isHi ? 'अध्ययन उपकरण' : 'Study Tools'}
         </h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Prelims Practice Test */}
-          <div
-            onClick={() => onQuickAction?.('prelims')}
-            className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-blue-500/30 cursor-pointer group space-y-3"
-            style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(79,70,229,0.1))' }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                <Target className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center gap-1">
-                <Zap className="w-3 h-3" /> Live Mock Engine
-              </span>
-            </div>
-            <div>
-              <h4 className="text-sm font-black m-0 group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'प्रिलिम्स मोक टेस्ट' : 'Prelims Practice Engine'}
-              </h4>
-              <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'UPSC & BPSC GS 1 मोक टेस्ट' : 'Full Length & Subject-wise GS MCQs'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-              <span>{isHi ? 'टेस्ट शुरू करें' : 'Start Prelims Test'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Flashcards */}
           <div
             onClick={() => onOpenFlashcards?.()}
