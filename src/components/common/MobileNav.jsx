@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Home, Sparkles, History, BarChart3, User } from 'lucide-react';
+import { Home, Sparkles, History, BarChart3, User, Target } from 'lucide-react';
 
 export function MobileNav({ activeTab, setActiveTab }) {
   const { language } = useApp();
@@ -9,9 +9,9 @@ export function MobileNav({ activeTab, setActiveTab }) {
 
   const tabs = [
     { id: 'home', icon: Home, label: isHi ? 'होम' : 'Home' },
+    { id: 'prelims', icon: Target, label: isHi ? 'प्रिलिम्स' : 'Prelims' },
     { id: 'evaluate', icon: Sparkles, label: isHi ? 'मूल्यांकन' : 'Evaluate' },
     { id: 'history', icon: History, label: isHi ? 'इतिहास' : 'History' },
-    { id: 'insights', icon: BarChart3, label: isHi ? 'इंसाइट्स' : 'Insights' },
     { id: 'profile', icon: User, label: isHi ? 'प्रोफाइल' : 'Profile' }
   ];
 

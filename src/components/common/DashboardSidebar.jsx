@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import {
   Home, Sparkles, History, BarChart3, User,
-  Layers, BookOpen, Crown, ChevronRight, ShieldCheck
+  Layers, BookOpen, Crown, ChevronRight, ShieldCheck, Target
 } from 'lucide-react';
 
 export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, onOpenMainsNotes, onOpenSubscription }) {
@@ -15,7 +15,8 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
 
   const navItems = [
     { id: 'home',       icon: Home,      label: isHi ? 'होम'             : 'Home',           onClick: () => setActiveTab('home') },
-    { id: 'evaluate',   icon: Sparkles,  label: isHi ? 'मूल्यांकन'      : 'Evaluate',       onClick: () => setActiveTab('evaluate') },
+    { id: 'prelims',    icon: Target,    label: isHi ? 'प्रिलिम्स टेस्ट'  : 'Prelims Test',   onClick: () => setActiveTab('prelims') },
+    { id: 'evaluate',   icon: Sparkles,  label: isHi ? 'मेन्स मूल्यांकन' : 'Mains Evaluator', onClick: () => setActiveTab('evaluate') },
     { id: 'history',    icon: History,   label: isHi ? 'इतिहास'         : 'History',        onClick: () => setActiveTab('history') },
     { id: 'insights',   icon: BarChart3, label: isHi ? 'इंसाइट्स'      : 'Insights',       onClick: () => setActiveTab('insights') },
     { id: 'flashcards', icon: Layers,    label: isHi ? 'फ्लैशकार्ड'  : 'Flashcards',  onClick: () => onOpenFlashcards?.(), isModal: true },

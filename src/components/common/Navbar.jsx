@@ -111,34 +111,34 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
               <div className="text-sm font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
                 ET Academy
               </div>
-              <p className="text-[10px] opacity-70 m-0 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'स्मार्ट मूल्यांकन' : 'Smart Evaluation'}
+              <p className="text-[10px] opacity-75 m-0 font-extrabold truncate" style={{ color: 'rgb(var(--accent))' }}>
+                {isHi ? 'सिविल सेवा तैयारी में आपका साथी' : 'Your partner in civil services preparation.'}
               </p>
             </div>
           </div>
 
-          {/* ── Centre: Exam Switcher with flash ── */}
+          {/* ── Centre: Exam Switcher with high flash ── */}
           <div
-            className={`hidden md:flex items-center p-1 glass-card-clean rounded-xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-lg' : ''}`}
+            className={`hidden md:flex items-center p-1 glass-card-clean rounded-xl border transition-all duration-300 ${examFlash ? 'scale-110 shadow-xl ring-2 ring-blue-400 animate-pulse' : ''}`}
             style={{ borderColor: 'var(--glass-border)' }}
           >
             <button
               onClick={() => handleExamSwitch('upsc')}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black transition-all duration-300 ${
-                activeExam === 'upsc' ? 'bg-blue-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                activeExam === 'upsc' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105 ring-1 ring-blue-300' : 'opacity-70 hover:opacity-100'
               }`}
             >
               <span>🏛️</span>
-              <span>UPSC Mains</span>
+              <span>UPSC</span>
             </button>
             <button
               onClick={() => handleExamSwitch('bpsc')}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-black transition-all duration-300 ${
-                activeExam === 'bpsc' ? 'bg-amber-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                activeExam === 'bpsc' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg scale-105 ring-1 ring-amber-300' : 'opacity-70 hover:opacity-100'
               }`}
             >
               <span>🦁</span>
-              <span>BPSC Mains</span>
+              <span>BPSC</span>
             </button>
           </div>
 

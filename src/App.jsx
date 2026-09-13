@@ -25,10 +25,16 @@ import { AdminQuestionUpload } from './components/admin/AdminQuestionUpload';
 import { SubscriptionModal } from './components/payment/SubscriptionModal';
 import { AiFlashcardsModal } from './components/study/AiFlashcardsModal';
 import { AiMainsNotesModal } from './components/study/AiMainsNotesModal';
+
+// Prelims Engine Components & Service
+import { PrelimsDashboard } from './components/prelims/PrelimsDashboard';
+import { PrelimsInstructionsModal } from './components/prelims/PrelimsInstructionsModal';
+import { PrelimsTestInterface } from './components/prelims/PrelimsTestInterface';
+import { PrelimsResultView } from './components/prelims/PrelimsResultView';
+import { generatePrelimsTest } from './services/prelimsService';
+
 import { ArrowLeft, Heart, Home, Sparkles, History, BarChart3, User, Layers, BookOpen } from 'lucide-react';
-
 import { BackgroundRenderer } from './components/common/BackgroundRenderer';
-
 
 function MainAppContent() {
   const { user, setShowPayModal: openPayModal } = useAuth();
@@ -51,6 +57,40 @@ function MainAppContent() {
   const [selectedAttemptQuestion, setSelectedAttemptQuestion] = useState(null);
   const [activeEvaluationResult, setActiveEvaluationResult] = useState(null);
 
+  // ── Prelims Test Engine States ──
+  const [prelimsConfig, setPrelimsConfig] = useState(null);
+  const [prelimsQuestions, setPrelimsQuestions] = useState(null);
+  const [prelimsResult, setPrelimsResult] = useState(null);
+  const [prelimsStep, setPrelimsStep] = useState('dashboard'); // 'dashboard' | 'instructions' | 'test' | 'result'
+
+  const handleStartPrelimsInstructions = (config) => {
+    setPrelimsConfig(config);
+    setPrelimsStep('instructions');
+  };
+
+  const handleConfirmStartPrelimsTest = () => {
+    const questions = generatePrelimsTest({
+      examType: prelimsConfig.examType,
+      subjects: prelimsConfig.subjects,
+      questionCount: prelimsConfig.questionCount
+    });
+    setPrelimsQuestions(questions);
+    setPrelimsStep('test');
+  };
+
+  const handleSubmitPrelimsTest = (resultData) => {
+    setPrelimsResult(resultData);
+    setPrelimsStep('result');
+  };
+
+  const handleRetakePrelimsTest = () => {
+    if (prelimsConfig) {
+      handleConfirmStartPrelimsTest();
+    } else {
+      setPrelimsStep('dashboard');
+    }
+  };
+
   const handleResetToHome = () => {
     setActiveTab('home');
     setSelectedPaper(null);
@@ -59,7 +99,10 @@ function MainAppContent() {
   };
 
   const handleQuickActionFromHome = (actionKey) => {
-    if (actionKey === 'ai_test' || actionKey === 'upload') {
+    if (actionKey === 'prelims') {
+      setActiveTab('prelims');
+      setPrelimsStep('dashboard');
+    } else if (actionKey === 'ai_test' || actionKey === 'upload') {
       setActiveTab('evaluate');
       setSelectedPaper(null);
     } else if (actionKey === 'history') {
@@ -98,12 +141,12 @@ function MainAppContent() {
   return (
     <div className="app-root min-h-screen flex flex-col selection:bg-blue-500 selection:text-white">
 
-      {/* Dynamic Glassmorphic Background (World Map / Universe / Aurora / Minimal) */}
+      {/* Dynamic Glassmorphic Background */}
       <BackgroundRenderer />
 
       <div className="content-layer flex flex-col min-h-screen">
 
-        {/* Navbar â€” pass theme switcher as slot */}
+        {/* Navbar */}
         <Navbar
           onOpenApiKey={() => setShowApiKeyModal(true)}
           onOpenAdmin={() => setShowAdminModal(true)}
@@ -113,13 +156,17 @@ function MainAppContent() {
           onGoHome={handleResetToHome}
         />
 
-        {/* â”€â”€ Main Layout: Sidebar (desktop) + Content â”€â”€ */}
+        {/* ── Main Layout: Sidebar (desktop) + Content ── */}
         <div className="flex flex-1 overflow-hidden">
 
           {/* Desktop Sidebar */}
           <DashboardSidebar
             activeTab={activeTab}
-            setActiveTab={(tab) => { setActiveTab(tab); if (tab === 'evaluate') setSelectedPaper(null); }}
+            setActiveTab={(tab) => {
+              setActiveTab(tab);
+              if (tab === 'evaluate') setSelectedPaper(null);
+              if (tab === 'prelims') setPrelimsStep('dashboard');
+            }}
             onOpenFlashcards={() => setShowFlashcardsModal(true)}
             onOpenMainsNotes={() => setShowMainsNotesModal(true)}
             onOpenSubscription={() => openPayModal(true)}
@@ -142,6 +189,40 @@ function MainAppContent() {
                 </div>
               )}
 
+              {/* ── PRELIMS TEST ENGINE TAB ── */}
+              {activeTab === 'prelims' && (
+                <div className="animate-fadeIn">
+                  {prelimsStep === 'dashboard' && (
+                    <PrelimsDashboard onStartTestInstructions={handleStartPrelimsInstructions} />
+                  )}
+
+                  {prelimsStep === 'instructions' && (
+                    <PrelimsInstructionsModal
+                      config={prelimsConfig}
+                      onConfirmStart={handleConfirmStartPrelimsTest}
+                      onCancel={() => setPrelimsStep('dashboard')}
+                    />
+                  )}
+
+                  {prelimsStep === 'test' && (
+                    <PrelimsTestInterface
+                      config={prelimsConfig}
+                      questions={prelimsQuestions}
+                      onSubmitTest={handleSubmitPrelimsTest}
+                      onCancelTest={() => setPrelimsStep('dashboard')}
+                    />
+                  )}
+
+                  {prelimsStep === 'result' && (
+                    <PrelimsResultView
+                      resultData={prelimsResult}
+                      onRetake={handleRetakePrelimsTest}
+                      onBackToDashboard={() => setPrelimsStep('dashboard')}
+                    />
+                  )}
+                </div>
+              )}
+
               {activeTab === 'evaluate' && (
                 <div className="space-y-5 animate-fadeIn">
                   {!selectedPaper ? (
@@ -157,7 +238,7 @@ function MainAppContent() {
                         style={{ color: 'var(--text-secondary)' }}
                       >
                         <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
-                        {isHi ? 'à¤ªà¥‡à¤ªà¤° à¤šà¤¯à¤¨ à¤ªà¤° à¤µà¤¾à¤ªà¤¸' : 'Back to Paper Selection'}
+                        {isHi ? 'पेपर चयन पर वापस' : 'Back to Paper Selection'}
                       </button>
                       <ModeSelector />
                       {activeMode === 'ai_gen'
@@ -197,7 +278,7 @@ function MainAppContent() {
               <div className="flex items-center justify-center gap-1.5">
                 <span>Made with</span>
                 <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-                <span>for UPSC &amp; BPSC Aspirants • ET Academy Smart Evaluation</span>
+                <span>for UPSC &amp; BPSC Aspirants • Your partner in civil services preparation.</span>
               </div>
             </footer>
 
@@ -208,8 +289,7 @@ function MainAppContent() {
         <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
 
-
-      {/* â”€â”€ Modals â”€â”€ */}
+      {/* Modals */}
       <ApiKeyModal isOpen={showApiKeyModal} onClose={() => setShowApiKeyModal(false)} />
       <AdminQuestionUpload isOpen={showAdminModal} onClose={() => setShowAdminModal(false)} />
       <TeacherReviewQueue isOpen={showTeacherModal} onClose={() => setShowTeacherModal(false)} />
@@ -272,4 +352,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
