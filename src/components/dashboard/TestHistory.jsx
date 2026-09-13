@@ -38,9 +38,20 @@ export function TestHistory({ onViewReport, onGoBack }) {
 
   const [search, setSearch] = useState('');
   const [selectedEval, setSelectedEval] = useState(null);
-  const [activeSection, setActiveSection] = useState('overview'); // 'overview' | 'linereview' | 'model'
+  const [activeSection, setActiveSection] = useState('overview');
+  const [historyTab, setHistoryTab] = useState('all'); // 'all' | 'prelims' | 'mains'
 
-  const filtered = (evaluations || []).filter(e =>
+  const allEvals = evaluations || [];
+  const prelimsEvals = allEvals.filter(e => e.evaluationType === 'prelims_test');
+  const mainsEvals = allEvals.filter(e => e.evaluationType !== 'prelims_test');
+
+  const getTabList = () => {
+    if (historyTab === 'prelims') return prelimsEvals;
+    if (historyTab === 'mains') return mainsEvals;
+    return allEvals;
+  };
+
+  const filtered = getTabList().filter(e =>
     (e.questionTitle || '').toLowerCase().includes(search.toLowerCase()) ||
     (e.paper || '').toLowerCase().includes(search.toLowerCase())
   );
@@ -56,10 +67,10 @@ export function TestHistory({ onViewReport, onGoBack }) {
           </div>
           <div>
             <h2 className="text-xl font-extrabold m-0 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-              {isHi ? 'मूल्यांकन इतिहास' : 'Test History'}
+              {isHi ? 'परीक्षा इतिहास' : 'Test History'}
             </h2>
             <p className="text-xs m-0 font-medium opacity-80" style={{ color: 'var(--text-secondary)' }}>
-              {isHi ? 'सभी AI-जांचित उत्तरपुस्तिकाएं' : 'All AI-evaluated answer sheets'} • {filtered.length} records
+              {allEvals.length} {isHi ? 'कुल रिकॉर्ड' : 'total records'} • {prelimsEvals.length} Prelims • {mainsEvals.length} Mains
             </p>
           </div>
         </div>
@@ -68,6 +79,29 @@ export function TestHistory({ onViewReport, onGoBack }) {
             <ArrowLeft className="w-4 h-4" /> {isHi ? 'वापस' : 'Back'}
           </button>
         )}
+      </div>
+
+      {/* Tab Filter */}
+      <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.07)' }}>
+        {[
+          { id: 'all', label: isHi ? '📋 सभी' : '📋 All', count: allEvals.length },
+          { id: 'prelims', label: '🎯 Prelims', count: prelimsEvals.length },
+          { id: 'mains', label: '✍️ Mains', count: mainsEvals.length },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setHistoryTab(tab.id)}
+            className="flex-1 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1"
+            style={historyTab === tab.id
+              ? { background: tab.id === 'prelims' ? 'linear-gradient(135deg,#10b981,#059669)' : tab.id === 'mains' ? 'rgb(var(--accent))' : '#3b82f6', color: '#fff' }
+              : { color: 'var(--text-secondary)' }}
+          >
+            {tab.label}
+            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${historyTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200/60'}`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Search */}
@@ -99,56 +133,75 @@ export function TestHistory({ onViewReport, onGoBack }) {
 
       {/* History Cards */}
       <div className="space-y-3">
-        {filtered.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => { setSelectedEval(item); setActiveSection('overview'); }}
-            className="p-5 rounded-3xl glass-card-clean glass-card-hover border cursor-pointer flex items-center justify-between gap-4 group"
-            style={{ borderColor: 'var(--glass-border)' }}
-          >
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              {/* Icon */}
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                {item.uploadedFileType === 'image'
-                  ? <FileImage className="w-5 h-5 text-blue-500" />
-                  : <FileText className="w-5 h-5 text-blue-500" />
-                }
+        {filtered.map((item) => {
+          const isPrelims = item.evaluationType === 'prelims_test';
+          const pct = item.percentage ?? (item.score != null && item.maxMarks ? Math.round((item.score / item.maxMarks) * 100) : null);
+
+          return (
+            <div
+              key={item.id}
+              onClick={() => { setSelectedEval(item); setActiveSection('overview'); }}
+              className="p-5 rounded-3xl glass-card-clean glass-card-hover border cursor-pointer flex items-center justify-between gap-4 group"
+              style={{ borderColor: 'var(--glass-border)', borderLeftWidth: '3px', borderLeftColor: isPrelims ? '#10b981' : 'rgb(var(--accent))' }}
+            >
+              <div className="flex items-start gap-4 flex-1 min-w-0">
+                {/* Icon */}
+                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${isPrelims ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-blue-500/10 border-blue-500/20'}`}>
+                  {isPrelims
+                    ? <Layers className="w-5 h-5 text-emerald-500" />
+                    : (item.uploadedFileType === 'image' ? <FileImage className="w-5 h-5 text-blue-500" /> : <FileText className="w-5 h-5 text-blue-500" />)
+                  }
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {isPrelims ? (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-extrabold">
+                        🎯 {item.examLabel || 'Prelims'}
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[11px] font-extrabold uppercase">
+                        {item.paper || 'GS Paper'}
+                      </span>
+                    )}
+                    <span className="text-[11px] font-mono flex items-center gap-1 opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                      <Calendar className="w-3 h-3" />
+                      {formatDateSafe(item.createdAt)}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold ${tagBadge(item.tag)}`}>{item.tag || 'Pending'}</span>
+                  </div>
+                  <h4 className="text-sm font-extrabold m-0 truncate group-hover:opacity-80 transition-all" style={{ color: 'var(--text-primary)' }}>
+                    {item.questionTitle || item.paper}
+                  </h4>
+                  {isPrelims ? (
+                    <div className="flex items-center gap-3 text-[11px] font-bold">
+                      <span className="text-emerald-500">✓ {item.correctCount ?? '—'} Correct</span>
+                      <span className="text-rose-500">✗ {item.wrongCount ?? '—'} Wrong</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>— {item.unattemptedCount ?? '—'} Left</span>
+                      {item.accuracy > 0 && <span className="text-cyan-500">{item.accuracy}% acc</span>}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] m-0 line-clamp-1 font-medium opacity-70" style={{ color: 'var(--text-secondary)' }}>
+                      {item.questionText}
+                    </p>
+                  )}
+                </div>
               </div>
 
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[11px] font-extrabold uppercase">
-                    {item.paper || 'GS Paper'}
-                  </span>
-                  <span className="text-[11px] font-mono flex items-center gap-1 opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                    <Calendar className="w-3 h-3" />
-                    {formatDateSafe(item.createdAt)}
-                  </span>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="text-right">
+                  <div className="text-base font-black" style={{ color: 'rgb(var(--accent))' }}>
+                    {item.score != null ? item.score : '—'} <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>/ {item.maxMarks}</span>
+                  </div>
+                  {pct != null && <div className="text-[10px] font-extrabold" style={{ color: 'var(--text-secondary)' }}>{pct}%</div>}
                 </div>
-                <h4 className="text-sm font-extrabold m-0 truncate group-hover:text-blue-400 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                  {item.questionTitle || item.paper}
-                </h4>
-                <p className="text-[11px] m-0 line-clamp-1 font-medium opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                  {item.questionText}
-                </p>
+                <div className="w-8 h-8 rounded-xl glass-card-clean border flex items-center justify-center group-hover:border-blue-400 transition-all" style={{ borderColor: 'var(--glass-border)' }}>
+                  <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="text-right">
-                <div className="text-base font-black text-blue-700">
-                  {item.score != null ? item.score : '—'} <span className="text-xs text-slate-400 font-bold">/ {item.maxMarks}</span>
-                </div>
-                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase ${tagBadge(item.tag)}`}>
-                  {item.tag || 'Pending'}
-                </span>
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all">
-                <ChevronRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* ── FULL EVALUATION DETAIL MODAL ── */}

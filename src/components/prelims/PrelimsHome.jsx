@@ -1,12 +1,11 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  FileText, BookOpen, Layers, Settings, Zap, BarChart2,
-  ChevronRight, ArrowRight, Play, Sparkles, Trophy
+  FileText, BookOpen, ChevronRight, Zap, Trophy, Play
 } from 'lucide-react';
 
 export function PrelimsHome({ onSelectAction }) {
-  const { activeExam, setActiveExam, language } = useApp();
+  const { activeExam, language } = useApp();
   const isHi = language === 'hi';
 
   const actionCards = [
@@ -14,40 +13,30 @@ export function PrelimsHome({ onSelectAction }) {
       id: 'tests',
       icon: FileText,
       iconBg: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
+      gradient: 'from-blue-600/10 to-blue-400/5',
+      accentColor: '#3b82f6',
       title: isHi ? 'फुल एवं विषयवार टेस्ट' : 'Full & Subject Tests',
-      desc: isHi ? 'फुल लेंथ मॉक एवं विषयवार अभ्यास (10-100 प्रश्न)' : 'Full length 100 Qs & subject practice',
-      badge: isHi ? 'टेस्ट सीरीज़' : 'Test Series'
+      desc: isHi ? 'फुल लेंथ मॉक (100 Qs) एवं विषयवार अभ्यास (10-100 प्रश्न) — नेगेटिव मार्किंग के साथ' : 'Full length 100Q mock & subject-wise practice with negative marking',
+      badge: isHi ? '🎯 टेस्ट सीरीज़' : '🎯 Test Series',
+      cta: isHi ? 'टेस्ट शुरू करें' : 'Start Test',
     },
     {
       id: 'pyqs',
       icon: BookOpen,
       iconBg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
+      gradient: 'from-emerald-600/10 to-emerald-400/5',
+      accentColor: '#10b981',
       title: isHi ? 'PYQs वॉल्ट' : 'PYQs Vault',
-      desc: isHi ? '2015 - 2025 तक व्याख्या सहित हल प्रश्न' : 'Solved PYQs (2015 - 2025) with analysis',
-      badge: '2015 - 2025'
+      desc: isHi ? '2015 – 2025 तक के हल प्रश्न, विस्तृत व्याख्या सहित — UPSC एवं BPSC दोनों के लिए' : 'Solved PYQs (2015–2025) with detailed explanations for UPSC & BPSC',
+      badge: '📜 2015 – 2025',
+      cta: isHi ? 'देखें' : 'Explore',
     },
-    {
-      id: 'daily_quiz',
-      icon: Zap,
-      iconBg: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
-      title: isHi ? 'डेली क्विज़ (10/20 Qs)' : 'Daily Target Quiz',
-      desc: isHi ? 'रोजाना 10/20 प्रश्नों का क्विक स्पीड टेस्ट' : '10/20 questions daily speed test',
-      badge: isHi ? 'डेली' : 'Daily'
-    },
-    {
-      id: 'performance',
-      icon: BarChart2,
-      iconBg: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/30',
-      title: isHi ? 'परफॉरमेंस' : 'Performance Analytics',
-      desc: isHi ? 'अपनी रैंक, स्कोर एवं विस्तृत गलतियाँ देखें' : 'Track accuracy %, score & weak areas',
-      badge: isHi ? 'एनालिटिक्स' : 'Analytics'
-    }
   ];
 
   return (
-    <div className="w-full space-y-6 animate-fadeIn max-w-4xl mx-auto pb-10 text-slate-900">
+    <div className="w-full space-y-6 animate-fadeIn max-w-4xl mx-auto pb-10">
 
-      {/* ── Clear & Bright Hero Banner (India Gate / Parliament Image Visible) ── */}
+      {/* ── Clear & Bright Hero Banner ── */}
       <div
         className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8"
         style={{
@@ -56,7 +45,7 @@ export function PrelimsHome({ onSelectAction }) {
           color: '#ffffff'
         }}
       >
-        {/* ── Vivid Background Monument (Full Opacity) ── */}
+        {/* ── Vivid Background Monument ── */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -67,7 +56,7 @@ export function PrelimsHome({ onSelectAction }) {
             filter: 'saturate(1.2) contrast(1.05) brightness(1.1)'
           }}
         />
-        {/* ── Left-side text legibility vignette only ── */}
+        {/* ── Left vignette for text legibility ── */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -92,7 +81,7 @@ export function PrelimsHome({ onSelectAction }) {
         </div>
       </div>
 
-      {/* ── Action Cards Grid ── */}
+      {/* ── 2 Action Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {actionCards.map(card => {
           const Icon = card.icon;
@@ -100,63 +89,62 @@ export function PrelimsHome({ onSelectAction }) {
             <div
               key={card.id}
               onClick={() => onSelectAction(card.id)}
-              className="glass-card-clean glass-card-hover p-5 rounded-3xl border hover:border-blue-500/50 hover:shadow-md cursor-pointer transition-all space-y-3 group text-left"
+              className={`relative overflow-hidden glass-card-clean glass-card-hover p-6 rounded-3xl border cursor-pointer transition-all group text-left`}
               style={{ borderColor: 'var(--glass-border)' }}
             >
-              <div className="flex items-center justify-between">
-                <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center ${card.iconBg} shadow-sm`}>
-                  <Icon className="w-5 h-5" />
+              {/* Subtle gradient tint */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-60 pointer-events-none`}
+              />
+
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${card.iconBg} shadow-sm`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl border"
+                    style={{ background: `${card.accentColor}18`, color: card.accentColor, borderColor: `${card.accentColor}30` }}>
+                    {card.badge}
+                  </span>
                 </div>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  {card.badge}
-                </span>
-              </div>
 
-              <div>
-                <h3 className="text-sm font-black m-0 group-hover:text-blue-400 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                  {card.title}
-                </h3>
-                <p className="text-xs font-medium mt-1 m-0 leading-normal line-clamp-2 opacity-70" style={{ color: 'var(--text-secondary)' }}>
-                  {card.desc}
-                </p>
-              </div>
+                <div>
+                  <h3 className="text-base font-black m-0 group-hover:opacity-90 transition-all" style={{ color: 'var(--text-primary)' }}>
+                    {card.title}
+                  </h3>
+                  <p className="text-xs font-medium mt-1.5 m-0 leading-relaxed opacity-70" style={{ color: 'var(--text-secondary)' }}>
+                    {card.desc}
+                  </p>
+                </div>
 
-              <div className="flex items-center text-xs font-black text-blue-500 group-hover:translate-x-1 transition-transform pt-1">
-                <span>{isHi ? 'प्रारंभ करें' : 'Start'}</span>
-                <ChevronRight className="w-4 h-4 ml-0.5" />
+                <div
+                  className="flex items-center text-xs font-black group-hover:translate-x-1 transition-transform"
+                  style={{ color: card.accentColor }}
+                >
+                  <span>{card.cta}</span>
+                  <ChevronRight className="w-4 h-4 ml-0.5" />
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* ── Continue Your Preparation Card ── */}
+      {/* ── Quick Stats Banner ── */}
       <div
-        className="glass-card-clean p-5 rounded-3xl border shadow-sm flex items-center justify-between gap-4 text-left"
+        className="glass-card-clean p-4 rounded-2xl border flex items-center justify-around gap-3 text-center"
         style={{ borderColor: 'var(--glass-border)' }}
       >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 flex items-center justify-center shrink-0">
-            <Trophy className="w-6 h-6" />
+        {[
+          { val: '10K+', label: isHi ? 'PYQ प्रश्न' : 'PYQ Questions', color: 'text-blue-500' },
+          { val: '2015-25', label: isHi ? 'वर्ष कवरेज' : 'Year Coverage', color: 'text-emerald-500' },
+          { val: '-0.33 / -0.66', label: isHi ? 'नेगेटिव मार्किंग' : 'Neg. Marking', color: 'text-rose-500' },
+        ].map((stat, i) => (
+          <div key={i} className="space-y-0.5">
+            <div className={`text-sm font-black ${stat.color}`}>{stat.val}</div>
+            <div className="text-[10px] font-medium opacity-60" style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
           </div>
-          <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-60" style={{ color: 'var(--text-secondary)' }}>
-              {isHi ? 'निरंतर अभ्यास' : 'Continue Your Preparation'}
-            </div>
-            <div className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>
-              {activeExam === 'bpsc' ? 'BPSC 70th Full Length Mock 1' : 'Polity Quick Target Test'}
-            </div>
-            <div className="text-xs font-medium opacity-70" style={{ color: 'var(--text-secondary)' }}>20 Questions • 40 Marks</div>
-          </div>
-        </div>
-
-        <button
-          onClick={() => onSelectAction('tests')}
-          className="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md flex items-center gap-1.5 shrink-0"
-        >
-          <Play className="w-3.5 h-3.5 fill-white" />
-          <span>{isHi ? 'शुरू करें' : 'Start'}</span>
-        </button>
+        ))}
       </div>
 
     </div>

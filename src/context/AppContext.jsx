@@ -232,11 +232,15 @@ export function AppProvider({ children }) {
     return newEval;
   };
 
-  // ── Computed insights helpers (Crash-proof against NaN, missing properties, or invalid dates) ──
+  // ── Computed insights helpers — returns mains + prelims separately ──
   const getInsightsData = () => {
     try {
-      const evals = (evaluations || []).filter(e => e && e.score != null);
-      if (!evals.length) return null;
+      const allEvals = (evaluations || []).filter(e => e && e.score != null);
+      if (!allEvals.length) return null;
+
+      // Split by type
+      const mainsEvals = allEvals.filter(e => e.evaluationType !== 'prelims_test');
+      const prelimsEvals = allEvals.filter(e => e.evaluationType === 'prelims_test');
 
       const calcPct = (e) => {
         if (typeof e.percentage === 'number' && !isNaN(e.percentage)) {
@@ -247,65 +251,114 @@ export function AppProvider({ children }) {
         return m > 0 ? Math.max(0, Math.min(100, Math.round((s / m) * 100))) : 0;
       };
 
-      const sumPct = evals.reduce((s, e) => s + calcPct(e), 0);
-      const avgPct = Math.round(sumPct / evals.length) || 0;
-      const best = evals.reduce((a, b) => calcPct(b) > calcPct(a) ? b : a, evals[0]);
-      const weakest = evals.reduce((a, b) => calcPct(b) < calcPct(a) ? b : a, evals[0]);
+      // ── Compute Mains data ──
+      const computeSection = (evals) => {
+        if (!evals.length) return null;
+        const sumPct = evals.reduce((s, e) => s + calcPct(e), 0);
+        const avgPct = Math.round(sumPct / evals.length) || 0;
+        const best = evals.reduce((a, b) => calcPct(b) > calcPct(a) ? b : a, evals[0]);
+        const weakest = evals.reduce((a, b) => calcPct(b) < calcPct(a) ? b : a, evals[0]);
 
-      // Group by paper
-      const byPaper = {};
-      evals.forEach(e => {
-        const key = e.paper || 'GS';
-        if (!byPaper[key]) byPaper[key] = { scores: [], titles: [] };
-        byPaper[key].scores.push(calcPct(e));
-        byPaper[key].titles.push(e.questionTitle || 'Test');
-      });
-
-      // Trend over last 10
-      const trend = evals.slice(0, 10).reverse().map((e, i) => {
-        let dateStr = 'Recent';
-        try {
-          if (e.createdAt) {
-            let d;
-            if (typeof e.createdAt?.toDate === 'function') {
-              d = e.createdAt.toDate();
-            } else if (e.createdAt?.seconds) {
-              d = new Date(e.createdAt.seconds * 1000);
-            } else {
-              d = new Date(e.createdAt);
-            }
-            if (!isNaN(d.getTime())) {
-              dateStr = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-            }
-          }
-        } catch (_) {}
-        return {
-          index: i + 1,
-          date: dateStr,
-          pct: calcPct(e),
-          tag: e.tag || 'Checked',
-          questionTitle: e.questionTitle || 'Test'
-        };
-      });
-
-      // Missed demand points frequency
-      const missedFreq = {};
-      evals.forEach(e => {
-        (e.missedDemandPoints || []).forEach(p => {
-          if (p) missedFreq[p] = (missedFreq[p] || 0) + 1;
+        const byPaper = {};
+        evals.forEach(e => {
+          const key = e.paper || 'GS';
+          if (!byPaper[key]) byPaper[key] = { scores: [], titles: [] };
+          byPaper[key].scores.push(calcPct(e));
+          byPaper[key].titles.push(e.questionTitle || 'Test');
         });
-      });
-      const topMissed = Object.entries(missedFreq)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([point, count]) => ({ point, count }));
 
-      return { avgPct, best, weakest, byPaper, trend, topMissed, totalTests: evals.length };
+        const trend = evals.slice(0, 10).reverse().map((e, i) => {
+          let dateStr = 'Recent';
+          try {
+            if (e.createdAt) {
+              let d;
+              if (typeof e.createdAt?.toDate === 'function') {
+                d = e.createdAt.toDate();
+              } else if (e.createdAt?.seconds) {
+                d = new Date(e.createdAt.seconds * 1000);
+              } else {
+                d = new Date(e.createdAt);
+              }
+              if (!isNaN(d.getTime())) {
+                dateStr = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+              }
+            }
+          } catch (_) {}
+          return {
+            index: i + 1,
+            date: dateStr,
+            pct: calcPct(e),
+            tag: e.tag || 'Checked',
+            questionTitle: e.questionTitle || 'Test'
+          };
+        });
+
+        const missedFreq = {};
+        evals.forEach(e => {
+          (e.missedDemandPoints || []).forEach(p => {
+            if (p) missedFreq[p] = (missedFreq[p] || 0) + 1;
+          });
+        });
+        const topMissed = Object.entries(missedFreq)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([point, count]) => ({ point, count }));
+
+        return { avgPct, best, weakest, byPaper, trend, topMissed, totalTests: evals.length };
+      };
+
+      // ── Prelims-specific extra stats ──
+      const computePrelims = (evals) => {
+        if (!evals.length) return null;
+        const base = computeSection(evals);
+
+        // Accuracy chart (not score%, but answer accuracy%)
+        const totalCorrect = evals.reduce((s, e) => s + (e.correctCount || 0), 0);
+        const totalAttempted = evals.reduce((s, e) => s + ((e.correctCount || 0) + (e.wrongCount || 0)), 0);
+        const avgAccuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+
+        // Avg negative deduction per test
+        const avgWrong = evals.length > 0
+          ? Math.round(evals.reduce((s, e) => s + (e.wrongCount || 0), 0) / evals.length)
+          : 0;
+
+        // Subject-wise aggregate from subjectBreakdown
+        const subjectAgg = {};
+        evals.forEach(e => {
+          if (e.subjectBreakdown && typeof e.subjectBreakdown === 'object') {
+            Object.entries(e.subjectBreakdown).forEach(([subj, acc]) => {
+              if (!subjectAgg[subj]) subjectAgg[subj] = [];
+              subjectAgg[subj].push(acc);
+            });
+          }
+        });
+        const subjectAvg = Object.entries(subjectAgg).map(([subj, accs]) => ({
+          subject: subj,
+          avg: Math.round(accs.reduce((a, b) => a + b, 0) / accs.length)
+        })).sort((a, b) => b.avg - a.avg);
+
+        return { ...base, avgAccuracy, avgWrong, subjectAvg };
+      };
+
+      const mains = computeSection(mainsEvals);
+      const prelims = computePrelims(prelimsEvals);
+
+      return {
+        // Legacy flat fields for backward-compat (use mainsEvals or all)
+        ...(mains || computeSection(allEvals) || {}),
+        totalTests: allEvals.length,
+        // Sectioned data
+        mains,
+        prelims,
+        mainsCount: mainsEvals.length,
+        prelimsCount: prelimsEvals.length,
+      };
     } catch (err) {
       console.warn('Error computing insights:', err);
       return null;
     }
   };
+
 
   // ── Notifications System ──
   const [notifications, setNotifications] = useState(() => {
