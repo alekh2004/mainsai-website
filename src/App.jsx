@@ -48,6 +48,7 @@ function MainAppContent() {
   const [showMainsNotesModal, setShowMainsNotesModal] = useState(false);
   const [showDeepChecker, setShowDeepChecker] = useState(false);
   const [deepCheckerQuestion, setDeepCheckerQuestion] = useState(null);
+  const [isTestActive, setIsTestActive] = useState(false); // CBT mode — sidebar collapses
 
   const [selectedAttemptQuestion, setSelectedAttemptQuestion] = useState(null);
   const [activeEvaluationResult, setActiveEvaluationResult] = useState(null);
@@ -117,13 +118,14 @@ function MainAppContent() {
         {/* â”€â”€ Main Layout: Sidebar (desktop) + Content â”€â”€ */}
         <div className="flex flex-1 overflow-hidden">
 
-          {/* Desktop Sidebar */}
+          {/* Desktop Sidebar — auto-collapses during CBT test */}
           <DashboardSidebar
             activeTab={activeTab}
             setActiveTab={(tab) => { setActiveTab(tab); if (tab === 'evaluate') setSelectedPaper(null); }}
             onOpenFlashcards={() => setShowFlashcardsModal(true)}
             onOpenMainsNotes={() => setShowMainsNotesModal(true)}
             onOpenSubscription={() => openPayModal(true)}
+            isTestActive={isTestActive}
           />
 
           {/* Content Area */}
@@ -134,7 +136,10 @@ function MainAppContent() {
 
               {activeTab === 'prelims' && (
                 <div className="animate-fadeIn">
-                  <PrelimsHub />
+                  <PrelimsHub
+                    onTestStart={() => setIsTestActive(true)}
+                    onTestEnd={() => setIsTestActive(false)}
+                  />
                 </div>
               )}
 
@@ -152,7 +157,10 @@ function MainAppContent() {
               {activeTab === 'evaluate' && (
                 <div className="space-y-5 animate-fadeIn">
                   {examStage === 'prelims' ? (
-                    <PrelimsHub />
+                    <PrelimsHub
+                      onTestStart={() => setIsTestActive(true)}
+                      onTestEnd={() => setIsTestActive(false)}
+                    />
                   ) : !selectedPaper ? (
                     <>
                       <ExamSelector />

@@ -45,85 +45,98 @@ export function PrelimsResultAnalysis({ resultData = {}, onBackToDashboard }) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return alert('Please allow popups to download/print the PDF.');
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>ET Academy - Test Paper & Solution Key</title>
-        <style>
-          body { font-family: system-ui, -apple-system, sans-serif; padding: 30px; color: #0f172a; max-width: 800px; margin: 0 auto; }
-          .header { border-bottom: 2px solid #2563eb; padding-bottom: 15px; margin-bottom: 20px; }
-          .brand { font-size: 24px; font-weight: 900; color: #2563eb; }
-          .sub { font-size: 12px; color: #475569; margin-top: 4px; }
-          .stats-grid { display: flex; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
-          .stat-box { flex: 1; text-align: center; }
-          .stat-val { font-size: 18px; font-weight: 800; color: #2563eb; }
-          .stat-lbl { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; }
-          .q-card { border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; margin-bottom: 16px; page-break-inside: avoid; }
-          .q-num { font-[12px]; font-weight: 800; color: #2563eb; margin-bottom: 6px; }
-          .q-txt { font-size: 13px; font-weight: 700; margin-bottom: 12px; line-height: 1.5; }
-          .opt { font-size: 12px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 6px; }
-          .opt-correct { background: #dcfce7; border-color: #22c55e; font-weight: 700; color: #14532d; }
-          .opt-selected { background: #fee2e2; border-color: #ef4444; font-weight: 700; color: #7f1d1d; }
-          .exp-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; font-size: 11px; margin-top: 10px; color: #1e3a8a; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="brand">ET Academy</div>
-          <div class="sub">Your partner in civil services preparation. • ${isBpsc ? 'BPSC 70th Prelims' : 'UPSC Prelims'} Question Paper &amp; Official Solution Key</div>
-          <div class="sub">Date: ${new Date().toLocaleDateString('en-IN')}</div>
+    const half = Math.ceil(questions.length / 2);
+    const leftQs = questions.slice(0, half);
+    const rightQs = questions.slice(half);
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+
+    const renderQ = (q, idx) => {
+      const userAns = selectedAnswers[q.id];
+      const opts = isHi ? q.optionsHi : q.optionsEn;
+      const isCorrect = userAns === q.correctIndex;
+      const isUnattempted = userAns === undefined;
+      const resultDot = isUnattempted ? '⬜' : isCorrect ? '✅' : '❌';
+
+      return `<div class="q-card">
+        <div class="q-head"><span class="q-num">Q${idx + 1}</span> <span class="q-subj">[${q.subject || ''}]</span> <span class="q-result">${resultDot}</span></div>
+        <div class="q-txt">${(isHi ? q.questionHi : q.questionEn) || ''}</div>
+        <div class="opts">
+          ${opts.map((opt, oIdx) => {
+            const isCor = oIdx === q.correctIndex;
+            const isSel = oIdx === userAns;
+            const cls = isCor ? 'opt opt-correct' : (isSel && !isCor ? 'opt opt-wrong' : 'opt');
+            return `<div class="${cls}">${letters[oIdx]}. ${opt}${isCor ? ' ✔' : ''}${isSel && !isCor ? ' ✖' : ''}</div>`;
+          }).join('')}
         </div>
+        <div class="exp"><b>Exp:</b> ${(isHi ? q.explanationHi : q.explanationEn) || ''}</div>
+      </div>`;
+    };
 
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-val">${roundedNetScore} / ${totalPossibleMarks}</div>
-            <div class="stat-lbl">Net Score</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-val">${accuracyPct}%</div>
-            <div class="stat-lbl">Accuracy</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-val">${correctCount} / ${questions.length}</div>
-            <div class="stat-lbl">Correct Qs</div>
-          </div>
-        </div>
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <title>ET Academy — Prelims Test Paper</title>
+  <style>
+    @page { margin: 12mm 10mm; size: A4; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 10px; color: #0f172a; margin: 0; padding: 0; }
+    .header { border-bottom: 2px solid #2563eb; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .brand { font-size: 16px; font-weight: 900; color: #2563eb; }
+    .meta { font-size: 9px; color: #475569; text-align: right; }
+    .stats-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .stat-box { flex: 1; text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 4px; }
+    .stat-val { font-size: 14px; font-weight: 900; color: #2563eb; line-height: 1.2; }
+    .stat-lbl { font-size: 8px; text-transform: uppercase; color: #64748b; font-weight: 700; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .col { display: flex; flex-direction: column; gap: 6px; }
+    .q-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; page-break-inside: avoid; }
+    .q-head { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+    .q-num { font-size: 10px; font-weight: 900; color: #2563eb; }
+    .q-subj { font-size: 8px; color: #64748b; font-weight: 700; }
+    .q-result { margin-left: auto; font-size: 10px; }
+    .q-txt { font-size: 10px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+    .opts { margin-bottom: 4px; }
+    .opt { font-size: 9px; padding: 2px 5px; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 2px; }
+    .opt-correct { background: #dcfce7; border-color: #22c55e; font-weight: 700; color: #14532d; }
+    .opt-wrong { background: #fee2e2; border-color: #ef4444; font-weight: 700; color: #7f1d1d; }
+    .exp { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 4px 6px; font-size: 8.5px; color: #1e3a8a; line-height: 1.4; }
+    .page-title { font-size: 11px; font-weight: 900; color: #1e293b; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">ET Academy</div>
+      <div style="font-size:9px;color:#475569;">Your partner in civil services preparation.</div>
+    </div>
+    <div class="meta">
+      ${isBpsc ? 'BPSC 70th Prelims' : 'UPSC Prelims'} • ${questions.length} Questions<br>
+      Date: ${new Date().toLocaleDateString('en-IN')} • ${config.testType === 'full_length' ? 'Full Length Test' : 'Subject-wise Test'}
+    </div>
+  </div>
 
-        <h3>Question Paper &amp; Explanations</h3>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val">${roundedNetScore} / ${totalPossibleMarks}</div><div class="stat-lbl">Net Score</div></div>
+    <div class="stat-box"><div class="stat-val">${accuracyPct}%</div><div class="stat-lbl">Accuracy</div></div>
+    <div class="stat-box" style="color:#14532d"><div class="stat-val" style="color:#16a34a">${correctCount}</div><div class="stat-lbl">Correct ✅</div></div>
+    <div class="stat-box" style="color:#7f1d1d"><div class="stat-val" style="color:#dc2626">${wrongCount}</div><div class="stat-lbl">Wrong ❌</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:#64748b">${unattemptedCount}</div><div class="stat-lbl">Skipped ⬜</div></div>
+  </div>
 
-        ${questions.map((q, idx) => {
-          const userAns = selectedAnswers[q.id];
-          const opts = isHi ? q.optionsHi : q.optionsEn;
-          const letters = ['A', 'B', 'C', 'D', 'E'];
+  <div class="page-title">📋 Question Paper &amp; Answer Key (2-Column Layout)</div>
 
-          return `
-            <div class="q-card">
-              <div class="q-num">Question ${idx + 1} [${q.subject}]</div>
-              <div class="q-txt">${isHi ? q.questionHi : q.questionEn}</div>
-              <div className="options">
-                ${opts.map((opt, oIdx) => {
-                  const isCorrect = oIdx === q.correctIndex;
-                  const isSelected = oIdx === userAns;
-                  let cls = 'opt';
-                  if (isCorrect) cls += ' opt-correct';
-                  else if (isSelected) cls += ' opt-selected';
-                  return `<div class="${cls}">${letters[oIdx]}. ${opt} ${isCorrect ? '✔ (Correct Answer)' : ''} ${isSelected && !isCorrect ? '✖ (Your Choice)' : ''}</div>`;
-                }).join('')}
-              </div>
-              <div class="exp-box">
-                <strong>Explanation:</strong> ${isHi ? q.explanationHi : q.explanationEn}
-              </div>
-            </div>
-          `;
-        }).join('')}
+  <div class="two-col">
+    <div class="col">
+      ${leftQs.map((q, i) => renderQ(q, i)).join('')}
+    </div>
+    <div class="col">
+      ${rightQs.map((q, i) => renderQ(q, i + half)).join('')}
+    </div>
+  </div>
 
-        <script>
-          window.onload = function() { window.print(); }
-        </script>
-      </body>
-      </html>
-    `;
+  <script>window.onload = function() { window.print(); }</script>
+</body>
+</html>`;
 
     printWindow.document.write(htmlContent);
     printWindow.document.close();

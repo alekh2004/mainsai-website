@@ -6,7 +6,7 @@ import {
   Layers, BookOpen, Crown, ChevronRight, ShieldCheck
 } from 'lucide-react';
 
-export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, onOpenMainsNotes, onOpenSubscription }) {
+export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, onOpenMainsNotes, onOpenSubscription, isTestActive }) {
   const { user } = useAuth();
   const { language } = useApp();
   const isHi = language === 'hi';
@@ -26,33 +26,37 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
 
   return (
     <aside
-      className="hidden md:flex flex-col w-64 min-h-full shrink-0 py-4 px-3"
+      className="hidden md:flex flex-col shrink-0 py-4 px-3 overflow-hidden transition-all duration-500 ease-in-out"
       style={{
+        width: isTestActive ? '0px' : '256px',
+        minWidth: isTestActive ? '0px' : '256px',
+        opacity: isTestActive ? 0 : 1,
+        pointerEvents: isTestActive ? 'none' : 'auto',
         background: 'rgba(8,12,26,0.82)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        borderRight: '1px solid rgba(255,255,255,0.07)',
+        borderRight: isTestActive ? 'none' : '1px solid rgba(255,255,255,0.07)',
       }}
     >
       {/* Brand */}
       <div className="px-3 pt-1 pb-5">
         <div className="flex items-center gap-2.5">
-          <img
-            src="/et_logo.png"
-            alt="ET Academy"
-            className="et-logo-animate et-logo-glow"
-            style={{ width: '56px', height: '56px', objectFit: 'contain', borderRadius: '12px', flexShrink: 0 }}
-          />
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: 'linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent)/0.55))' }}
+          >
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
           <div>
-            <div className="text-sm font-black text-white leading-tight">ET Academy</div>
-            <div className="text-[10px] font-extrabold" style={{ color: 'rgb(var(--accent))' }}>UPSC / BPSC</div>
+            <div className="text-sm font-black text-white leading-tight whitespace-nowrap">UPSC / BPSC</div>
+            <div className="text-[10px] font-extrabold whitespace-nowrap" style={{ color: 'rgb(var(--accent))' }}>Mains AI</div>
           </div>
         </div>
       </div>
 
       {/* Section label */}
       <div className="px-3 pb-1.5">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/25">
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/25 whitespace-nowrap">
           {isHi ? 'नेविगेशन' : 'Navigation'}
         </span>
       </div>
@@ -90,7 +94,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
       {isTeacher && (
         <div className="px-3 py-2 rounded-xl border border-purple-500/25 bg-purple-500/10 flex items-center gap-2 mx-1 mb-1">
           <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0" />
-          <span className="text-xs font-extrabold text-purple-300">
+          <span className="text-xs font-extrabold text-purple-300 whitespace-nowrap">
             {isHi ? 'शिक्षक पोर्टल' : 'Faculty Portal'}
           </span>
         </div>
@@ -108,43 +112,23 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
         >
           <div className="flex items-center gap-2 mb-1.5">
             <Crown className="w-4 h-4 text-amber-400" />
-            <span className="text-xs font-extrabold text-amber-300">
+            <span className="text-xs font-extrabold text-amber-300 whitespace-nowrap">
               {isHi ? 'Pro में अपग्रेड करें' : 'Upgrade to Pro'}
             </span>
           </div>
-          <p className="text-[10px] font-medium leading-relaxed mb-3 text-white/55">
-            {isHi
-              ? 'Unlimited मूल्यांकन, नोट्स, Flashcards और बहुत कुछ।'
-              : 'Unlimited evaluations, Smart Notes, Flashcards & more.'}
+          <p className="text-[10px] text-amber-200/70 font-medium leading-tight m-0">
+            {isHi ? 'असीमित AI मूल्यांकन, फ्लैशकार्ड और नोट्स' : 'Unlimited AI evaluation, flashcards & notes'}
           </p>
-          <div
-            className="w-full py-1.5 rounded-xl text-xs font-extrabold text-center text-amber-900 group-hover:shadow-lg transition-all"
-            style={{ background: 'linear-gradient(90deg, #fbbf24, #f97316)' }}
-          >
-            Go Pro →
-          </div>
         </button>
       ) : (
-        <div
-          className="px-3 py-2.5 rounded-xl border flex items-center gap-2"
-          style={{
-            background: 'linear-gradient(135deg, rgba(234,179,8,0.1), rgba(249,115,22,0.1))',
-            borderColor: 'rgba(234,179,8,0.3)',
-          }}
-        >
-          <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="px-3 py-2.5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           <div>
-            <div className="text-xs font-extrabold text-amber-300">Pro Aspirant</div>
-            <div className="text-[10px] text-white/50">
-              {isHi ? 'सभी सुविधाएं unlocked' : 'All features unlocked'}
-            </div>
+            <div className="text-xs font-extrabold text-emerald-300">Pro Active ✓</div>
+            <div className="text-[10px] text-emerald-400/70">{isHi ? 'सभी सुविधाएं अनलॉक' : 'All features unlocked'}</div>
           </div>
         </div>
       )}
-
-      <div className="px-4 pt-2">
-        <span className="text-[9px] font-bold text-white/15">v2.0.0 • ET Academy</span>
-      </div>
     </aside>
   );
 }
