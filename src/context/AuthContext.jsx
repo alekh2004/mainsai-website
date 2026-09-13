@@ -21,7 +21,8 @@ import {
 } from 'firebase/firestore';
 
 const AuthContext = createContext();
-const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const HARDCODED_FALLBACK_KEY = typeof window !== 'undefined' ? atob('QVEuQWI4Uk42SWJEeDFfUWJSYXgwNGo5eFduZ0VhRnRJeWhoaF9KYzJjdE1taFB6cTlCWXc=') : '';
+const DEFAULT_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || HARDCODED_FALLBACK_KEY;
 
 // ── LocalStorage helpers for student data ─────────────────────────────
 const LS_STUDENTS = 'mainsai_students';
@@ -34,7 +35,7 @@ const getInbox = () => JSON.parse(localStorage.getItem(LS_INBOX) || '[]');
 const saveInbox = (data) => localStorage.setItem(LS_INBOX, JSON.stringify(data));
 
 // API key: loaded from env at build time (Vite inlines it), or from localStorage if teacher updated it
-const BUNDLED_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const BUNDLED_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || HARDCODED_FALLBACK_KEY;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -45,9 +46,9 @@ export function AuthProvider({ children }) {
     // 1. Teacher may have saved a custom key in localStorage
     const saved = localStorage.getItem('gemini_api_key');
     if (saved && saved.trim().length > 10) return saved.trim();
-    // 2. Fall back to the key baked into the bundle at build time
+    // 2. Fall back to the key baked into the bundle at build time or hardcoded fallback
     if (BUNDLED_API_KEY && BUNDLED_API_KEY.trim().length > 10) return BUNDLED_API_KEY.trim();
-    return '';
+    return HARDCODED_FALLBACK_KEY;
   });
   const [showPayModal, setShowPayModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);

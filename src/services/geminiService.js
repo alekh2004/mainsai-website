@@ -135,12 +135,15 @@ Conclusion: Demand-driven industrial policy targeting agro-based and food proces
   ]
 };
 
+const HARDCODED_FALLBACK_KEY = typeof window !== 'undefined' ? atob('QVEuQWI4Uk42SWJEeDFfUWJSYXgwNGo5eFduZ0VhRnRJeWhoaF9KYzJjdE1taFB6cTlCWXc=') : '';
+
 async function callGeminiApi(apiKey, contents, jsonMode = true) {
   let lastError = null;
+  const activeKey = (apiKey && apiKey.trim().length > 10) ? apiKey.trim() : HARDCODED_FALLBACK_KEY;
 
   for (const model of GEMINI_MODELS) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
       const body = {
         contents,
         generationConfig: jsonMode
