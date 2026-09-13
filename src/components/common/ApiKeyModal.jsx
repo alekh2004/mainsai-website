@@ -37,8 +37,8 @@ export function ApiKeyModal({ isOpen, onClose }) {
             <Key className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white m-0">Gemini AI API Settings</h3>
-            <p className="text-xs text-gray-400 m-0">Connect your Google Gemini Key for live AI evaluation</p>
+            <h3 className="text-lg font-bold text-white m-0">API Key Configuration</h3>
+            <p className="text-xs text-gray-400 m-0">Faculty & Admin custom API key configuration</p>
           </div>
         </div>
 
@@ -46,7 +46,7 @@ export function ApiKeyModal({ isOpen, onClose }) {
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-300 mb-1">
-              Google Gemini API Key
+              Custom Engine API Key
             </label>
             <input
               type="password"

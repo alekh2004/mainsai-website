@@ -278,7 +278,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                       <div className="border-t" style={{ borderColor: 'var(--glass-border)' }} />
                       <div className="space-y-2">
                         <p className="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
-                          <Key className="w-3 h-3 text-blue-500" /> Gemini API Key
+                          <Key className="w-3 h-3 text-blue-500" /> API Engine Config
                         </p>
                         <button
                           onClick={() => { setShowSettingsMenu(false); onOpenApiKey(); }}

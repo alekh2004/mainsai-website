@@ -41,7 +41,7 @@ function assessIcon(a) {
 function FloatingAIChat({ evalResult, question, apiKey }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'model', text: `Hi! 👋 I'm your Gemini AI evaluator. Your answer scored **${evalResult?.score}/${evalResult?.maxMarks}** (${evalResult?.percentage}%). Ask me anything about your evaluation — which line was wrong, what to add, or how to write a topper answer!` }
+    { role: 'model', text: `Hi! 👋 I'm your Mains Evaluator mentor. Your answer scored **${evalResult?.score}/${evalResult?.maxMarks}** (${evalResult?.percentage}%). Ask me anything about your evaluation — which line was wrong, what to add, or how to write a topper answer!` }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

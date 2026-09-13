@@ -40,7 +40,7 @@ function FloatingAIChat({ evalResult, apiKey }) {
   const [messages, setMessages] = useState([
     {
       role: 'model',
-      text: `Hi! 👋 I'm your Gemini AI Examiner. Your answer scored **${evalResult?.score}/${evalResult?.maxMarks}** (${evalResult?.percentage}%). Ask me any doubt about this evaluation, which line had mistakes, or how to write a topper answer!`
+      text: `Hi! 👋 I'm your Mains Evaluator Examiner. Your answer scored **${evalResult?.score}/${evalResult?.maxMarks}** (${evalResult?.percentage}%). Ask me any doubt about this evaluation, which line had mistakes, or how to write a topper answer!`
     }
   ]);
   const [input, setInput] = useState('');

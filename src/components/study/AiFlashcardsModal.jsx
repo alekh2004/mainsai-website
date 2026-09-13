@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { generateAiFlashcards } from '../../services/geminiService';
 import {
   Sparkles, X, ChevronLeft, ChevronRight, RotateCw, Shuffle,
-  CheckCircle2, BookOpen, Layers, ArrowLeft, RefreshCw, Award, Tag, Zap
+  CheckCircle2, BookOpen, Layers, ArrowLeft, RefreshCw, Award, Tag, Zap, AlertTriangle
 } from 'lucide-react';
 
 const SUGGESTED_TOPICS = [
@@ -17,6 +17,37 @@ const SUGGESTED_TOPICS = [
   'Economy, MSME & SIGHT Scheme',
   'Ethics, Nolan Committee & Governance'
 ];
+
+const LS_FC_USAGE = 'mainsai_flashcard_usage_v1';
+const MAX_DAILY_FLASHCARDS = 40;
+
+function getFlashcardDailyUsage() {
+  try {
+    const raw = localStorage.getItem(LS_FC_USAGE);
+    if (!raw) return 0;
+    const { timestamp, count } = JSON.parse(raw);
+    const now = Date.now();
+    if (now - timestamp > 86400000) { // 24 hours
+      localStorage.removeItem(LS_FC_USAGE);
+      return 0;
+    }
+    return count || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function incrementFlashcardUsage(addedCount) {
+  try {
+    const current = getFlashcardDailyUsage();
+    const newCount = current + addedCount;
+    localStorage.getItem(LS_FC_USAGE);
+    localStorage.setItem(LS_FC_USAGE, JSON.stringify({
+      timestamp: Date.now(),
+      count: newCount
+    }));
+  } catch (e) {}
+}
 
 export function AiFlashcardsModal({ isOpen, onClose }) {
   const { apiKey } = useAuth();
@@ -31,6 +62,8 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredIds, setMasteredIds] = useState([]);
+  const [limitError, setLimitError] = useState('');
+  const [usageToday, setUsageToday] = useState(0);
 
   // ── Reset state every time modal opens fresh ──
   useEffect(() => {
@@ -42,6 +75,8 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
       setCustomTopic('');
       setTopic('Polity & Constitutional Articles');
       setCardCount(10);
+      setLimitError('');
+      setUsageToday(getFlashcardDailyUsage());
     }
   }, [isOpen]);
 
@@ -49,6 +84,18 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
 
   const handleGenerate = async (selectedTopic = topic) => {
     const finalTopic = customTopic.trim() || selectedTopic;
+    setLimitError('');
+
+    const currentUsed = getFlashcardDailyUsage();
+    if (currentUsed + cardCount > MAX_DAILY_FLASHCARDS) {
+      setLimitError(
+        isHi
+          ? `⚠️ 24 घंटे की दैनिक सीमा (${MAX_DAILY_FLASHCARDS} कार्ड्स) पूरी हो चुकी है। आपने आज ${currentUsed}/${MAX_DAILY_FLASHCARDS} कार्ड उपयोग किए हैं। कृपया 24 घंटे बाद प्रयास करें।`
+          : `⚠️ Daily limit reached (${MAX_DAILY_FLASHCARDS} cards / 24h). You have used ${currentUsed}/${MAX_DAILY_FLASHCARDS} cards today. Please try again after 24 hours.`
+      );
+      return;
+    }
+
     setIsGenerating(true);
     setIsFlipped(false);
     setCurrentIndex(0);
@@ -61,6 +108,8 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
         language,
         apiKey
       });
+      incrementFlashcardUsage(cardCount);
+      setUsageToday(getFlashcardDailyUsage());
       setDeck(result);
     } catch (err) {
       console.error('Failed to generate flashcards:', err);
@@ -119,7 +168,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
               </div>
               <div>
                 <h3 className="text-sm font-extrabold m-0" style={{ color: 'var(--text-primary)' }}>
-                  {isHi ? 'AI फ्लैशकार्ड रिवीजन' : 'AI Rapid Revision Flashcards'}
+                  {isHi ? 'रैपिड रिवीज़न फ्लैशकार्ड' : 'Rapid Revision Flashcards'}
                 </h3>
                 <span className="text-[10px] font-medium opacity-75" style={{ color: 'var(--text-secondary)' }}>
                   {activeExam.toUpperCase()} Mains • 3D Flip Mode
@@ -136,6 +185,14 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
           </button>
         </div>
 
+        {/* Limit Warning if Daily Max Exceeded */}
+        {limitError && (
+          <div className="p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-300 font-bold flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <span>{limitError}</span>
+          </div>
+        )}
+
         {/* Generator Controls (Topic & Card Count) */}
         {!deck ? (
           <div className="space-y-5 animate-fadeIn">
@@ -150,7 +207,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                   <button
                     key={t}
                     type="button"
-                    onClick={() => { setTopic(t); setCustomTopic(''); }}
+                    onClick={() => { setTopic(t); setCustomTopic(''); setLimitError(''); }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                       topic === t && !customTopic
                         ? 'border-current shadow-sm'
@@ -168,22 +225,27 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                 type="text"
                 placeholder={isHi ? 'या कोई भी कस्टम टॉपिक टाइप करें...' : 'Or type custom current affairs topic...'}
                 value={customTopic}
-                onChange={(e) => setCustomTopic(e.target.value)}
+                onChange={(e) => { setCustomTopic(e.target.value); setLimitError(''); }}
                 className="w-full px-4 py-2.5 rounded-2xl glass-input-clean text-xs font-medium"
               />
             </div>
 
             {/* Card Count Selector (5, 10, 15, 20) */}
             <div className="space-y-2">
-              <label className="block text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? '2. कार्ड की संख्या चुनें' : '2. Number of Flashcards'}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-primary)' }}>
+                  {isHi ? '2. कार्ड की संख्या चुनें' : '2. Number of Flashcards'}
+                </label>
+                <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                  {isHi ? `आज का उपयोग: ${usageToday}/${MAX_DAILY_FLASHCARDS}` : `Used Today: ${usageToday}/${MAX_DAILY_FLASHCARDS}`}
+                </span>
+              </div>
               <div className="grid grid-cols-4 gap-2">
                 {[5, 10, 15, 20].map((num) => (
                   <button
                     key={num}
                     type="button"
-                    onClick={() => setCardCount(num)}
+                    onClick={() => { setCardCount(num); setLimitError(''); }}
                     className={`py-2.5 rounded-2xl text-xs font-black border transition-all ${
                       cardCount === num
                         ? 'shadow-md scale-[1.02]'
@@ -195,6 +257,9 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                   </button>
                 ))}
               </div>
+              <p className="text-[11px] text-slate-400 font-medium m-0 pt-0.5">
+                📌 {isHi ? 'प्रति 24 घंटे अधिकतम 40 फ्लैशकार्ड्स जेनरेट किए जा सकते हैं।' : 'Restriction: Maximum 40 flashcards allowed per 24 hours.'}
+              </p>
             </div>
 
             {/* Generate Action Button */}
@@ -206,12 +271,12 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
               {isGenerating ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>{isHi ? 'Gemini AI फ्लैशकार्ड बना रहा है...' : 'Generating Topper Flashcards with Gemini AI...'}</span>
+                  <span>{isHi ? 'फ्लैशकार्ड्स तैयार हो रहे हैं...' : 'Generating Flashcards...'}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  <span>{isHi ? `${cardCount} AI फ्लैशकार्ड जेनरेट करें ⚡` : `Generate ${cardCount} Flashcards with AI ⚡`}</span>
+                  <span>{isHi ? `${cardCount} फ्लैशकार्ड जेनरेट करें ⚡` : `Generate ${cardCount} Flashcards ⚡`}</span>
                 </>
               )}
             </button>
@@ -255,7 +320,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
               style={{ perspective: '1200px' }}
             >
               <div
-                className={`flashcard-inner relative w-full min-h-[280px] sm:min-h-[320px] rounded-3xl transition-transform duration-500 transform-gpu ${
+                className={`flashcard-inner relative w-full min-h-[320px] sm:min-h-[360px] rounded-3xl transition-transform duration-500 transform-gpu ${
                   isFlipped ? 'rotate-y-180' : ''
                 }`}
                 style={{
@@ -265,7 +330,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
               >
                 {/* ── CARD FRONT (Question / Concept) ── */}
                 <div
-                  className="flashcard-face flashcard-front absolute inset-0 p-6 sm:p-8 rounded-3xl glass-card-clean border border-white/40 shadow-xl flex flex-col justify-between"
+                  className="flashcard-face flashcard-front absolute inset-0 p-6 sm:p-8 rounded-3xl glass-card-clean border border-white/40 shadow-xl flex flex-col justify-between overflow-hidden"
                   style={{
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -273,7 +338,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     color: 'var(--text-primary)'
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between shrink-0">
                     <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
                       {currentCard?.badge || 'Mains Concept'}
                     </span>
@@ -282,7 +347,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     </span>
                   </div>
 
-                  <div className="space-y-3 my-auto py-4 text-center">
+                  <div className="space-y-3 my-auto py-4 text-center overflow-y-auto custom-scroll max-h-[220px]">
                     <p className="text-base sm:text-lg font-extrabold leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                       {currentCard?.frontPrompt}
                     </p>
@@ -293,7 +358,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex items-center justify-between text-xs font-medium shrink-0 pt-2 border-t border-white/10" style={{ color: 'var(--text-secondary)' }}>
                     <span className="flex items-center gap-1">
                       <RotateCw className="w-3.5 h-3.5" />
                       {isHi ? 'उत्तर देखने के लिए टैप करें' : 'Tap to Flip for Model Answer'}
@@ -304,7 +369,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
 
                 {/* ── CARD BACK (Topper Key Answer) ── */}
                 <div
-                  className="flashcard-face flashcard-back absolute inset-0 p-6 sm:p-8 rounded-3xl glass-card-clean border border-emerald-500/40 shadow-xl flex flex-col justify-between"
+                  className="flashcard-face flashcard-back absolute inset-0 p-6 sm:p-8 rounded-3xl glass-card-clean border border-emerald-500/40 shadow-xl flex flex-col justify-between overflow-hidden"
                   style={{
                     backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -313,7 +378,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     color: 'var(--text-primary)'
                   }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between shrink-0 mb-2">
                     <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                       <Zap className="w-3 h-3 text-emerald-500" />
                       {isHi ? 'मॉडल उत्तर कुंजी' : 'Topper Model Key'}
@@ -334,7 +399,8 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     </button>
                   </div>
 
-                  <div className="space-y-3 my-auto py-2">
+                  {/* Scrollable Answer Container: Never spills out into black background */}
+                  <div className="flex-1 overflow-y-auto custom-scroll pr-1.5 my-1 space-y-2.5 text-left">
                     <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
                       {currentCard?.backAnswer}
                     </div>
@@ -351,7 +417,7 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  <div className="flex items-center justify-between text-xs font-medium shrink-0 pt-2 border-t border-white/10" style={{ color: 'var(--text-secondary)' }}>
                     <span>🔄 {isHi ? 'सवाल पर लौटने के लिए टैप करें' : 'Tap to Flip back'}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-bold">✨ High Scoring Point</span>
                   </div>

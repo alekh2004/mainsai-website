@@ -4,8 +4,8 @@ import { useApp } from '../../context/AppContext';
 import { generateAiMainsNotes } from '../../services/geminiService';
 import {
   BookOpen, Sparkles, Download, Copy, Check, X,
-  ArrowLeft, ChevronLeft, ChevronRight, Layers, Target, FileText,
-  RefreshCw, Zap, Award, Search, ArrowUp
+  ArrowLeft, ChevronDown, ChevronUp, Layers, Target, FileText,
+  RefreshCw, Zap, Award, AlertTriangle, HelpCircle
 } from 'lucide-react';
 
 import { exportNoteToColorPdf } from './pdfExportHelper';
@@ -21,6 +21,36 @@ const HOT_MAINS_TOPICS = [
   'Semiconductor Mission & Supply Chain Reshoring'
 ];
 
+const LS_NOTES_USAGE = 'mainsai_notes_usage_v1';
+const MAX_DAILY_NOTES = 8;
+
+function getMainsNotesDailyUsage() {
+  try {
+    const raw = localStorage.getItem(LS_NOTES_USAGE);
+    if (!raw) return 0;
+    const { timestamp, count } = JSON.parse(raw);
+    const now = Date.now();
+    if (now - timestamp > 86400000) { // 24 hours
+      localStorage.removeItem(LS_NOTES_USAGE);
+      return 0;
+    }
+    return count || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function incrementMainsNotesUsage() {
+  try {
+    const current = getMainsNotesDailyUsage();
+    const newCount = current + 1;
+    localStorage.setItem(LS_NOTES_USAGE, JSON.stringify({
+      timestamp: Date.now(),
+      count: newCount
+    }));
+  } catch (e) {}
+}
+
 export function AiMainsNotesModal({ isOpen, onClose }) {
   const { apiKey } = useAuth();
   const { activeExam, language } = useApp();
@@ -32,6 +62,9 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState('note'); // 'note' | 'pyqs'
+  const [expandedPyqIndices, setExpandedPyqIndices] = useState([]);
+  const [limitError, setLimitError] = useState('');
+  const [usageToday, setUsageToday] = useState(0);
 
   // ── Reset state every time modal opens fresh ──
   useEffect(() => {
@@ -40,22 +73,40 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
       setTopicInput('Judicial Activism vs Judicial Overreach');
       setActiveTab('note');
       setCopied(false);
+      setExpandedPyqIndices([]);
+      setLimitError('');
+      setUsageToday(getMainsNotesDailyUsage());
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleGenerate = async (topic = topicInput) => {
-    if (!topic.trim()) return;
+    const targetTopic = topic.trim();
+    if (!targetTopic) return;
+    setLimitError('');
+
+    const currentUsed = getMainsNotesDailyUsage();
+    if (currentUsed >= MAX_DAILY_NOTES) {
+      setLimitError(
+        isHi
+          ? `⚠️ 24 घंटे की दैनिक सीमा (${MAX_DAILY_NOTES} टॉपिक्स) पूरी हो चुकी है। आपने आज ${currentUsed}/${MAX_DAILY_NOTES} टॉपिक जनरेट किए हैं। कृपया 24 घंटे बाद प्रयास करें।`
+          : `⚠️ Daily limit reached (${MAX_DAILY_NOTES} topics / 24h). You have generated ${currentUsed}/${MAX_DAILY_NOTES} topics today. Please try again after 24 hours.`
+      );
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
       const result = await generateAiMainsNotes({
-        topic: topic.trim(),
+        topic: targetTopic,
         examType: activeExam,
         language,
         apiKey
       });
+      incrementMainsNotesUsage();
+      setUsageToday(getMainsNotesDailyUsage());
       setNoteData(result);
     } catch (err) {
       console.error('Failed to generate mains notes:', err);
@@ -64,9 +115,15 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
     }
   };
 
+  const togglePyqAnswer = (idx) => {
+    setExpandedPyqIndices((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
+
   const handleCopy = () => {
     if (!noteData) return;
-    const text = `# ${noteData.topic} (${noteData.examType} Mains)\n\n## Executive Summary\n${noteData.executiveSummary}\n\n## Constitutional & Data\n${(noteData.constitutionalAndData || []).join('\n')}\n\n## PYQs Asked\n${(noteData.pyqsAsked || []).map(q => `• [${q.exam} ${q.year} - ${q.marks}M] ${q.questionText}`).join('\n')}\n\n## Conclusion\n${noteData.topperConclusion}`;
+    const text = `# ${noteData.topic} (${noteData.examType} Mains)\n\n## Executive Summary\n${noteData.executiveSummary}\n\n## Constitutional & Data\n${(noteData.constitutionalAndData || []).join('\n')}\n\n## PYQs Asked\n${(noteData.pyqsAsked || []).map(q => `• [${q.exam} ${q.year} - ${q.marks}M] ${q.questionText}\n  Answer: ${q.modelAnswer || 'Refer Topper Answer'}`).join('\n')}\n\n## Conclusion\n${noteData.topperConclusion}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -103,7 +160,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
             <button
               onClick={noteData ? handleBackToTopics : onClose}
               className="flex items-center gap-2 text-xs font-black px-3.5 py-2 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/25 transition-all transform active:scale-95 shrink-0"
-              title={noteData ? 'Back to Topic Selection' : 'Close and Back to Dashboard'}
+              title={noteData ? 'Back to Search' : 'Close'}
             >
               <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
               <span>{noteData ? (isHi ? 'विषय चयन पर वापस' : 'Back to Search') : (isHi ? 'होम पर वापस' : 'Back to Home')}</span>
@@ -161,19 +218,32 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* ── TOPIC SEARCH & INPUT SECTION (WHEN NO NOTE OR SWITCHING) ── */}
+        {/* Limit Warning banner if 24h max topics reached */}
+        {limitError && (
+          <div className="p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-900 dark:text-amber-300 font-bold flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <span>{limitError}</span>
+          </div>
+        )}
+
+        {/* ── TOPIC SEARCH & INPUT SECTION (WHEN NO NOTE) ── */}
         {!noteData ? (
           <div className="space-y-4 animate-fadeIn no-print">
             <div className="space-y-1.5">
-              <label className="block text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'मेन्स विषय या करेंट अफेयर्स टॉपिक लिखें:' : 'Enter any Mains Syllabus or Current Affairs Topic:'}
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-primary)' }}>
+                  {isHi ? 'मेन्स विषय या करेंट अफेयर्स टॉपिक लिखें:' : 'Enter any Mains Syllabus or Current Affairs Topic:'}
+                </label>
+                <span className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                  {isHi ? `आज का उपयोग: ${usageToday}/${MAX_DAILY_NOTES}` : `Used Today: ${usageToday}/${MAX_DAILY_NOTES}`}
+                </span>
+              </div>
 
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={topicInput}
-                  onChange={(e) => setTopicInput(e.target.value)}
+                  onChange={(e) => { setTopicInput(e.target.value); setLimitError(''); }}
                   placeholder={isHi ? 'उदा. Judicial Activism, Saat Nischay-2, Green Hydrogen...' : 'e.g. Judicial Activism, Saat Nischay-2, Green Hydrogen...'}
                   className="flex-1 px-4 py-3 rounded-2xl glass-input-clean text-xs font-medium"
                   onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
@@ -207,7 +277,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                 {HOT_MAINS_TOPICS.map((t) => (
                   <button
                     key={t}
-                    onClick={() => { setTopicInput(t); handleGenerate(t); }}
+                    onClick={() => { setTopicInput(t); setLimitError(''); handleGenerate(t); }}
                     className="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all bg-white/70 shadow-sm"
                     style={{ color: 'var(--text-secondary)' }}
                   >
@@ -221,13 +291,16 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
               <Zap className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
               <span>
                 {isHi
-                  ? 'Gemini AI तुरंत संवैधानिक अनुच्छेद, बहुआयामी विश्लेषण, बाधाएं, समितियां, फ्लोचार्ट, और पूछे गए वास्तविक PYQs तैयार करेगा।'
-                  : 'Gemini AI will instantly synthesize constitutional articles, multi-dimensional analysis, bottleneck challenges, committees, diagrams, and exact PYQs.'}
+                  ? 'संवैधानिक अनुच्छेद, बहुआयामी विश्लेषण, बाधाएं, समितियां, फ्लोचार्ट, एवं पूछे गए वास्तविक PYQs और उनके टॉपर मॉडल उत्तर तुरंत तैयार करें।'
+                  : 'Instantly synthesizes constitutional articles, multi-dimensional analysis, bottleneck challenges, committees, diagrams, exact PYQs, and topper model answers.'}
               </span>
             </div>
+            <p className="text-[11px] text-slate-400 font-medium m-0">
+              📌 {isHi ? 'प्रति 24 घंटे अधिकतम 8 मुख्य टॉपिक जनरेट किए जा सकते हैं।' : 'Restriction: Maximum 8 topics can be generated per 24 hours.'}
+            </p>
           </div>
         ) : (
-          /* ── PRINTABLE & DISPLAY NOTE AREA (VIVID COLORFUL FORMAT) ── */
+          /* ── PRINTABLE & DISPLAY NOTE AREA ── */
           <div className="space-y-4 animate-fadeIn printable-area">
 
             {/* Note Sub-Tabs (Note vs PYQs) */}
@@ -264,7 +337,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
             {activeTab === 'note' && (
               <div className="space-y-3.5">
                 
-                {/* 1. Header Banner Card (Vivid Blue/Indigo) */}
+                {/* 1. Header Banner Card */}
                 <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-50 via-indigo-50 to-sky-50 border-2 border-blue-200 printable-card space-y-1.5 shadow-sm">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-lg bg-blue-600 text-white text-[11px] font-black uppercase tracking-wide">
@@ -282,7 +355,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </p>
                 </div>
 
-                {/* 2. Constitutional Provisions & Core Data (Cyan/Sky) */}
+                {/* 2. Constitutional Provisions & Core Data */}
                 {noteData.constitutionalAndData?.length > 0 && (
                   <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-200 printable-card space-y-2">
                     <h4 className="text-xs font-black text-sky-900 uppercase tracking-wide flex items-center gap-1.5 m-0">
@@ -297,7 +370,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* 3. Multi-Dimensional Dimensions (Clean White/Blue) */}
+                {/* 3. Multi-Dimensional Dimensions */}
                 {noteData.dimensions?.map((dim, idx) => (
                   <div key={idx} className="p-4 rounded-2xl bg-white border border-slate-200 printable-card space-y-2 shadow-sm">
                     <h4 className="text-xs font-black text-blue-700 m-0 flex items-center gap-1.5">
@@ -312,7 +385,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </div>
                 ))}
 
-                {/* 4. Bottlenecks & Critical Challenges (Rose/Red) */}
+                {/* 4. Bottlenecks & Critical Challenges */}
                 {noteData.bottlenecksAndChallenges?.length > 0 && (
                   <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200 printable-card space-y-2">
                     <h4 className="text-xs font-black text-rose-800 uppercase tracking-wide m-0 flex items-center gap-1.5">
@@ -327,7 +400,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* 5. Committee Recommendations & Schemes (Emerald/Green) */}
+                {/* 5. Committee Recommendations & Schemes */}
                 {noteData.schemesAndCommittees?.length > 0 && (
                   <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 printable-card space-y-2">
                     <h4 className="text-xs font-black text-emerald-800 uppercase tracking-wide m-0 flex items-center gap-1.5">
@@ -342,7 +415,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* 6. Diagram & Flowchart Blueprint (Indigo) */}
+                {/* 6. Diagram & Flowchart Blueprint */}
                 {noteData.diagramSchematic && (
                   <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200 printable-card space-y-2">
                     <h4 className="text-xs font-black text-indigo-900 uppercase tracking-wide flex items-center gap-1.5 m-0">
@@ -355,7 +428,7 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
                   </div>
                 )}
 
-                {/* 7. Topper Model Conclusion (Blue) */}
+                {/* 7. Topper Model Conclusion */}
                 {noteData.topperConclusion && (
                   <div className="p-4 rounded-2xl bg-blue-50 border-2 border-blue-200 printable-card space-y-1">
                     <h4 className="text-xs font-black text-blue-800 m-0">
@@ -370,32 +443,69 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* TAB 2: Exact Real PYQs List */}
+            {/* TAB 2: Exact Real PYQs List with Collapsible Model Answers */}
             {activeTab === 'pyqs' && (
               <div className="space-y-3">
                 <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-bold printable-card">
-                  🎯 {isHi ? 'इस टॉपिक से UPSC और BPSC में पूछे गए वास्तविक विगत वर्ष के प्रश्न:' : 'Real Previous Year Questions asked on this topic in UPSC CSE & BPSC Mains:'}
+                  🎯 {isHi ? 'इस टॉपिक से पूछे गए वास्तविक प्रश्न एवं टॉपर मॉडल उत्तर:' : 'Real Previous Year Questions & Topper Model Answers for this topic:'}
                 </div>
 
-                {noteData.pyqsAsked?.map((q, i) => (
-                  <div key={i} className="p-4 rounded-2xl bg-white border border-slate-200 printable-card space-y-2 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-black uppercase">
-                        {q.exam} • {q.year}
-                      </span>
-                      <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        {q.marks} Marks
-                      </span>
+                {noteData.pyqsAsked?.map((q, i) => {
+                  const isExpanded = expandedPyqIndices.includes(i);
+                  return (
+                    <div key={i} className="p-4 rounded-2xl bg-white border border-slate-200 printable-card space-y-3 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-black uppercase">
+                          {q.exam} • {q.year}
+                        </span>
+                        <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                          {q.marks} Marks
+                        </span>
+                      </div>
+
+                      {/* Question Text */}
+                      <p className="text-xs sm:text-sm text-slate-900 leading-relaxed font-black m-0">
+                        Q{i + 1}. {q.questionText}
+                      </p>
+
+                      {/* Toggle Button for Model Answer */}
+                      <button
+                        onClick={() => togglePyqAnswer(i)}
+                        className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-extrabold text-blue-700 flex items-center justify-between transition-all"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                          {isExpanded ? (isHi ? 'मॉडल उत्तर छुपाएं' : 'Hide Topper Model Answer') : (isHi ? 'टॉपर का विस्तृत मॉडल उत्तर देखें' : 'View Detailed Topper Model Answer')}
+                        </span>
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+
+                      {/* Detailed Topper Model Answer Drawer */}
+                      {isExpanded && (
+                        <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2.5 animate-fadeIn text-xs">
+                          <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+                            <span className="font-extrabold text-emerald-900 uppercase tracking-wide flex items-center gap-1">
+                              <Award className="w-3.5 h-3.5 text-emerald-600" />
+                              {isHi ? 'टॉपर उत्तर संरचना एवं मुख्य बिंदु' : 'Topper Answer Framework & Key Demand'}
+                            </span>
+                            <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                              Model Rubric
+                            </span>
+                          </div>
+
+                          <div className="text-emerald-950 font-medium leading-relaxed whitespace-pre-line">
+                            {q.modelAnswer || (isHi ? `1. परिचय: ${q.questionText.slice(0, 40)}... का संवैधानिक व समसामयिक संदर्भ (Article / Case law).\n2. मुख्य भाग: 3-4 आयाम - कारण, प्रभाव, कानूनी नज़ीरें व डेटा।\n3. निष्कर्ष: संतुलनकारी दृष्टिकोण (Way Forward) एवं संवैधानिक मूल्य।` : `1. Introduction: Constitutional & current context of ${q.questionText.slice(0, 40)}...\n2. Body: Multi-dimensional breakdown with Articles, judgments & data.\n3. Conclusion: Forward-looking balanced approach.`)}
+                          </div>
+                        </div>
+                      )}
+
                     </div>
-                    <p className="text-xs text-slate-900 leading-relaxed font-bold m-0">
-                      {q.questionText}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
-            {/* ── BOTTOM ACTION CONTROLS (ALWAYS VISIBLE WHEN SCROLLED) ── */}
+            {/* ── BOTTOM ACTION CONTROLS ── */}
             <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 no-print">
               <button
                 onClick={handleBackToTopics}

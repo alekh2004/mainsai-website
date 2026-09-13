@@ -485,7 +485,8 @@ Return strict JSON format:
       "exam": "UPSC CSE / BPSC Mains",
       "year": "2023",
       "marks": 15,
-      "questionText": "Exact PYQ question text here in ${isHi ? 'Hindi' : 'English'}"
+      "questionText": "Exact PYQ question text here in ${isHi ? 'Hindi' : 'English'}",
+      "modelAnswer": "Comprehensive Topper Model Answer structure with Intro, Body points (with case laws/articles), and Forward-looking Conclusion in ${isHi ? 'Hindi' : 'English'}"
     }
   ],
   "topperConclusion": "Forward-looking, balanced 2-3 line solution conclusion in ${isHi ? 'Hindi' : 'English'}"
@@ -531,15 +532,6 @@ Return strict JSON format:
     ],
     dimensions: [
       {
-        title: isHi ? 'सकारात्मक पहलू (Judicial Activism)' : 'Positive Aspects (Judicial Activism)',
-        points: [
-          isHi ? 'मूल संरचना का सिद्धांत (केशवानंद भारती 1973): संविधान की सर्वोच्चता की रक्षा' : 'Basic Structure Doctrine (Kesavananda Bharati 1973) - Protected constitutional supremacy',
-          isHi ? 'जनहित याचिका (PIL - पी.एन. भगवती): गरीबों व वंचितों तक न्याय की सुलभ पहुंच' : 'Public Interest Litigation (PIL): Democratized justice for underprivileged sections',
-          isHi ? 'विशाखा गाइडलाइंस (1997) एवं पुट्टास्वामी निर्णय (2017 - निजता का अधिकार)' : 'Vishaka Guidelines (1997) & Puttaswamy (2017 Right to Privacy under Art 21)'
-        ]
-      },
-      {
-        title: isHi ? 'चिंताएं एवं अतिरंजना (Judicial Overreach)' : 'Concerns & Instances of Overreach',
         points: [
           isHi ? 'हाईवे शराब प्रतिबंध (2016): नीतिगत और प्रशासनिक डोमेन में सीधा प्रवेश' : 'National Highway Liquor Ban (2016): Micro-managing executive transport policies',
           isHi ? 'शक्तियों के पृथक्करण (Separation of Powers) का उल्लंघन' : 'Breach of Constitutional Equilibrium under Doctrine of Separation of Powers',
