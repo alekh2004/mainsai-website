@@ -57,7 +57,6 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
   const handleTestTypeChange = (type) => {
     setTestType(type);
     if (type === 'full_length') setQuestionCount(100);
-    else if (type === 'short') setQuestionCount(20);
     else if (type === 'subject_wise') setQuestionCount(30);
   };
 
@@ -134,10 +133,8 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
-              { id: 'full_length', title: 'Full Length Test', sub: '(100 Questions • 2 Hours)' },
-              { id: 'short', title: 'Short Test', sub: '(10 / 20 / 30 / 50 Questions)' },
-              { id: 'subject_wise', title: 'Subject-wise Test', sub: '(Choose specific subjects)' },
-              { id: 'custom', title: 'Custom Test', sub: '(Create your own test)' }
+              { id: 'full_length', title: 'Full Length Test', sub: '(Full Syllabus • 100 Qs)' },
+              { id: 'subject_wise', title: 'Subject-wise Test', sub: '(Choose specific subjects • 10–100 Qs)' }
             ].map(type => (
               <div
                 key={type.id}
@@ -145,12 +142,13 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
                 className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                   testType === type.id
                     ? 'border-blue-600 bg-blue-50/60 shadow-sm'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    : 'glass-card-clean hover:border-slate-300'
                 }`}
+                style={testType !== type.id ? { borderColor: 'var(--glass-border)' } : {}}
               >
                 <div>
-                  <div className="text-xs font-black text-slate-900">{type.title}</div>
-                  <div className="text-[11px] font-medium text-slate-500 mt-0.5">{type.sub}</div>
+                  <div className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{type.title}</div>
+                  <div className="text-[11px] font-medium mt-0.5 opacity-70" style={{ color: 'var(--text-secondary)' }}>{type.sub}</div>
                 </div>
 
                 <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
@@ -222,11 +220,11 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
           </div>
         </div>
 
-        {/* 3. Select Subjects */}
+        {/* 4. Select Subjects */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">3</span>
+              <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center">4</span>
               <h3 className="text-sm font-black text-slate-900 m-0">
                 {isHi ? 'विषय चुनें' : 'Select Subject(s)'}
               </h3>

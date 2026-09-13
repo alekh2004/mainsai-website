@@ -154,13 +154,23 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
             
             {/* Question Header Metadata */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-black text-slate-900">
                   Q. {currentIndex + 1} of {questions.length}
                 </span>
                 <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
                   {currentQ?.subject || 'General Studies'}
                 </span>
+                {currentQ?.year && (
+                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                    📜 {currentQ.year}
+                  </span>
+                )}
+                {!currentQ?.year && (
+                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
+                    🔥 High Yield Expected
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-3">
