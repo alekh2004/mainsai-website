@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { generateAiMainsNotes } from '../../services/geminiService';
@@ -32,6 +32,16 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState('note'); // 'note' | 'pyqs'
+
+  // ── Reset state every time modal opens fresh ──
+  useEffect(() => {
+    if (isOpen) {
+      setNoteData(null);
+      setTopicInput('Judicial Activism vs Judicial Overreach');
+      setActiveTab('note');
+      setCopied(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

@@ -34,7 +34,8 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
   const { user, logout, switchRole } = useAuth();
   const {
     activeExam, setActiveExam, language, toggleLanguage,
-    theme, setTheme, accentColor, setAccentColor, bgStyle, setBgStyle
+    theme, setTheme, accentColor, setAccentColor, bgStyle, setBgStyle,
+    glassIntensity, setGlassIntensity
   } = useApp();
   const isHi = language === 'hi';
   const isTeacher = user?.role === 'teacher' || user?.role === 'admin';
@@ -242,6 +243,30 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                               boxShadow: accentColor === id ? `0 0 0 2px ${hex}` : 'none'
                             }}
                           />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Glass Intensity */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[9px] font-bold uppercase tracking-wider opacity-60" style={{ color: 'var(--text-secondary)' }}>Glass Effect</p>
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: `${currentAccent.hex}20`, color: currentAccent.hex }}>
+                          {glassIntensity === 'low' ? 'Low' : glassIntensity === 'med' ? 'Medium' : 'High'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[{id:'low',label:'Low'},{id:'med',label:'Medium'},{id:'high',label:'High'}].map(({id,label}) => (
+                          <button
+                            key={id}
+                            onClick={() => setGlassIntensity(id)}
+                            className="py-1.5 rounded-lg border text-center transition-all"
+                            style={glassIntensity === id
+                              ? { color: currentAccent.hex, borderColor: currentAccent.hex, background: `${currentAccent.hex}20` }
+                              : { color: 'var(--text-secondary)', borderColor: 'var(--glass-border)' }}
+                          >
+                            <div className="text-[10px] font-extrabold">{label}</div>
+                          </button>
                         ))}
                       </div>
                     </div>

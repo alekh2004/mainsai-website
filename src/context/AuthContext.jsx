@@ -33,14 +33,22 @@ const saveStudents = (data) => localStorage.setItem(LS_STUDENTS, JSON.stringify(
 const getInbox = () => JSON.parse(localStorage.getItem(LS_INBOX) || '[]');
 const saveInbox = (data) => localStorage.setItem(LS_INBOX, JSON.stringify(data));
 
+// API key: loaded from env at build time (Vite inlines it), or from localStorage if teacher updated it
+const BUNDLED_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [adminInbox, setAdminInbox] = useState(() => getInbox());
 
-  const [apiKey, setApiKey] = useState(
-    () => localStorage.getItem('gemini_api_key') || DEFAULT_API_KEY
-  );
+  const [apiKey, setApiKey] = useState(() => {
+    // 1. Teacher may have saved a custom key in localStorage
+    const saved = localStorage.getItem('gemini_api_key');
+    if (saved && saved.trim().length > 10) return saved.trim();
+    // 2. Fall back to the key baked into the bundle at build time
+    if (BUNDLED_API_KEY && BUNDLED_API_KEY.trim().length > 10) return BUNDLED_API_KEY.trim();
+    return '';
+  });
   const [showPayModal, setShowPayModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 

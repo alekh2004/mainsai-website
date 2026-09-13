@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { generateAiFlashcards } from '../../services/geminiService';
@@ -31,6 +31,19 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [masteredIds, setMasteredIds] = useState([]);
+
+  // ── Reset state every time modal opens fresh ──
+  useEffect(() => {
+    if (isOpen) {
+      setDeck(null);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setMasteredIds([]);
+      setCustomTopic('');
+      setTopic('Polity & Constitutional Articles');
+      setCardCount(10);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
