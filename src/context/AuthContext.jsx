@@ -206,44 +206,13 @@ export function AuthProvider({ children }) {
       const appVerifier = setupRecaptcha();
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       window.confirmationResult = confirmationResult;
-      return { success: true, liveSms: true, confirmationResult };
+      return confirmationResult;
     } catch (err) {
       console.error('Firebase Live Phone Auth Error:', err.code, err.message);
       // Immediately clear recaptchaVerifier so subsequent attempts don't throw "already rendered"
       if (window.recaptchaVerifier) {
         try { window.recaptchaVerifier.clear(); } catch (e) {}
         window.recaptchaVerifier = null;
-      }
-
-      // If Firebase Console domain authorization or SMS provider credential fails
-      if (
-        err.code === 'auth/invalid-app-credential' ||
-        err.code === 'auth/captcha-check-failed' ||
-        err.code === 'auth/operation-not-allowed' ||
-        err.code === 'auth/unauthorized-domain' ||
-        err.code === 'auth/quota-exceeded' ||
-        err.code === 'auth/billing-not-enabled' ||
-        err.message?.includes('reCAPTCHA') ||
-        err.message?.includes('app-credential')
-      ) {
-        console.warn('Firebase SMS provider error, initializing fail-safe OTP session for phone auth.');
-        window.confirmationResult = {
-          confirm: async (otpCode) => {
-            if (!otpCode || otpCode.length < 4) {
-              const error = new Error('Invalid OTP code. Please enter 6-digit OTP.');
-              error.code = 'auth/invalid-verification-code';
-              throw error;
-            }
-            return {
-              user: {
-                uid: `phone_${phoneNumber.replace(/\D/g, '')}`,
-                phoneNumber: phoneNumber,
-                displayName: `Candidate (${phoneNumber.slice(-4)})`,
-              }
-            };
-          }
-        };
-        return { success: true, liveSms: false, error: err };
       }
       throw err;
     }

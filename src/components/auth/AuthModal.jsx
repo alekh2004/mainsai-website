@@ -70,8 +70,11 @@ export function AuthModal({ isFullScreen = false }) {
         return 'Password is too weak. Please use at least 6 characters.';
       case 'auth/invalid-email':
         return 'Please enter a valid email address (e.g. name@domain.com).';
+      case 'auth/invalid-app-credential':
       case 'auth/unauthorized-domain':
-        return 'Domain not authorized in Firebase. Please add this domain in Firebase Console > Authentication > Settings.';
+        return 'Firebase SMS Error: Current domain is not authorized in Firebase. Add this domain under Firebase Console > Authentication > Settings > Authorized Domains.';
+      case 'auth/operation-not-allowed':
+        return 'Firebase SMS Error: Phone Auth is disabled. Enable Phone provider under Firebase Console > Authentication > Sign-in method.';
       case 'auth/popup-closed-by-user':
         return 'Sign-in window was closed before completing. Please try again.';
       case 'auth/popup-blocked':
@@ -165,13 +168,9 @@ export function AuthModal({ isFullScreen = false }) {
 
     setIsSendingOtp(true);
     try {
-      const res = await sendPhoneOtp(`+91${cleanPhone}`);
+      await sendPhoneOtp(`+91${cleanPhone}`);
       setOtpSent(true);
-      if (res && res.liveSms) {
-        setSuccessMsg(`Verification OTP sent to +91 ${cleanPhone}. Please check your SMS.`);
-      } else {
-        setSuccessMsg(`OTP sent to +91 ${cleanPhone}. Please enter the 6-digit code to continue.`);
-      }
+      setSuccessMsg(`6-Digit OTP code sent successfully to +91 ${cleanPhone}. Please check your phone SMS.`);
     } catch (err) {
       console.error('Phone Send Error:', err);
       setErrorMsg(getErrorMessage(err?.code, err?.message));
@@ -645,7 +644,7 @@ export function AuthModal({ isFullScreen = false }) {
                         required
                         value={otp}
                         onChange={(e) => setOtp(e.target.value.trim())}
-                        placeholder="123456"
+                        placeholder="• • • • • •"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-base font-black text-center tracking-widest focus:outline-none focus:border-blue-500"
                       />
                     </div>
