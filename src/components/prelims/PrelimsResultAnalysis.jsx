@@ -244,16 +244,17 @@ export function PrelimsResultAnalysis({ resultData = {}, onBackToDashboard }) {
         /* ── Detailed Solutions Accordion ── */
         <div className="space-y-5 animate-fadeIn">
           
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between p-4 rounded-2xl border" style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}>
             <button
               onClick={() => setShowDetailedSolutions(false)}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5"
+              className="p-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all hover:opacity-70"
+              style={{ background: 'rgba(100,116,139,0.12)', color: 'var(--text-secondary)' }}
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Performance</span>
             </button>
 
-            <h3 className="text-sm font-black text-slate-900 m-0">
+            <h3 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
               {isHi ? 'व्याख्या एवं हल' : 'Itemized Solutions & Explanations'}
             </h3>
           </div>
@@ -265,11 +266,15 @@ export function PrelimsResultAnalysis({ resultData = {}, onBackToDashboard }) {
               const isUnattempted = userAns === undefined;
 
               return (
-                <div key={q.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 text-left">
+                <div
+                  key={q.id}
+                  className="p-5 rounded-3xl border space-y-4 text-left"
+                  style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)' }}
+                >
                   
                   {/* Status Banner */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-xs font-bold">
-                    <span className="font-black text-blue-600">Q{qIdx + 1}. {q.subject}</span>
+                  <div className="flex items-center justify-between border-b pb-3 text-xs font-bold" style={{ borderColor: 'var(--glass-border)' }}>
+                    <span className="font-black" style={{ color: 'rgb(var(--accent))' }}>Q{qIdx + 1}. {q.subject}</span>
                     {isUnattempted ? (
                       <span className="text-slate-400 font-extrabold">Unattempted</span>
                     ) : isCorrect ? (
@@ -284,7 +289,7 @@ export function PrelimsResultAnalysis({ resultData = {}, onBackToDashboard }) {
                   </div>
 
                   {/* Question Text */}
-                  <div className="text-sm font-black text-slate-900 leading-relaxed whitespace-pre-line">
+                  <div className="text-sm font-bold leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
                     {isHi ? q.questionHi : q.questionEn}
                   </div>
 
@@ -294,24 +299,25 @@ export function PrelimsResultAnalysis({ resultData = {}, onBackToDashboard }) {
                       const isOptionCorrect = oIdx === q.correctIndex;
                       const isOptionSelected = oIdx === userAns;
 
-                      let borderStyle = 'border-slate-200 bg-white text-slate-700';
-                      if (isOptionCorrect) borderStyle = 'border-emerald-500 bg-emerald-50/70 text-emerald-900 font-black';
-                      else if (isOptionSelected && !isOptionCorrect) borderStyle = 'border-rose-500 bg-rose-50/70 text-rose-900 font-black';
+                      let optStyle = { background: 'var(--card-bg)', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' };
+                      let extraClass = '';
+                      if (isOptionCorrect) { optStyle = { background: 'rgba(16,185,129,0.12)', borderColor: '#10b981', color: 'var(--text-primary)' }; extraClass = 'font-black'; }
+                      else if (isOptionSelected && !isOptionCorrect) { optStyle = { background: 'rgba(239,68,68,0.1)', borderColor: '#ef4444', color: 'var(--text-primary)' }; extraClass = 'font-black'; }
 
                       return (
-                        <div key={oIdx} className={`p-3 rounded-xl border text-xs flex items-center justify-between ${borderStyle}`}>
+                        <div key={oIdx} className={`p-3 rounded-xl border text-xs flex items-center justify-between ${extraClass}`} style={optStyle}>
                           <span>{['A', 'B', 'C', 'D', 'E'][oIdx]}. {opt}</span>
-                          {isOptionCorrect && <span className="text-[10px] font-black uppercase text-emerald-700">Correct Answer</span>}
-                          {isOptionSelected && !isOptionCorrect && <span className="text-[10px] font-black uppercase text-rose-700">Your Answer</span>}
+                          {isOptionCorrect && <span className="text-[10px] font-black uppercase text-emerald-500">✓ Correct</span>}
+                          {isOptionSelected && !isOptionCorrect && <span className="text-[10px] font-black uppercase text-rose-500">✗ Your Answer</span>}
                         </div>
                       );
                     })}
                   </div>
 
                   {/* Explanation Box */}
-                  <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs leading-relaxed space-y-1">
-                    <div className="font-black text-blue-800 text-[11px] uppercase tracking-wider">Explanation:</div>
-                    <div className="text-slate-800 font-medium whitespace-pre-line">
+                  <div className="p-4 rounded-2xl border text-xs leading-relaxed space-y-1" style={{ background: 'rgba(59,130,246,0.07)', borderColor: 'rgba(59,130,246,0.25)' }}>
+                    <div className="font-extrabold text-[11px] uppercase tracking-wider" style={{ color: 'rgb(var(--accent))' }}>Explanation:</div>
+                    <div className="font-medium whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
                       {isHi ? q.explanationHi : q.explanationEn}
                     </div>
                   </div>

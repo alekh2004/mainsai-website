@@ -1,10 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ArrowLeft, Check, ArrowRight, ShieldCheck, Layers, HelpCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { ArrowLeft, Check, ArrowRight, ShieldCheck, Layers, HelpCircle, Crown, AlertTriangle } from 'lucide-react';
+
+// ── Daily Free Test Limit (1 full test / day for free users) ──
+const FREE_LIMIT_KEY = 'prelims_daily_tests';
+function getDailyTestRecord() {
+  try { return JSON.parse(localStorage.getItem(FREE_LIMIT_KEY) || '{}'); } catch { return {}; }
+}
+function checkDailyLimit(isPro) {
+  if (isPro) return { allowed: true, remaining: Infinity, used: 0 };
+  const today = new Date().toISOString().slice(0, 10);
+  const record = getDailyTestRecord();
+  const used = record[today] || 0;
+  return { allowed: used < 1, remaining: Math.max(0, 1 - used), used, today };
+}
+function recordTestUsed(today) {
+  const record = getDailyTestRecord();
+  record[today] = (record[today] || 0) + 1;
+  localStorage.setItem(FREE_LIMIT_KEY, JSON.stringify(record));
+}
 
 export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
   const { activeExam, setActiveExam, language } = useApp();
+  const { user } = useAuth();
   const isHi = language === 'hi';
+  const isPro = user?.plan === 'pro' || user?.plan === 'ultimate';
 
   const [testType, setTestType] = useState('full_length'); // 'full_length' | 'short' | 'subject_wise' | 'custom'
   const [questionCount, setQuestionCount] = useState(100);
@@ -60,7 +81,14 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
     else if (type === 'subject_wise') setQuestionCount(30);
   };
 
+  const limitStatus = useMemo(() => checkDailyLimit(isPro), [isPro]);
+
   const handleNext = () => {
+    // Check daily limit for full tests
+    if (testType === 'full_length' && !isPro && !limitStatus.allowed) return;
+    if (testType === 'full_length' && !isPro) {
+      recordTestUsed(limitStatus.today);
+    }
     const configData = {
       exam: activeExam,
       testType,
@@ -94,8 +122,48 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
         </div>
       </div>
 
+      {/* Daily Limit Warning (Free users) */}
+      {!isPro && testType === 'full_length' && (
+        <div
+          className={`p-4 rounded-2xl border flex items-center gap-3 text-xs font-bold ${
+            limitStatus.allowed
+              ? 'border-blue-500/30'
+              : 'border-rose-500/30'
+          }`}
+          style={{ background: limitStatus.allowed ? 'rgba(59,130,246,0.08)' : 'rgba(239,68,68,0.08)' }}
+        >
+          {limitStatus.allowed ? (
+            <>
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+              <span style={{ color: 'var(--text-primary)' }}>
+                {isHi
+                  ? `Free Plan: आज ${1 - limitStatus.used} Full Test उपलब्ध है। `
+                  : `Free Plan: ${1 - limitStatus.used} Full Test remaining today. `}
+                <span className="text-amber-500 font-extrabold">
+                  {isHi ? 'Pro में असीमित टेस्ट पाएं।' : 'Upgrade to Pro for unlimited.'}
+                </span>
+              </span>
+            </>
+          ) : (
+            <>
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+              <div style={{ color: 'var(--text-primary)' }}>
+                <div className="font-extrabold text-rose-500">
+                  {isHi ? '⛔ आज की Free Full Test सीमा समाप्त हो गई।' : '⛔ Daily Free Full Test Limit Reached.'}
+                </div>
+                <div className="font-medium text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                  {isHi
+                    ? 'Pro में अपग्रेड करें या Subject-wise Test का चयन करें (कोई सीमा नहीं)।'
+                    : 'Upgrade to Pro or choose Subject-wise Test (no daily limit).'}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Main Form Card */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-7 text-left text-slate-900">
+      <div className="glass-card-clean p-6 md:p-8 rounded-3xl border space-y-7 text-left" style={{ borderColor: 'var(--glass-border)' }}>
 
         {/* Exam Switcher Buttons */}
         <div className="grid grid-cols-2 gap-3">
@@ -281,10 +349,15 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
         {/* Primary Action Button */}
         <button
           onClick={handleNext}
-          className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+          disabled={testType === 'full_length' && !isPro && !limitStatus.allowed}
+          className="w-full py-4 rounded-2xl font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ background: 'rgb(var(--accent))', color: '#fff' }}
         >
-          <span>{isHi ? 'अगला: निर्देश पढ़ें' : 'Next: Read Instructions'}</span>
-          <ArrowRight className="w-4 h-4" />
+          {testType === 'full_length' && !isPro && !limitStatus.allowed ? (
+            <><Crown className="w-4 h-4" /><span>{isHi ? 'Pro में अपग्रेड करें' : 'Upgrade to Pro'}</span></>
+          ) : (
+            <><span>{isHi ? 'अगला: निर्देश पढ़ें' : 'Next: Read Instructions'}</span><ArrowRight className="w-4 h-4" /></>
+          )}
         </button>
 
       </div>

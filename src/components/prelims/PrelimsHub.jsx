@@ -1,16 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { PRELIMS_QUESTION_BANK } from '../../data/prelimsQuestions';
-import { generatePrelimsBatch, hasValidApiKey } from '../../services/prelimsAiGenerator';
+import { generatePrelimsBatch } from '../../services/prelimsAiGenerator';
 import { PrelimsHome } from './PrelimsHome';
 import { PrelimsTestConfig } from './PrelimsTestConfig';
 import { PrelimsInstructions } from './PrelimsInstructions';
 import { PrelimsExamInterface } from './PrelimsExamInterface';
 import { PrelimsResultAnalysis } from './PrelimsResultAnalysis';
-import { Loader2, Sparkles, AlertTriangle } from 'lucide-react';
+import { Loader2, Sparkles, AlertTriangle, Key } from 'lucide-react';
 
 const BATCH_SIZE = 10;
+
+// ── Build fallback questions from static bank ──
+function buildStaticFallback(exam, configData, count) {
+  let qSet = PRELIMS_QUESTION_BANK.filter(q => q.exam === exam);
+  if (qSet.length === 0) qSet = [...PRELIMS_QUESTION_BANK];
+
+  if (configData?.testType === 'subject_wise' && configData?.selectedSubjects) {
+    const activeSubIds = Object.entries(configData.selectedSubjects)
+      .filter(([, v]) => v).map(([k]) => k);
+    const filtered = qSet.filter(q => activeSubIds.some(id => (q.subject || '').toLowerCase().includes(id)));
+    if (filtered.length > 0) qSet = filtered;
+  }
+
+  // Shuffle and repeat to fill count
+  const shuffled = [...qSet].sort(() => Math.random() - 0.5);
+  while (shuffled.length < count) {
+    shuffled.push(...[...qSet].sort(() => Math.random() - 0.5));
+  }
+  return shuffled.slice(0, count).map((q, i) => ({ ...q, id: `${q.id || 'q'}-inst-${i}` }));
+}
 
 export function PrelimsHub({ onTestStart, onTestEnd }) {
   const { activeExam, saveEvaluationResult, language } = useApp();
@@ -25,16 +45,17 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     negMarking: activeExam === 'bpsc' ? 0.33 : 0.66
   });
 
-  // Batch generation state
+  // Questions state — starts empty, fills via AI or static
   const [activeQuestions, setActiveQuestions] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ done: 0, total: 0 });
-  const [generationError, setGenerationError] = useState('');
+  const [apiError, setApiError] = useState('');
   const generationAbortRef = useRef(false);
+  const configRef = useRef(testConfig);
 
   const [finalResult, setFinalResult] = useState(null);
 
-  // Notify parent when test active status changes
+  // Notify parent on test active change
   useEffect(() => {
     if (step === 'exam') onTestStart?.();
     else onTestEnd?.();
@@ -44,115 +65,110 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     setTestConfig(prev => ({
       ...prev,
       exam: activeExam,
-      testType: actionId === 'pyqs' ? 'full_length' : 'full_length',
+      testType: 'full_length',
       questionCount: actionId === 'pyqs' ? 50 : 100,
-      filterPyq: actionId === 'pyqs'
     }));
     setStep('config');
   };
 
-  // ── Core: Generate questions using Gemini in batches ──
-  const generateQuestions = async (configData) => {
+  // ── Core: Generate questions with Gemini in 10-batch increments ──
+  const generateQuestions = useCallback(async (configData) => {
     setIsGenerating(true);
-    setGenerationError('');
+    setApiError('');
+    setActiveQuestions([]);
     generationAbortRef.current = false;
+    configRef.current = configData;
+
     const targetCount = configData.questionCount || 100;
     setGenerationProgress({ done: 0, total: targetCount });
 
     const exam = configData.exam || activeExam;
+
+    // Determine subject label
     const subjects = configData.selectedSubjects
       ? Object.entries(configData.selectedSubjects).filter(([, v]) => v).map(([k]) => k)
       : null;
-    const subject = subjects?.length ? subjects.join(', ') : (exam === 'bpsc' ? 'General Studies Bihar' : 'General Studies');
+    const subject = subjects?.length
+      ? subjects.join(', ')
+      : (exam === 'bpsc' ? 'Bihar GK, Modern History, Geography, Polity, Economy' : 'History, Geography, Polity, Economy, Environment, Science');
     const difficulty = configData.difficulty || 'medium';
 
-    // Fall back to static bank if no API key
-    if (!hasValidApiKey(apiKey)) {
+    // Check API key
+    const key = apiKey?.trim();
+    const hasKey = key && key.length > 10;
+
+    if (!hasKey) {
       console.warn('[PrelimsHub] No API key — using static question bank');
-      const staticQ = buildStaticFallback(exam, configData, targetCount);
-      setActiveQuestions(staticQ);
+      const fallback = buildStaticFallback(exam, configData, targetCount);
+      setActiveQuestions(fallback);
+      setGenerationProgress({ done: fallback.length, total: targetCount });
       setIsGenerating(false);
-      return staticQ;
+      return;
     }
 
     const allQ = [];
     const batchCount = Math.ceil(targetCount / BATCH_SIZE);
 
-    // Generate first batch synchronously (show immediately)
-    try {
-      const firstBatch = await generatePrelimsBatch({
-        exam, subject, difficulty,
-        batchIndex: 0, batchSize: Math.min(BATCH_SIZE, targetCount),
-        apiKey, language
-      });
-      allQ.push(...firstBatch);
-      setActiveQuestions([...allQ]);
-      setGenerationProgress({ done: allQ.length, total: targetCount });
-    } catch (err) {
-      console.warn('[PrelimsHub] First batch failed, using static fallback:', err.message);
-      const fallback = buildStaticFallback(exam, configData, targetCount);
-      setActiveQuestions(fallback);
-      setIsGenerating(false);
-      return fallback;
-    }
-
-    // Generate remaining batches in background
-    for (let b = 1; b < batchCount; b++) {
+    for (let b = 0; b < batchCount; b++) {
       if (generationAbortRef.current) break;
       const remaining = targetCount - allQ.length;
       if (remaining <= 0) break;
+      const batchSize = Math.min(BATCH_SIZE, remaining);
+
       try {
         const batch = await generatePrelimsBatch({
           exam, subject, difficulty,
-          batchIndex: b, batchSize: Math.min(BATCH_SIZE, remaining),
-          apiKey, language
+          batchIndex: b, batchSize,
+          apiKey: key, language
         });
-        allQ.push(...batch);
-        setActiveQuestions([...allQ]);
-        setGenerationProgress({ done: allQ.length, total: targetCount });
+
+        if (batch.length > 0) {
+          allQ.push(...batch);
+          setActiveQuestions(prev => {
+            const merged = [...prev, ...batch];
+            return merged;
+          });
+          setGenerationProgress({ done: allQ.length, total: targetCount });
+        } else {
+          throw new Error('Empty batch');
+        }
       } catch (err) {
-        console.warn(`[PrelimsHub] Batch ${b} failed:`, err.message);
-        // Fill remaining with static questions
-        const staticFill = buildStaticFallback(exam, configData, remaining);
-        allQ.push(...staticFill.slice(0, remaining));
-        setActiveQuestions([...allQ]);
+        console.warn(`[PrelimsHub] Batch ${b + 1} failed:`, err.message);
+        // If first batch fails, fall back to static
+        if (allQ.length === 0) {
+          const fallback = buildStaticFallback(exam, configData, targetCount);
+          setActiveQuestions(fallback);
+          setGenerationProgress({ done: fallback.length, total: targetCount });
+          setApiError(isHi
+            ? `AI से कनेक्ट नहीं हो पाया — static प्रश्न बैंक से ${fallback.length} प्रश्न लोड किए।`
+            : `AI connection failed — loaded ${fallback.length} questions from static bank.`
+          );
+          setIsGenerating(false);
+          return;
+        }
+        // Partial: fill remaining with static
+        const staticFill = buildStaticFallback(exam, configData, remaining - allQ.length + (allQ.length));
+        const needed = remaining;
+        allQ.push(...staticFill.slice(0, needed));
+        setActiveQuestions(prev => [...prev, ...staticFill.slice(0, needed)]);
+        setGenerationProgress({ done: allQ.length, total: targetCount });
         break;
       }
     }
 
     setIsGenerating(false);
-    return allQ.slice(0, targetCount);
-  };
+  }, [apiKey, activeExam, language]);
 
-  function buildStaticFallback(exam, configData, count) {
-    let qSet = PRELIMS_QUESTION_BANK.filter(q => q.exam === exam);
-    if (qSet.length === 0) qSet = PRELIMS_QUESTION_BANK;
-
-    if (configData.testType === 'subject_wise' && configData.selectedSubjects) {
-      const activeSubIds = Object.entries(configData.selectedSubjects)
-        .filter(([, v]) => v).map(([k]) => k);
-      const filtered = qSet.filter(q => activeSubIds.some(id => (q.subject || '').toLowerCase().includes(id)));
-      if (filtered.length > 0) qSet = filtered;
-    }
-    // Shuffle and repeat to fill count
-    const shuffled = [...qSet].sort(() => Math.random() - 0.5);
-    while (shuffled.length < count) shuffled.push(...qSet.sort(() => Math.random() - 0.5));
-    return shuffled.slice(0, count);
-  }
-
-  const handleProceedToInstructions = async (configData) => {
+  const handleProceedToInstructions = (configData) => {
     setTestConfig(configData);
-    // Start generating in background right away
-    generateQuestions(configData);
+    generateQuestions(configData); // start generating right away in background
     setStep('instructions');
   };
 
-  const handleStartExam = () => {
-    setStep('exam');
-  };
+  const handleStartExam = () => setStep('exam');
 
   const handleExamCompleted = (resultObj) => {
-    generationAbortRef.current = true; // stop background generation
+    generationAbortRef.current = true;
     const { questions = [], selectedAnswers = {}, config = {}, timeTakenSecs = 0 } = resultObj;
     const isBpsc = (config.exam || activeExam) === 'bpsc';
     const posMark = isBpsc ? 1.0 : (config.testType === 'csat' ? 2.5 : 2.0);
@@ -171,14 +187,12 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       else { wrongCount++; subjectMap[subj].wrong++; }
     });
 
-    const rawScore = (correctCount * posMark) - (wrongCount * negMark);
-    const netScore = Math.max(0, rawScore);
+    const netScore = Math.max(0, (correctCount * posMark) - (wrongCount * negMark));
     const maxMarks = Math.round(questions.length * posMark);
     const percentage = maxMarks > 0 ? Math.round((netScore / maxMarks) * 100) : 0;
     const accuracy = (correctCount + wrongCount) > 0
       ? Math.round((correctCount / (correctCount + wrongCount)) * 100) : 0;
     const tag = percentage >= 70 ? 'Excellent' : percentage >= 55 ? 'Good' : percentage >= 40 ? 'Average' : 'Needs Work';
-
     const subjectBreakdown = Object.entries(subjectMap).reduce((acc, [subj, stats]) => {
       acc[subj] = Math.round(stats.total > 0 ? (stats.correct / stats.total) * 100 : 0);
       return acc;
@@ -189,7 +203,6 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       score: Number(netScore.toFixed(2)), maxMarks, percentage, accuracy, tag,
       subjectBreakdown, timeTakenSecs,
     };
-
     setFinalResult(enrichedResult);
 
     saveEvaluationResult({
@@ -202,8 +215,8 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       correctCount, wrongCount, unattemptedCount,
       totalQuestions: questions.length, accuracy,
       negMarking: negMark, posMarking: posMark, timeTakenSecs, subjectBreakdown,
-      keyStrengths: correctCount > 0 ? [`${correctCount} correct answers`, `${accuracy}% accuracy`] : [],
-      keyMistakes: wrongCount > 0 ? [`${wrongCount} wrong answers (neg marking)`, unattemptedCount > 0 ? `${unattemptedCount} unattempted` : ''].filter(Boolean) : [],
+      keyStrengths: correctCount > 0 ? [`${correctCount} correct`, `${accuracy}% accuracy`] : [],
+      keyMistakes: wrongCount > 0 ? [`${wrongCount} wrong (neg marking)`, unattemptedCount > 0 ? `${unattemptedCount} unattempted` : ''].filter(Boolean) : [],
       missedDemandPoints: [],
       overallFeedback: `Score: ${netScore.toFixed(2)}/${maxMarks} (${percentage}%). Correct: ${correctCount}, Wrong: ${wrongCount}, Unattempted: ${unattemptedCount}. Time: ${Math.floor(timeTakenSecs / 60)}m ${timeTakenSecs % 60}s.`,
     });
@@ -211,7 +224,7 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     setStep('result');
   };
 
-  // ── Render ──
+  // ── Step renders ──
 
   if (step === 'config') {
     return (
@@ -223,55 +236,69 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
   }
 
   if (step === 'instructions') {
+    const pct = generationProgress.total > 0
+      ? Math.round((generationProgress.done / generationProgress.total) * 100)
+      : 0;
+
     return (
       <div className="space-y-4">
-        {/* Generation Progress Banner */}
-        {isGenerating && (
-          <div className="glass-card-clean p-4 rounded-2xl border border-blue-500/30 flex items-center gap-3"
-            style={{ background: 'rgba(59,130,246,0.08)' }}>
+        {/* Generation Progress */}
+        {isGenerating ? (
+          <div className="p-4 rounded-2xl border border-blue-500/30 flex items-center gap-3 animate-fadeIn"
+            style={{ background: 'rgba(59,130,246,0.07)' }}>
             <Loader2 className="w-5 h-5 text-blue-500 animate-spin shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-extrabold text-blue-600 mb-1">
-                {isHi ? `AI प्रश्न तैयार हो रहे हैं... (${generationProgress.done}/${generationProgress.total})` : `AI generating questions... (${generationProgress.done}/${generationProgress.total})`}
+              <div className="text-xs font-extrabold text-blue-600 mb-1.5">
+                {isHi
+                  ? `🤖 Gemini AI ${generationProgress.done}/${generationProgress.total} प्रश्न तैयार कर रहा है...`
+                  : `🤖 Gemini AI generating ${generationProgress.done}/${generationProgress.total} questions...`}
               </div>
-              <div className="h-1.5 bg-blue-200/40 rounded-full overflow-hidden">
+              <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                  style={{ width: `${generationProgress.total > 0 ? (generationProgress.done / generationProgress.total) * 100 : 10}%` }}
+                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-700"
+                  style={{ width: `${Math.max(5, pct)}%` }}
                 />
               </div>
+              <div className="text-[10px] mt-1 font-medium text-blue-400">
+                {isHi ? 'आप Instructions पढ़ते रहें, प्रश्न बैकग्राउंड में तैयार हो रहे हैं।' : 'Read instructions while questions generate in the background.'}
+              </div>
             </div>
-            <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
           </div>
-        )}
-        {!isGenerating && activeQuestions.length > 0 && (
-          <div className="glass-card-clean p-3 rounded-2xl border border-emerald-500/30 flex items-center gap-2"
+        ) : activeQuestions.length > 0 ? (
+          <div className="p-3 rounded-2xl border border-emerald-500/30 flex items-center gap-2 animate-fadeIn"
             style={{ background: 'rgba(16,185,129,0.07)' }}>
             <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
             <span className="text-xs font-extrabold text-emerald-600">
-              {isHi ? `✅ ${activeQuestions.length} प्रश्न तैयार हैं!` : `✅ ${activeQuestions.length} questions ready!`}
+              ✅ {isHi ? `${activeQuestions.length} प्रश्न तैयार!` : `${activeQuestions.length} questions ready!`}
+              {apiError && <span className="ml-2 font-medium text-amber-600">({apiError})</span>}
             </span>
           </div>
-        )}
+        ) : null}
+
         <PrelimsInstructions
           config={testConfig}
           onGoBack={() => { generationAbortRef.current = true; setStep('config'); }}
           onStartTest={handleStartExam}
-          questionsReady={activeQuestions.length > 0}
+          questionsReady={!isGenerating && activeQuestions.length > 0}
           isGenerating={isGenerating}
+          generatedCount={activeQuestions.length}
         />
       </div>
     );
   }
 
   if (step === 'exam') {
-    const examQs = activeQuestions.length > 0 ? activeQuestions : buildStaticFallback(activeExam, testConfig, testConfig.questionCount);
+    // Always have questions — use generated or fallback
+    const examQs = activeQuestions.length > 0
+      ? activeQuestions
+      : buildStaticFallback(testConfig.exam || activeExam, testConfig, testConfig.questionCount);
+
     return (
       <PrelimsExamInterface
         questions={examQs}
         config={testConfig}
         onTestSubmit={handleExamCompleted}
-        backgroundQuestions={activeQuestions}
+        liveQuestions={activeQuestions} // pass live so palette updates as more generate
       />
     );
   }
@@ -280,7 +307,7 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     return (
       <PrelimsResultAnalysis
         resultData={finalResult}
-        onBackToDashboard={() => { setStep('home'); setActiveQuestions([]); }}
+        onBackToDashboard={() => { setStep('home'); setActiveQuestions([]); setGenerationProgress({ done: 0, total: 0 }); }}
       />
     );
   }
