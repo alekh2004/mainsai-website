@@ -79,73 +79,96 @@ async function callGeminiApi(prompt, apiKey) {
   throw lastError || new Error('All Gemini model endpoints failed');
 }
 
-function buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language }) {
+function buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language, previousTitles = [] }) {
   const isBpsc = exam === 'bpsc';
-  const examLabel = isBpsc ? 'BPSC 70th Prelims' : 'UPSC Prelims GS Paper I';
+  const examLabel = isBpsc ? 'BPSC 72nd CCE Prelims' : 'UPSC Prelims GS Paper I (2026 Pattern)';
   const optionCount = isBpsc ? 5 : 4;
   const optionNote = isBpsc
-    ? 'BPSC has 5 options: A, B, C, D, and option E is always "None of the above / More than one of the above"'
-    : 'UPSC has 4 options: A, B, C, D';
+    ? 'BPSC 5-option format: Options A, B, C, D, and Option E MUST be "None of the above / More than one of the above"'
+    : 'UPSC 4-option format: Options A, B, C, D';
   const negNote = isBpsc ? '1/3 negative marking' : '2/3 negative marking';
-  const diffNote = difficulty === 'easy' ? 'straightforward factual' : difficulty === 'hard' ? 'analytical and tricky' : 'moderate difficulty';
+  
+  const excludeInstruction = previousTitles.length > 0
+    ? `CRITICAL UNIQUE RULE: DO NOT generate any question on these topics/questions already generated:\n${previousTitles.slice(-25).map(t => `- ${t}`).join('\n')}`
+    : '';
 
-  return `You are an expert ${examLabel} question setter. Generate exactly ${batchSize} MCQ questions for ${examLabel}.
+  return `You are a Senior Question Setter for ${examLabel}. Generate exactly ${batchSize} UNIQUE, HIGH-LEVEL MCQ questions for ${examLabel}.
 
-Subject/Topic: ${subject || 'General Studies'}
-Difficulty: ${diffNote}
-Batch number: ${batchIndex + 1} (generate DIFFERENT questions from previous batches)
+Subject/Topic: ${subject || 'General Studies (Polity, History, Geography, Economy, Environment, Science)'}
+Target Difficulty: ${difficulty === 'hard' ? 'High Analytical Depth (UPSC 2024-2026 standards)' : difficulty === 'easy' ? 'Factual with Distractor Options' : 'Moderate Analytical & Conceptual'}
+Batch Number: ${batchIndex + 1}
 ${optionNote}
 Negative marking: ${negNote}
 
-Return ONLY valid JSON array of ${batchSize} objects. Each object:
-{
-  "id": "ai-${exam}-${batchIndex}-{index}",
-  "exam": "${exam}",
-  "paper": "gs1",
-  "subject": "${subject || 'General Studies'}",
-  "year": "AI Generated",
-  "difficulty": "${difficulty}",
-  "questionEn": "Full question text in English (statement-based or direct). For statement questions use numbered list format.",
-  "questionHi": "Same question in Hindi",
-  "optionsEn": ["Option A", "Option B", "Option C", "Option D"${isBpsc ? ', "None of the above / More than one of the above"' : ''}],
-  "optionsHi": ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"${isBpsc ? ', "उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक"' : ''}],
-  "correctIndex": 0,
-  "explanationEn": "Detailed 2-3 sentence explanation with key facts",
-  "explanationHi": "Same explanation in Hindi"
-}
+${excludeInstruction}
 
-IMPORTANT:
-- correctIndex must be 0-${optionCount - 1}
-- All questions must be authentic exam-style
-- No duplicate questions
-- Return ONLY the JSON array, no markdown, no explanation text`;
+QUESTION PATTERN DISTRIBUTIONS (MUST FOLLOW):
+1. 40% Statement-based: "Consider the following statements: 1. ... 2. ... 3. ... Which of the statements given above is/are correct?"
+2. 30% Pair Matching: "Consider the following pairs: ... How many of the above pairs are correctly matched?"
+3. 20% Assertion-Reason / Analytical: Deep conceptual clarity on Constitution, History, Economy, Environment, S&T.
+4. 10% Current Affairs / Special GS facts.
+
+Return ONLY valid JSON array of ${batchSize} objects. Format:
+[
+  {
+    "id": "ai-${exam}-${batchIndex}-0",
+    "exam": "${exam}",
+    "paper": "gs1",
+    "subject": "${subject || 'General Studies'}",
+    "year": "2026 AI Model",
+    "difficulty": "${difficulty}",
+    "questionEn": "Full question text in English...",
+    "questionHi": "समान प्रश्न हिंदी में...",
+    "optionsEn": ["Option A", "Option B", "Option C", "Option D"${isBpsc ? ', "None of the above / More than one of the above"' : ''}],
+    "optionsHi": ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"${isBpsc ? ', "उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक"' : ''}],
+    "correctIndex": 0,
+    "explanationEn": "Detailed 2-3 sentence explanation with relevant Articles, Acts, or historical facts.",
+    "explanationHi": "हिंदी में विस्तृत व्याख्या..."
+  }
+]
+
+IMPORTANT RULES:
+- correctIndex MUST be an integer 0 to ${optionCount - 1}.
+- NO DUPLICATE OR REPEATED QUESTIONS.
+- Every question must be distinct in subject matter and formulation.
+- Return ONLY the raw JSON array. No markdown code blocks, no intro text.`;
 }
 
 function parseGeminiBatch(rawText, exam, batchIndex) {
   try {
-    // Strip markdown code fences if present
     let clean = rawText.trim().replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-    // Try to find JSON array
     const match = clean.match(/\[\s*\{[\s\S]*\}\s*\]/);
     if (match) clean = match[0];
     const parsed = JSON.parse(clean);
     if (!Array.isArray(parsed)) throw new Error('Not an array');
-    // Normalize and validate each question
-    return parsed.map((q, i) => ({
-      id: q.id || `ai-${exam}-${batchIndex}-${i}`,
-      exam: q.exam || exam,
-      paper: q.paper || 'gs1',
-      subject: q.subject || 'General Studies',
-      year: q.year || 'AI Generated',
-      difficulty: q.difficulty || 'medium',
-      questionEn: q.questionEn || '',
-      questionHi: q.questionHi || q.questionEn || '',
-      optionsEn: Array.isArray(q.optionsEn) ? q.optionsEn : ['Option A', 'Option B', 'Option C', 'Option D'],
-      optionsHi: Array.isArray(q.optionsHi) ? q.optionsHi : (Array.isArray(q.optionsEn) ? q.optionsEn : ['A', 'B', 'C', 'D']),
-      correctIndex: typeof q.correctIndex === 'number' ? q.correctIndex : 0,
-      explanationEn: q.explanationEn || '',
-      explanationHi: q.explanationHi || q.explanationEn || '',
-    })).filter(q => q.questionEn.length > 10);
+    
+    const seen = new Set();
+    const result = [];
+
+    for (let i = 0; i < parsed.length; i++) {
+      const q = parsed[i];
+      const qText = (q.questionEn || q.questionHi || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 50);
+      if (!qText || seen.has(qText)) continue; // Skip internal batch duplicate
+      seen.add(qText);
+
+      result.push({
+        id: q.id || `ai-${exam}-${batchIndex}-${i}-${Date.now()}`,
+        exam: q.exam || exam,
+        paper: q.paper || 'gs1',
+        subject: q.subject || 'General Studies',
+        year: q.year || '2026 AI Model',
+        difficulty: q.difficulty || 'medium',
+        questionEn: q.questionEn || '',
+        questionHi: q.questionHi || q.questionEn || '',
+        optionsEn: Array.isArray(q.optionsEn) ? q.optionsEn : ['Option A', 'Option B', 'Option C', 'Option D'],
+        optionsHi: Array.isArray(q.optionsHi) ? q.optionsHi : (Array.isArray(q.optionsEn) ? q.optionsEn : ['A', 'B', 'C', 'D']),
+        correctIndex: typeof q.correctIndex === 'number' ? Math.max(0, Math.min(4, q.correctIndex)) : 0,
+        explanationEn: q.explanationEn || '',
+        explanationHi: q.explanationHi || q.explanationEn || '',
+      });
+    }
+
+    return result.filter(q => q.questionEn.length > 10);
   } catch (e) {
     console.warn('Failed to parse Gemini batch:', e);
     return [];
@@ -156,8 +179,8 @@ function parseGeminiBatch(rawText, exam, batchIndex) {
  * Generate a single batch of 10 MCQs.
  * @returns {Promise<Array>} array of question objects
  */
-export async function generatePrelimsBatch({ exam, subject, difficulty, batchIndex, batchSize = 10, apiKey, language = 'en' }) {
-  const prompt = buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language });
+export async function generatePrelimsBatch({ exam, subject, difficulty, batchIndex, batchSize = 10, apiKey, language = 'en', previousTitles = [] }) {
+  const prompt = buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language, previousTitles });
   const rawText = await callGeminiApi(prompt, apiKey);
   const questions = parseGeminiBatch(rawText, exam, batchIndex);
   if (questions.length === 0) throw new Error('Empty batch returned');

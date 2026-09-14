@@ -14,10 +14,31 @@ import { Loader2, Sparkles, AlertTriangle, BookOpen } from 'lucide-react';
 
 const BATCH_SIZE = 10;
 
-// ── Build fallback questions from static bank ──
+function normalizeKey(str) {
+  return (str || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 50);
+}
+
+function deduplicateList(existing = [], incoming = []) {
+  const seen = new Set(existing.map(q => normalizeKey(q.questionEn || q.questionHi || q.id)));
+  const result = [...existing];
+
+  for (const q of incoming) {
+    const k = normalizeKey(q.questionEn || q.questionHi || q.id);
+    if (k && k.length > 5 && !seen.has(k)) {
+      seen.add(k);
+      result.push(q);
+    }
+  }
+  return result;
+}
+
+// ── Build fallback questions from static bank + PYQs without repetition ──
 function buildStaticFallback(exam, configData, count) {
-  let qSet = PRELIMS_QUESTION_BANK.filter(q => q.exam === exam);
-  if (qSet.length === 0) qSet = [...PRELIMS_QUESTION_BANK];
+  let pyqSet = [];
+  try { pyqSet = getPYQsByExam(exam) || []; } catch (e) {}
+
+  let qSet = [...PRELIMS_QUESTION_BANK.filter(q => q.exam === exam), ...pyqSet];
+  if (qSet.length === 0) qSet = [...PRELIMS_QUESTION_BANK, ...pyqSet];
 
   if (configData?.testType === 'subject_wise' && configData?.selectedSubjects) {
     const activeSubIds = Object.entries(configData.selectedSubjects)
@@ -26,12 +47,20 @@ function buildStaticFallback(exam, configData, count) {
     if (filtered.length > 0) qSet = filtered;
   }
 
-  // Shuffle and repeat to fill count
+  // Shuffle and deduplicate
   const shuffled = [...qSet].sort(() => Math.random() - 0.5);
-  while (shuffled.length < count) {
-    shuffled.push(...[...qSet].sort(() => Math.random() - 0.5));
+  const uniqueList = deduplicateList([], shuffled);
+
+  // If unique list is smaller than requested count, fill with distinct ID copies only as last resort
+  const result = [...uniqueList];
+  let ptr = 0;
+  while (result.length < count && uniqueList.length > 0) {
+    const item = uniqueList[ptr % uniqueList.length];
+    result.push({ ...item, id: `${item.id || 'q'}-variant-${result.length}` });
+    ptr++;
   }
-  return shuffled.slice(0, count).map((q, i) => ({ ...q, id: `${q.id || 'q'}-inst-${i}` }));
+
+  return result.slice(0, count);
 }
 
 export function PrelimsHub({ onTestStart, onTestEnd }) {
@@ -129,18 +158,19 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       const batchSize = Math.min(BATCH_SIZE, remaining);
 
       try {
+        const previousTitles = allQ.map(q => (q.questionEn || q.questionHi || '').slice(0, 50));
         const batch = await generatePrelimsBatch({
           exam, subject, difficulty,
           batchIndex: b, batchSize,
-          apiKey: key, language
+          apiKey: key, language,
+          previousTitles
         });
 
         if (batch.length > 0) {
-          allQ.push(...batch);
-          setActiveQuestions(prev => {
-            const merged = [...prev, ...batch];
-            return merged;
-          });
+          const deduplicated = deduplicateList(allQ, batch);
+          allQ.length = 0;
+          allQ.push(...deduplicated);
+          setActiveQuestions(prev => deduplicateList(prev, batch));
           setGenerationProgress({ done: allQ.length, total: targetCount });
         } else {
           throw new Error('Empty batch');
