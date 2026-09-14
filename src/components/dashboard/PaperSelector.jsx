@@ -67,15 +67,28 @@ export function PaperSelector({ onSelectPaper }) {
   return (
     <div className="w-full space-y-4 animate-fadeIn max-w-3xl mx-auto">
       
-      {/* Title */}
+      {/* Title Header */}
       <div className="text-center space-y-1.5 mb-6">
-        <span className="px-3.5 py-1 rounded-full bg-blue-500/15 text-blue-700 dark:text-cyan-300 border border-blue-500/30 text-xs font-black uppercase tracking-wider backdrop-blur-md">
+        <span
+          className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider backdrop-blur-md inline-block border"
+          style={{
+            background: 'rgb(var(--accent) / 0.12)',
+            color: 'rgb(var(--accent))',
+            borderColor: 'rgb(var(--accent) / 0.3)',
+          }}
+        >
           {activeExam.toUpperCase()} MAINS SELECT PAPER
         </span>
-        <h2 className="text-2xl font-black tracking-tight m-0 text-slate-900 dark:text-white">
+        <h2
+          className="text-2xl lg:text-3xl font-black tracking-tight m-0"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {isHi ? `${activeExam.toUpperCase()} मेन्स पेपर चुनें` : `${activeExam.toUpperCase()} Mains Select Paper`}
         </h2>
-        <p className="text-xs text-slate-600 dark:text-slate-300 m-0 font-bold">
+        <p
+          className="text-xs m-0 font-extrabold"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           {isHi ? 'मूल्यांकन के लिए अपना पेपर चुनें' : 'Choose the paper you want to evaluate'}
         </p>
       </div>
@@ -87,39 +100,57 @@ export function PaperSelector({ onSelectPaper }) {
             key={p.id}
             onClick={() => onSelectPaper(p.id)}
             className={`w-full p-4.5 rounded-2xl glass-card-clean glass-card-hover border ${p.color} transition-all text-left flex items-center justify-between gap-4 group`}
+            style={{ background: 'var(--card-bg)' }}
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-700 dark:text-cyan-400 font-black shrink-0">
+              <div
+                className="w-10 h-10 rounded-xl border flex items-center justify-center font-black shrink-0"
+                style={{
+                  background: 'rgb(var(--accent) / 0.15)',
+                  borderColor: 'rgb(var(--accent) / 0.3)',
+                  color: 'rgb(var(--accent))'
+                }}
+              >
                 <BookOpen className="w-5 h-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="text-base font-black m-0 text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-cyan-400 transition-colors">
+                <h4 className="text-base font-black m-0 group-hover:opacity-80 transition-colors" style={{ color: 'var(--text-primary)' }}>
                   {p.title}
                 </h4>
-                <p className="text-xs font-semibold m-0 leading-relaxed text-slate-600 dark:text-slate-300">
+                <p className="text-xs font-semibold m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   {p.desc}
                 </p>
               </div>
             </div>
 
-            <ChevronRight className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-700 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0" />
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-all shrink-0" style={{ color: 'var(--text-secondary)' }} />
           </button>
         ))}
       </div>
 
       {/* Footer Note & Help */}
       <div className="pt-4 space-y-3">
-        <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-slate-700 dark:text-slate-300 text-center font-bold flex items-center justify-center gap-2">
-          <Info className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
+        <div
+          className="p-3.5 rounded-xl border text-xs text-center font-bold flex items-center justify-center gap-2"
+          style={{
+            background: 'rgb(var(--accent) / 0.08)',
+            borderColor: 'rgb(var(--accent) / 0.25)',
+            color: 'var(--text-primary)'
+          }}
+        >
+          <Info className="w-4 h-4 shrink-0" style={{ color: 'rgb(var(--accent))' }} />
           <span>{isHi ? 'नोट: आप 24 घंटे में 5 निशुल्क मूल्यांकन कर सकते हैं' : 'Note: You can evaluate up to 5 papers per 24 hours'}</span>
         </div>
 
-        <div className="p-3.5 rounded-xl glass-card-clean border border-white/20 text-xs text-center flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300">
-            <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+        <div
+          className="p-3.5 rounded-xl glass-card-clean border border-white/20 text-xs text-center flex items-center justify-between gap-3"
+          style={{ background: 'var(--card-bg)' }}
+        >
+          <div className="flex items-center gap-2 font-bold" style={{ color: 'var(--text-primary)' }}>
+            <HelpCircle className="w-4 h-4 text-amber-500" />
             <span>{isHi ? 'किसी भी सहायता के लिए सहायता केंद्र पर जाएं' : 'Need help selecting papers? Visit Help Center'}</span>
           </div>
-          <ChevronRight className="w-4 h-4 opacity-60 text-slate-600 dark:text-slate-400" />
+          <ChevronRight className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
         </div>
       </div>
 
