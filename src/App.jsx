@@ -13,6 +13,7 @@ import { StatsOverview } from './components/dashboard/StatsOverview';
 import { InsightsView } from './components/dashboard/InsightsView';
 import { ProfileView } from './components/dashboard/ProfileView';
 import { TestHistory } from './components/dashboard/TestHistory';
+import { ImprovementBook } from './components/dashboard/ImprovementBook';
 import { ModeSelector } from './components/test/ModeSelector';
 import { AiQuestionGenerator } from './components/test/AiQuestionGenerator';
 import { ManualQuestionBank } from './components/test/ManualQuestionBank';
@@ -192,7 +193,7 @@ function MainAppContent() {
 
               {activeTab === 'history' && (
                 <div className="animate-fadeIn">
-                  <TestHistory onViewReport={setActiveEvaluationResult} onGoBack={handleResetToHome} />
+                  <ImprovementBook onGoBack={handleResetToHome} />
                 </div>
               )}
 

@@ -3,12 +3,14 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { PRELIMS_QUESTION_BANK } from '../../data/prelimsQuestions';
 import { generatePrelimsBatch } from '../../services/prelimsAiGenerator';
+import { getPYQsByExam } from '../../data/prelimsPYQs';
+import { saveTestToImprovementBook } from '../dashboard/ImprovementBook';
 import { PrelimsHome } from './PrelimsHome';
 import { PrelimsTestConfig } from './PrelimsTestConfig';
 import { PrelimsInstructions } from './PrelimsInstructions';
 import { PrelimsExamInterface } from './PrelimsExamInterface';
 import { PrelimsResultAnalysis } from './PrelimsResultAnalysis';
-import { Loader2, Sparkles, AlertTriangle, Key } from 'lucide-react';
+import { Loader2, Sparkles, AlertTriangle, BookOpen } from 'lucide-react';
 
 const BATCH_SIZE = 10;
 
@@ -62,11 +64,33 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
   }, [step]);
 
   const handleSelectHomeAction = (actionId) => {
+    if (actionId === 'pyqs') {
+      // Load real PYQs directly — skip config/instructions, go straight to PYQ mode
+      const pyqs = getPYQsByExam(activeExam);
+      if (pyqs.length === 0) {
+        alert('No PYQs available yet. Coming soon!');
+        return;
+      }
+      const shuffled = [...pyqs].sort(() => Math.random() - 0.5);
+      setActiveQuestions(shuffled);
+      setTestConfig(prev => ({
+        ...prev,
+        exam: activeExam,
+        testType: 'pyq',
+        questionCount: shuffled.length,
+        negMarking: activeExam === 'bpsc' ? 0.33 : 0.66,
+        posMarking: activeExam === 'bpsc' ? 1.0 : 2.0,
+      }));
+      setGenerationProgress({ done: shuffled.length, total: shuffled.length });
+      setStep('instructions');
+      return;
+    }
+    // Normal flow — go to config page
     setTestConfig(prev => ({
       ...prev,
       exam: activeExam,
       testType: 'full_length',
-      questionCount: actionId === 'pyqs' ? 50 : 100,
+      questionCount: 100,
     }));
     setStep('config');
   };
@@ -205,12 +229,24 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     };
     setFinalResult(enrichedResult);
 
+    // ── Save all questions to Improvement Book (localStorage, permanent) ──
+    try {
+      saveTestToImprovementBook({
+        questions,
+        selectedAnswers,
+        exam: config.exam || activeExam,
+        testDate: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.warn('[PrelimsHub] Could not save to ImprovementBook:', e);
+    }
+
     saveEvaluationResult({
       evaluationType: 'prelims_test',
       exam: config.exam || activeExam,
-      examLabel: (config.exam || activeExam) === 'bpsc' ? 'BPSC Prelims' : 'UPSC Prelims',
-      paper: config.testType === 'full_length' ? 'GS Paper I (Full Length)' : `Subject-wise (${config.questionCount}Q)`,
-      questionTitle: `${(config.exam || activeExam).toUpperCase()} Prelims ${config.testType === 'full_length' ? 'Full Mock' : 'Practice Test'} — ${questions.length}Q`,
+      examLabel: (config.exam || activeExam) === 'bpsc' ? 'BPSC 71st Prelims' : 'UPSC Prelims',
+      paper: config.testType === 'full_length' ? 'GS Paper I (Full Length)' : config.testType === 'pyq' ? 'PYQ Vault' : `Subject-wise (${config.questionCount}Q)`,
+      questionTitle: `${(config.exam || activeExam).toUpperCase()} Prelims ${config.testType === 'full_length' ? 'Full Mock' : config.testType === 'pyq' ? 'PYQ Practice' : 'Practice Test'} — ${questions.length}Q`,
       score: Number(netScore.toFixed(2)), maxMarks, percentage, tag,
       correctCount, wrongCount, unattemptedCount,
       totalQuestions: questions.length, accuracy,

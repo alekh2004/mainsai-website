@@ -186,7 +186,7 @@ export function PrelimsTestConfig({ onGoBack, onProceedToInstructions }) {
                 : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
             }`}
           >
-            🦁 BPSC 70th Prelims
+            🦁 BPSC 71st Prelims
           </button>
         </div>
 
