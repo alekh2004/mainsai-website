@@ -39,12 +39,13 @@ function getTimeGreeting(isHi) {
 
 const HERO_SLIDES = [
   {
-    id: 'parliament',
-    title: 'Sansad Bhavan Edition',
-    tagHi: '🦁 संसद भवन एडिशन',
-    tagEn: '🦁 Parliament Edition',
-    desktopBg: '/parliament_pixel_desktop.png',
-    mobileBg: '/parliament_pixel_mobile.png',
+    id: 'original_parliament',
+    title: 'Sansad Bhavan AI Edition',
+    tagHi: '🏛️ संसद भवन (ओरिजिनल एनीमेशन)',
+    tagEn: '🏛️ Parliament Bhavan (Animated Original)',
+    desktopBg: '/parliament_hero.jpg',
+    mobileBg: '/parliament_hero.jpg',
+    useKenBurns: true,
   },
   {
     id: 'indiagate',
@@ -57,10 +58,18 @@ const HERO_SLIDES = [
   {
     id: 'upschouse',
     title: 'UPSC Dholpur House Stambha',
-    tagHi: '🏛️ UPSC ढोलपुर हाउस',
-    tagEn: '🏛️ UPSC Dholpur House',
+    tagHi: '🦁 UPSC ढोलपुर हाउस',
+    tagEn: '🦁 UPSC Dholpur House',
     desktopBg: '/upschouse_pixel_desktop.png',
     mobileBg: '/upschouse_pixel_mobile.png',
+  },
+  {
+    id: 'parliament_pixel',
+    title: 'Sansad Bhavan Pixel Art',
+    tagHi: '🎨 संसद भवन (पिक्सेल आर्ट)',
+    tagEn: '🎨 Parliament (Pixel Art)',
+    desktopBg: '/parliament_pixel_desktop.png',
+    mobileBg: '/parliament_pixel_mobile.png',
   }
 ];
 
@@ -79,13 +88,16 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-700" style={{ minHeight: '260px' }}>
       {/* Dynamic Responsive Image Background — Desktop vs Mobile Aspect Ratios */}
-      <div className="absolute inset-0 bg-slate-950">
+      <div className="absolute inset-0 bg-slate-950 overflow-hidden">
         <picture>
           <source media="(min-width: 768px)" srcSet={slide.desktopBg} />
           <img
             src={slide.mobileBg}
             alt="Hero Background"
-            className="w-full h-full object-cover object-center transition-all duration-1000 animate-fadeIn"
+            className={`w-full h-full object-cover object-center transition-all duration-1000 animate-fadeIn ${
+              slide.useKenBurns ? 'scale-105 animate-pulse' : ''
+            }`}
+            style={slide.useKenBurns ? { animation: 'kenBurnsSlow 20s ease-in-out infinite alternate' } : {}}
           />
         </picture>
       </div>
