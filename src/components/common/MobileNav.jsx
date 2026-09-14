@@ -11,7 +11,7 @@ export function MobileNav({ activeTab, setActiveTab }) {
     { id: 'home', icon: Home, label: isHi ? 'होम' : 'Home' },
     { id: 'prelims', icon: Target, label: isHi ? 'प्रीलिम्स' : 'Prelims' },
     { id: 'evaluate', icon: Sparkles, label: isHi ? 'मेन्स' : 'Mains' },
-    { id: 'history', icon: BookMarked, label: isHi ? '💪 इम्प्रूव' : '💪 Improve' },
+    { id: 'history', icon: BookMarked, label: isHi ? 'इम्प्रूव' : 'Improve' },
     { id: 'profile', icon: User, label: isHi ? 'प्रोफाइल' : 'Profile' }
   ];
 

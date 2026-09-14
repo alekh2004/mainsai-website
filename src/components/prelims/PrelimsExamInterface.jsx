@@ -406,7 +406,7 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
   );
 
   return (
-    <div className="w-full animate-fadeIn" style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', gap: '0' }}>
+    <div className="w-full animate-fadeIn flex flex-col" style={{ minHeight: 'calc(100vh - 110px)' }}>
 
       {/* ── Top Bar ── */}
       <div
@@ -469,9 +469,9 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
       <div className="flex gap-3 flex-1 min-h-0">
 
         {/* LEFT — Question Panel */}
-        <div className="flex-1 min-w-0 flex flex-col gap-3 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-          <div className="glass-card-clean rounded-3xl border flex-1" style={{ borderColor: 'var(--glass-border)', background: 'var(--card-bg)' }}>
-            <div className="p-5 md:p-6 space-y-5 h-full flex flex-col">
+        <div className="flex-1 min-w-0 flex flex-col gap-3 overflow-y-auto custom-scroll pb-2" style={{ scrollbarWidth: 'thin' }}>
+          <div className="glass-card-clean rounded-3xl border" style={{ borderColor: 'var(--glass-border)', background: 'var(--card-bg)', flexShrink: 0 }}>
+            <div className="p-5 md:p-6 space-y-5">
 
               {/* Question meta */}
               <div className="flex items-center justify-between gap-3 flex-wrap border-b pb-4" style={{ borderColor: 'var(--glass-border)' }}>
@@ -573,9 +573,9 @@ export function PrelimsExamInterface({ questions = [], config = {}, onTestSubmit
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </div>{/* space-y-5 */}
+          </div>{/* glass-card */}
+        </div>{/* left column */}
 
         {/* RIGHT — Palette Sidebar (always visible on lg+) */}
         <div

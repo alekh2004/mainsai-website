@@ -382,14 +382,17 @@ export function ImprovementBook({ onGoBack }) {
                   <p className="text-xs font-medium leading-relaxed line-clamp-3 m-0 whitespace-pre-line" style={{ color: 'var(--text-primary)' }}>
                     {isHi ? q.questionHi : q.questionEn}
                   </p>
-                  {q.isAttempted && (
-                    <div className="text-[11px] font-bold" style={{ color: isC ? '#16a34a' : '#dc2626' }}>
-                      {isHi ? 'आपका उत्तर:' : 'Your Answer:'} {(isHi ? (q.optionsHi || q.optionsEn) : q.optionsEn)?.[q.userAnswer] || '—'}
-                      {!isC && (
-                        <span className="ml-2 font-medium" style={{ color: '#16a34a' }}>
-                          | {isHi ? 'सही:' : 'Correct:'} {(isHi ? (q.optionsHi || q.optionsEn) : q.optionsEn)?.[q.correctIndex]}
-                        </span>
-                      )}
+                  {/* Always show correct answer */}
+                  <div className="text-[11px] font-semibold mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    <span className="font-extrabold" style={{ color: '#16a34a' }}>
+                      {isHi ? '✓ सही उत्तर: ' : '✓ Correct: '}
+                    </span>
+                    {(isHi ? (q.optionsHi || q.optionsEn) : q.optionsEn)?.[q.correctIndex] || '—'}
+                  </div>
+                  {q.isAttempted && !q.isCorrect && (
+                    <div className="text-[11px] font-semibold" style={{ color: '#dc2626' }}>
+                      <span className="font-extrabold">{isHi ? '✗ आपका उत्तर: ' : '✗ Your Ans: '}</span>
+                      {(isHi ? (q.optionsHi || q.optionsEn) : q.optionsEn)?.[q.userAnswer] || '—'}
                     </div>
                   )}
                 </div>

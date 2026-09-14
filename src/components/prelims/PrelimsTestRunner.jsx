@@ -243,7 +243,7 @@ export function PrelimsTestRunner({ questions = [], examType = 'upsc', title = '
 
           {/* Right: Question Palette (1 col) */}
           <div className="p-4 rounded-3xl glass-card-clean border border-white/60 space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-white/70 m-0">
+            <h4 className="text-xs font-black uppercase tracking-wider m-0" style={{ color: 'var(--text-secondary)' }}>
               {isHi ? 'प्रश्न पैलेट' : 'Question Palette'}
             </h4>
 
@@ -271,17 +271,17 @@ export function PrelimsTestRunner({ questions = [], examType = 'upsc', title = '
               })}
             </div>
 
-            <div className="space-y-2 text-[11px] font-medium pt-3 border-t border-white/10">
-              <div className="flex items-center gap-2">
+            <div className="space-y-2 text-[11px] font-medium pt-3 border-t" style={{ borderColor: 'var(--glass-border)' }}>
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
                 <span className="w-3 h-3 rounded-md bg-emerald-500 inline-block" />
                 <span>{isHi ? 'उत्तर दिया' : 'Answered'}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
                 <span className="w-3 h-3 rounded-md bg-amber-500 inline-block" />
                 <span>{isHi ? 'रिव्यू के लिए मार्क' : 'Marked for Review'}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-md bg-white/20 inline-block" />
+              <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <span className="w-3 h-3 rounded-md inline-block" style={{ background: 'rgba(100,116,139,0.3)' }} />
                 <span>{isHi ? 'अपुष्ट' : 'Unanswered'}</span>
               </div>
             </div>
@@ -370,7 +370,7 @@ export function PrelimsTestRunner({ questions = [], examType = 'upsc', title = '
             <h2 className="text-3xl font-black mt-2 m-0" style={{ color: 'var(--text-primary)' }}>
               {results.score} / {results.totalPossible}
             </h2>
-            <p className="text-xs text-white/60 mt-1 m-0">
+            <p className="text-xs mt-1 m-0 font-medium" style={{ color: 'var(--text-secondary)' }}>
               {isHi ? 'नेगेटिव मार्किंग के साथ कुल प्राप्तांक' : 'Net score considering negative marking'}
             </p>
           </div>
@@ -378,16 +378,16 @@ export function PrelimsTestRunner({ questions = [], examType = 'upsc', title = '
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
-              <div className="text-xl font-black text-emerald-400">{results.correct}</div>
-              <div className="text-[10px] font-bold uppercase text-white/60">{isHi ? 'सही' : 'Correct'}</div>
+              <div className="text-xl font-black text-emerald-500">{results.correct}</div>
+              <div className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सही' : 'Correct'}</div>
             </div>
             <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30">
-              <div className="text-xl font-black text-rose-400">{results.wrong}</div>
-              <div className="text-[10px] font-bold uppercase text-white/60">{isHi ? 'गलत (-' + negMark + ')' : 'Wrong'}</div>
+              <div className="text-xl font-black text-rose-500">{results.wrong}</div>
+              <div className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'गलत (-' + negMark + ')' : 'Wrong'}</div>
             </div>
             <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/30">
-              <div className="text-xl font-black text-blue-400">{results.accuracy}%</div>
-              <div className="text-[10px] font-bold uppercase text-white/60">{isHi ? 'सटीकता' : 'Accuracy'}</div>
+              <div className="text-xl font-black text-blue-500">{results.accuracy}%</div>
+              <div className="text-[10px] font-bold uppercase" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सटीकता' : 'Accuracy'}</div>
             </div>
           </div>
 

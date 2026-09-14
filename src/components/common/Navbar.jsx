@@ -118,7 +118,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
               <div className="text-base font-black tracking-tight leading-none" style={{ color: 'var(--text-primary)' }}>
                 ET Academy
               </div>
-              <p className="text-[10px] opacity-80 m-0 font-extrabold text-blue-400">
+              <p className="text-[10px] opacity-80 m-0 font-extrabold" style={{ color: 'var(--text-secondary)' }}>
                 {isHi ? 'सिविल सेवा परीक्षा की तैयारी में आपका साथी' : 'Your partner in civil services preparation.'}
               </p>
             </div>
@@ -342,7 +342,7 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                   <span className="text-base leading-none">{user.avatar || (isTeacher ? '👨‍🏫' : '👨‍🎓')}</span>
                   <div className="hidden lg:block">
                     <div className="font-bold leading-tight truncate max-w-[90px]" style={{ color: 'var(--text-primary)' }}>{user.name}</div>
-                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-extrabold capitalize">
+                    <div className="text-[10px] font-extrabold capitalize" style={{ color: 'rgb(var(--accent))' }}>
                       {isTeacher ? (isHi ? 'शिक्षक' : 'Teacher') : (isHi ? 'छात्र' : 'Student')}
                     </div>
                   </div>

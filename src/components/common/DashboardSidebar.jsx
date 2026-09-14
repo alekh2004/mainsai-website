@@ -17,7 +17,7 @@ export function DashboardSidebar({ activeTab, setActiveTab, onOpenFlashcards, on
     { id: 'home',       icon: Home,      label: isHi ? 'होम'             : 'Home',           onClick: () => setActiveTab('home') },
     { id: 'prelims',    icon: Target,    label: isHi ? 'प्रीलिम्स जोन'    : 'Prelims Zone',   onClick: () => setActiveTab('prelims') },
     { id: 'evaluate',   icon: Sparkles,  label: isHi ? 'मुख्य मूल्यांकन'  : 'Mains Evaluate',  onClick: () => setActiveTab('evaluate') },
-    { id: 'history',    icon: BookMarked, label: isHi ? '💪 इम्प्रूवमेंट बुक' : '💪 Improvement Book', onClick: () => setActiveTab('history') },
+    { id: 'history',    icon: BookMarked, label: isHi ? 'इम्प्रूवमेंट बुक' : 'Improvement Book', onClick: () => setActiveTab('history') },
     { id: 'insights',   icon: BarChart3, label: isHi ? 'इंसाइट्स'      : 'Insights',       onClick: () => setActiveTab('insights') },
     { id: 'flashcards', icon: Layers,    label: isHi ? 'फ्लैशकार्ड'      : 'Flashcards',     onClick: () => onOpenFlashcards?.(), isModal: true },
     { id: 'notes',      icon: BookOpen,  label: isHi ? 'मेन्स नोट्स'     : 'Mains Notes',    onClick: () => onOpenMainsNotes?.(), isModal: true },

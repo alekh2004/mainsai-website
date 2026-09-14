@@ -10,50 +10,53 @@
   --accent: 37 99 235;
   --accent2: 99 102 241;
   --accent3: 14 165 233;
-  --glass-blur: 16px;
-  --glass-opacity: 0.82;
-  --glass-saturate: 1.3;
-  --glass-border: rgba(200,215,240,0.80);
-  --glass-shadow: rgba(100,120,160,0.18);
-  --bg-primary: #dde8f8;
-  --bg-secondary: #f0f5fc;
-  --text-primary: #0a0f1e;
-  --text-secondary: #1e3a5f;
-  --text-muted: #334155;
-  --nav-bg: rgba(244,247,252,0.94);
-  --card-bg: rgba(255,255,255,0.85);
+  --glass-blur: 14px;
+  --glass-opacity: 0.92;
+  --glass-saturate: 1.2;
+  --glass-border: rgba(100,116,139,0.25);
+  --glass-shadow: rgba(100,120,160,0.12);
+  --glass-bg: rgba(255,255,255,0.88);
+  --bg-primary: #eef2f8;
+  --bg-secondary: #f5f7fc;
+  --text-primary: #0a1628;
+  --text-secondary: #334155;
+  --text-muted: #475569;
+  --nav-bg: rgba(244,247,252,0.97);
+  --card-bg: rgba(255,255,255,0.92);
 }
 
 /* ── DARK Theme ── */
 .theme-dark {
-  --glass-blur: 20px;
-  --glass-opacity: 0.75;
-  --glass-saturate: 1.5;
-  --glass-border: rgba(255,255,255,0.12);
-  --glass-shadow: rgba(0,0,0,0.50);
+  --glass-blur: 18px;
+  --glass-opacity: 0.85;
+  --glass-saturate: 1.4;
+  --glass-border: rgba(255,255,255,0.10);
+  --glass-shadow: rgba(0,0,0,0.55);
+  --glass-bg: rgba(15,23,42,0.88);
   --bg-primary: #060c1a;
   --bg-secondary: #0b1629;
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --nav-bg: rgba(6,12,26,0.92);
-  --card-bg: rgba(15,23,42,0.78);
+  --nav-bg: rgba(6,12,26,0.95);
+  --card-bg: rgba(15,23,42,0.88);
 }
 
 /* ── MEDIUM Theme ── */
 .theme-medium {
-  --glass-blur: 18px;
-  --glass-opacity: 0.72;
-  --glass-saturate: 1.4;
-  --glass-border: rgba(255,255,255,0.16);
-  --glass-shadow: rgba(0,0,0,0.30);
+  --glass-blur: 16px;
+  --glass-opacity: 0.88;
+  --glass-saturate: 1.3;
+  --glass-border: rgba(255,255,255,0.14);
+  --glass-shadow: rgba(0,0,0,0.35);
+  --glass-bg: rgba(30,41,59,0.88);
   --bg-primary: #1a2744;
   --bg-secondary: #1e3055;
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --nav-bg: rgba(20,31,60,0.92);
-  --card-bg: rgba(30,41,59,0.72);
+  --nav-bg: rgba(20,31,60,0.95);
+  --card-bg: rgba(30,41,59,0.88);
 }
 
 /* ── Color Accent Overrides ── */
@@ -64,10 +67,33 @@
 .accent-cyan    { --accent: 8 145 178; --accent2: 14 165 233; --accent3: 56 189 248; }
 .accent-blue    { --accent: 37 99 235; --accent2: 99 102 241; --accent3: 14 165 233; }
 
-/* ── Glassmorphic Intensity Classes (controlled via ThemeSwitcher slider) ── */
-.glass-intensity-low  { --glass-blur: 4px;  --glass-opacity: 0.94; --glass-saturate: 1.05; }
-.glass-intensity-med  { --glass-blur: 16px; --glass-opacity: 0.82; --glass-saturate: 1.30; }
-.glass-intensity-high { --glass-blur: 30px; --glass-opacity: 0.58; --glass-saturate: 1.70; }
+/* ── Glassmorphic Intensity — properly update both blur AND card opacity ── */
+.glass-intensity-low {
+  --glass-blur: 4px;
+  --glass-opacity: 0.97;
+  --glass-saturate: 1.02;
+}
+.glass-intensity-med {
+  --glass-blur: 14px;
+  --glass-opacity: 0.88;
+  --glass-saturate: 1.25;
+}
+.glass-intensity-high {
+  --glass-blur: 28px;
+  --glass-opacity: 0.72;
+  --glass-saturate: 1.60;
+}
+/* In dark mode, glass-intensity changes only blur (opacity already low) */
+.theme-dark.glass-intensity-low,
+.theme-medium.glass-intensity-low {
+  --glass-blur: 4px;
+  --glass-opacity: 0.92;
+}
+.theme-dark.glass-intensity-high,
+.theme-medium.glass-intensity-high {
+  --glass-blur: 28px;
+  --glass-opacity: 0.75;
+}
 
 /* ════════════════════════════════════════════════
    NEON UNIVERSE 3D GLASSMORPHIC BACKGROUND
@@ -467,14 +493,22 @@ html, body {
    GLASS CARDS — Adaptive to theme, text always visible
 ════════════════════════════════════════════════ */
 
+/* ── GLASS CARD — adaptive, always readable ── */
 .glass-card-clean {
-  background: color-mix(in srgb, var(--card-bg) calc(var(--glass-opacity) * 100%), transparent);
+  background: var(--card-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
-  box-shadow: 0 6px 24px -6px var(--glass-shadow);
+  box-shadow: 0 4px 20px -4px var(--glass-shadow);
   color: var(--text-primary);
-  transition: background 0.3s, border 0.3s, color 0.3s;
+  transition: background 0.3s, border 0.3s, color 0.3s, backdrop-filter 0.3s;
+}
+
+/* Solid fallback — for cards that MUST be readable regardless of glass intensity */
+.glass-solid {
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .glass-card-hover {
@@ -612,7 +646,39 @@ html, body {
   transform: rotateY(180deg);
 }
 
-/* ── Custom Scrollbar ── */
+/* ── Custom Range Input Slider ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(var(--accent));
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(var(--accent)/0.45);
+  border: 2px solid #fff;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 14px rgb(var(--accent)/0.6);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(var(--accent));
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgb(var(--accent)/0.45);
+}
+
 .custom-scroll { scrollbar-width: thin; scrollbar-color: rgb(var(--accent)/0.3) transparent; }
 .custom-scroll::-webkit-scrollbar { width: 4px; }
 .custom-scroll::-webkit-scrollbar-track { background: transparent; }
