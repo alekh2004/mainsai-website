@@ -132,7 +132,11 @@ function MainAppContent() {
           <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
             {/* Main Content */}
-            <main className="flex-1 w-full px-4 lg:px-8 py-6 space-y-6 pb-24 md:pb-12 max-w-5xl">
+            <main className={`flex-1 w-full py-6 pb-24 md:pb-12 space-y-6 mx-auto ${
+              isTestActive
+                ? 'px-3 md:px-5 max-w-full'
+                : 'px-4 lg:px-8 max-w-5xl'
+            }`}>
 
               {activeTab === 'prelims' && (
                 <div className="animate-fadeIn">

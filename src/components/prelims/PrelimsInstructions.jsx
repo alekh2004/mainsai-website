@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ArrowLeft, Clock, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Play } from 'lucide-react';
+import { ArrowLeft, Clock, HelpCircle, AlertCircle, CheckCircle2, ShieldCheck, Play, Loader2 } from 'lucide-react';
 
-export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
+
+export function PrelimsInstructions({ config, onGoBack, onStartTest, questionsReady, isGenerating, generatedCount }) {
   const { language } = useApp();
   const isHi = language === 'hi';
 
@@ -134,11 +135,25 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest }) {
         {/* Start Button */}
         <button
           onClick={onStartTest}
-          disabled={!hasAgreed}
-          className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+          disabled={!hasAgreed || (!questionsReady && isGenerating)}
+          className="w-full py-4 rounded-2xl disabled:opacity-40 font-black text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+          style={{ background: 'rgb(var(--accent))', color: '#fff' }}
         >
-          <Play className="w-4 h-4 fill-white" />
-          <span>{isHi ? 'टेस्ट शुरू करें (Start Test)' : 'I am ready, Start Test'}</span>
+          {isGenerating && !questionsReady ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>
+                {isHi
+                  ? `AI प्रश्न तैयार हो रहे हैं... (${generatedCount || 0} तैयार)`
+                  : `Preparing AI questions... (${generatedCount || 0} ready)`}
+              </span>
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4 fill-white" />
+              <span>{isHi ? 'मैं तैयार हूँ, टेस्ट शुरू करें' : 'I am ready, Start Test'}</span>
+            </>
+          )}
         </button>
 
       </div>

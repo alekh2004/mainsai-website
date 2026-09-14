@@ -4,32 +4,53 @@
  * Falls back to static bank if API unavailable.
  */
 
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash-exp', 'gemini-flash-latest'];
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+];
 
 async function callGeminiApi(prompt, apiKey) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 4096,
-      responseMimeType: 'application/json'
+      temperature: 0.75,
+      maxOutputTokens: 8192,
     }
   };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
   for (const model of GEMINI_MODELS) {
     try {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        }
       );
-      if (!res.ok) continue;
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.warn(`[Gemini ${model}] HTTP ${res.status}:`, errText.slice(0, 200));
+        continue;
+      }
       const data = await res.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) return text;
+      if (text && text.length > 50) {
+        clearTimeout(timeout);
+        return text;
+      }
     } catch (e) {
+      if (e.name === 'AbortError') break;
+      console.warn(`[Gemini ${model}] Error:`, e.message);
       continue;
     }
   }
+  clearTimeout(timeout);
   throw new Error('All Gemini models failed');
 }
 
