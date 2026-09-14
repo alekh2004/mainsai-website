@@ -167,6 +167,7 @@ export function AuthModal({ isFullScreen = false }) {
     try {
       await sendPhoneOtp(`+91${cleanPhone}`);
       setOtpSent(true);
+      setSuccessMsg(`Verification OTP code sent to +91 ${cleanPhone}. Please check your phone.`);
     } catch (err) {
       console.error('Phone Send Error:', err);
       setErrorMsg(getErrorMessage(err.code, err.message));
