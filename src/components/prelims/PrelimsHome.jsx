@@ -36,9 +36,9 @@ export function PrelimsHome({ onSelectAction }) {
       gradient: 'from-emerald-600/10 to-emerald-400/5',
       title: isHi ? 'PYQs वॉल्ट' : 'PYQs Vault',
       desc: isHi
-        ? '2015–2025 के हल प्रश्न, विस्तृत व्याख्या सहित'
-        : 'Solved PYQs (2015–2025) with detailed explanations',
-      badge: '📜 2015–2025',
+        ? '2015–2026 के हल प्रश्न, विस्तृत व्याख्या सहित'
+        : 'Solved PYQs (2015–2026) with detailed explanations',
+      badge: '📜 2015–2026',
       cta: isHi ? 'देखें' : 'Explore',
       locked: false,
     },
@@ -85,10 +85,10 @@ export function PrelimsHome({ onSelectAction }) {
         />
         <div className="relative z-10 space-y-3 max-w-lg">
           <span className="inline-block px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/50 text-xs font-extrabold uppercase tracking-wider backdrop-blur-md">
-            {activeExam === 'bpsc' ? '🦁 BPSC 70th Prelims Zone' : '🏛️ UPSC Prelims 2025 Zone'}
+            {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE Prelims Zone' : '🏛️ UPSC Prelims 2026 Zone'}
           </span>
           <h2 className="text-2xl md:text-3xl font-black m-0 leading-tight text-white drop-shadow-md">
-            {activeExam === 'bpsc' ? 'BPSC Prelims Command' : 'UPSC Prelims Command'}
+            {activeExam === 'bpsc' ? 'BPSC 72nd CCE Command' : 'UPSC Prelims 2026 Command'}
           </h2>
           <p className="text-xs md:text-sm text-slate-100 font-medium leading-relaxed m-0 drop-shadow">
             Practice. Analyse. Improve. {' '}

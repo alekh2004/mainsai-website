@@ -124,52 +124,56 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
             </div>
           </div>
 
-          {/* ── Centre: Exam & Stage Switcher with High-Flash ── */}
-          <div className="hidden md:flex items-center gap-2">
-            {/* UPSC vs BPSC */}
+          {/* ── Centre: Exam & Stage Switcher — visible on ALL screens ── */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {/* UPSC vs BPSC — always visible */}
             <div
-              className={`flex items-center p-1 glass-card-clean rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-blue-400' : ''}`}
+              className={`flex items-center p-0.5 md:p-1 glass-card-clean rounded-xl md:rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-blue-400' : ''}`}
               style={{ borderColor: 'var(--glass-border)' }}
             >
               <button
                 onClick={() => handleExamSwitch('upsc')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 rounded-lg md:rounded-xl text-[11px] md:text-xs font-black transition-all duration-300 ${
                   activeExam === 'upsc' ? 'bg-blue-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
+                style={{ color: activeExam === 'upsc' ? '#fff' : 'var(--text-primary)' }}
               >
                 <span>🏛️</span>
                 <span>UPSC</span>
               </button>
               <button
                 onClick={() => handleExamSwitch('bpsc')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 rounded-lg md:rounded-xl text-[11px] md:text-xs font-black transition-all duration-300 ${
                   activeExam === 'bpsc' ? 'bg-amber-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
+                style={{ color: activeExam === 'bpsc' ? '#fff' : 'var(--text-primary)' }}
               >
                 <span>🦁</span>
                 <span>BPSC</span>
               </button>
             </div>
 
-            {/* Mains vs Prelims */}
+            {/* Mains vs Prelims — hidden on small mobile, shown md+ */}
             <div
-              className={`flex items-center p-1 glass-card-clean rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-emerald-400' : ''}`}
+              className={`hidden sm:flex items-center p-0.5 md:p-1 glass-card-clean rounded-xl md:rounded-2xl border transition-all duration-300 ${examFlash ? 'scale-105 shadow-2xl ring-2 ring-emerald-400' : ''}`}
               style={{ borderColor: 'var(--glass-border)' }}
             >
               <button
                 onClick={() => handleStageSwitch('mains')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 rounded-lg md:rounded-xl text-[11px] md:text-xs font-black transition-all duration-300 ${
                   examStage === 'mains' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
+                style={{ color: examStage === 'mains' ? '#fff' : 'var(--text-primary)' }}
               >
                 <span>✍️</span>
                 <span>Mains</span>
               </button>
               <button
                 onClick={() => handleStageSwitch('prelims')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 ${
+                className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1 rounded-lg md:rounded-xl text-[11px] md:text-xs font-black transition-all duration-300 ${
                   examStage === 'prelims' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
+                style={{ color: examStage === 'prelims' ? '#fff' : 'var(--text-primary)' }}
               >
                 <span>🎯</span>
                 <span>Prelims</span>

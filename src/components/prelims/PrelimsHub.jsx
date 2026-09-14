@@ -244,7 +244,7 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     saveEvaluationResult({
       evaluationType: 'prelims_test',
       exam: config.exam || activeExam,
-      examLabel: (config.exam || activeExam) === 'bpsc' ? 'BPSC 71st Prelims' : 'UPSC Prelims',
+      examLabel: (config.exam || activeExam) === 'bpsc' ? 'BPSC 72nd CCE Prelims' : 'UPSC Prelims 2026',
       paper: config.testType === 'full_length' ? 'GS Paper I (Full Length)' : config.testType === 'pyq' ? 'PYQ Vault' : `Subject-wise (${config.questionCount}Q)`,
       questionTitle: `${(config.exam || activeExam).toUpperCase()} Prelims ${config.testType === 'full_length' ? 'Full Mock' : config.testType === 'pyq' ? 'PYQ Practice' : 'Practice Test'} — ${questions.length}Q`,
       score: Number(netScore.toFixed(2)), maxMarks, percentage, tag,
