@@ -677,9 +677,23 @@ export function AuthModal({ isFullScreen = false }) {
               </span>
             </div>
 
-            {/* ── Alternative Auth Buttons (3 Pill Buttons Matching Image 1) ── */}
+            {/* ── Alternative Auth Buttons (3 Pill Buttons) ── */}
             <div className="space-y-2.5">
-              {/* 1. Continue with Google */}
+              {/* 1. Continue with Mobile Number (TOP PRIORITY) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthView('phone');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-sm hover:shadow transition-all"
+              >
+                <Smartphone className="w-4 h-4 text-blue-600" />
+                <span>Continue with Mobile Number</span>
+              </button>
+
+              {/* 2. Continue with Google */}
               <button
                 type="button"
                 onClick={handleGoogle}
@@ -699,7 +713,7 @@ export function AuthModal({ isFullScreen = false }) {
                 <span>{isGoogleLoading ? 'Connecting to Google...' : 'Continue with Google'}</span>
               </button>
 
-              {/* 2. Continue with Email */}
+              {/* 3. Continue with Email */}
               <button
                 type="button"
                 onClick={() => {
@@ -711,20 +725,6 @@ export function AuthModal({ isFullScreen = false }) {
               >
                 <Mail className="w-4 h-4 text-blue-600" />
                 <span>Continue with Email</span>
-              </button>
-
-              {/* 3. Continue with Mobile Number */}
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthView('phone');
-                  setErrorMsg('');
-                  setSuccessMsg('');
-                }}
-                className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2.5 shadow-sm hover:shadow transition-all"
-              >
-                <Smartphone className="w-4 h-4 text-blue-600" />
-                <span>Continue with Mobile Number</span>
               </button>
             </div>
 
