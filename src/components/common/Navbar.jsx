@@ -282,27 +282,33 @@ export function Navbar({ onOpenApiKey, onOpenAdmin, onOpenTeacherQueue, onGoHome
                       </div>
                     </div>
 
-                    {/* Glass Intensity */}
-                    <div className="space-y-1">
+                    {/* Glass Intensity Slider */}
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-[9px] font-bold uppercase tracking-wider opacity-60" style={{ color: 'var(--text-secondary)' }}>Glass Effect</p>
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded" style={{ background: `${currentAccent.hex}20`, color: currentAccent.hex }}>
-                          {glassIntensity === 'low' ? 'Low' : glassIntensity === 'med' ? 'Medium' : 'High'}
+                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                          🌀 Glass Effect
+                        </p>
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md" style={{ background: `${currentAccent.hex}20`, color: currentAccent.hex }}>
+                          {glassIntensity <= 15 ? 'Solid' : glassIntensity <= 35 ? 'Light' : glassIntensity <= 60 ? 'Medium' : glassIntensity <= 80 ? 'Glassy' : 'Max'}
+                          {' '}{glassIntensity}%
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        {[{id:'low',label:'Low'},{id:'med',label:'Medium'},{id:'high',label:'High'}].map(({id,label}) => (
-                          <button
-                            key={id}
-                            onClick={() => setGlassIntensity(id)}
-                            className="py-1.5 rounded-lg border text-center transition-all"
-                            style={glassIntensity === id
-                              ? { color: currentAccent.hex, borderColor: currentAccent.hex, background: `${currentAccent.hex}20` }
-                              : { color: 'var(--text-secondary)', borderColor: 'var(--glass-border)' }}
-                          >
-                            <div className="text-[10px] font-extrabold">{label}</div>
-                          </button>
-                        ))}
+                      <div className="px-1">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={glassIntensity}
+                          onChange={e => setGlassIntensity(Number(e.target.value))}
+                          className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, ${currentAccent.hex} 0%, ${currentAccent.hex} ${glassIntensity}%, rgba(100,116,139,0.25) ${glassIntensity}%, rgba(100,116,139,0.25) 100%)`
+                          }}
+                        />
+                        <div className="flex justify-between text-[8px] font-bold mt-1" style={{ color: 'var(--text-muted)' }}>
+                          <span>Solid</span><span>Light</span><span>Medium</span><span>Max Glass</span>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -57,13 +57,20 @@ export function AppProvider({ children }) {
     if (!saved) return 'minimal'; // Default: minimal clean gradient
     return saved;
   });
-  const [glassIntensity, setGlassIntensity] = useState(() =>
-    localStorage.getItem('app_glass_intensity') || 'med'
-  );
+  const [glassIntensity, setGlassIntensity] = useState(() => {
+    const saved = localStorage.getItem('app_glass_intensity');
+    // Migrate old 'low'/'med'/'high' string values to numbers
+    if (saved === 'low') return 20;
+    if (saved === 'med') return 55;
+    if (saved === 'high') return 90;
+    const n = Number(saved);
+    return (!isNaN(n) && n >= 0 && n <= 100) ? n : 55;
+  });
 
-  // Apply theme classes to document root
+  // Apply theme classes AND direct CSS variable overrides to document root
   useEffect(() => {
     const root = document.documentElement;
+    // 1. Reset all dynamic classes
     root.className = root.className
       .replace(/theme-\w+/g, '')
       .replace(/accent-\w+/g, '')
@@ -74,6 +81,25 @@ export function AppProvider({ children }) {
     if (accentColor !== 'blue') root.classList.add(`accent-${accentColor}`);
     root.classList.add(`bg-style-${bgStyle}`);
     root.classList.add(`glass-intensity-${glassIntensity}`);
+
+    // 2. Directly wire glass intensity (0-100) to CSS variables
+    const isDark = theme === 'dark';
+    const isMedium = theme === 'medium';
+    const baseR = isDark ? '15,23,42' : isMedium ? '30,41,59' : '255,255,255';
+    // glassIntensity: 0 = fully solid, 100 = maximum glass blur
+    const g = Number(glassIntensity) || 55; // 0–100
+    // For light mode: opacity goes from 0.99 (g=0) to 0.72 (g=100)
+    // For dark/medium: opacity goes from 0.97 to 0.60
+    const minAlpha = isDark || isMedium ? 0.60 : 0.72;
+    const maxAlpha = isDark || isMedium ? 0.97 : 0.99;
+    const alpha = parseFloat((maxAlpha - ((g / 100) * (maxAlpha - minAlpha))).toFixed(3));
+    const blurPx = Math.round(2 + (g / 100) * 32); // 2px to 34px
+    const saturate = (1.0 + (g / 100) * 0.75).toFixed(2); // 1.0 to 1.75
+    root.style.setProperty('--card-bg', `rgba(${baseR},${alpha})`);
+    root.style.setProperty('--glass-blur', `${blurPx}px`);
+    root.style.setProperty('--glass-saturate', saturate);
+    root.style.setProperty('--glass-opacity', String(alpha));
+
     localStorage.setItem('app_theme', theme);
     localStorage.setItem('app_accent', accentColor);
     localStorage.setItem('app_bg_style', bgStyle);

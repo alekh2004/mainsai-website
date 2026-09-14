@@ -51,13 +51,12 @@ export function ThemeSwitcher() {
   const currentBg     = BG_STYLES.find(b => b.id === bgStyle)   || BG_STYLES[0];
   const glassLevel    = GLASS_LEVELS.find(g => g.id === glassIntensity) || GLASS_LEVELS[1];
 
-  // Slider value mapping
-  const sliderValue = glassIntensity === 'low' ? 0 : glassIntensity === 'med' ? 50 : 100;
-  const handleSlider = (v) => {
-    if (v < 34) setGlassIntensity('low');
-    else if (v < 67) setGlassIntensity('med');
-    else setGlassIntensity('high');
-  };
+  // Slider label helper
+  const glassLabel = glassIntensity <= 15 ? 'Solid'
+    : glassIntensity <= 35 ? 'Light'
+    : glassIntensity <= 60 ? 'Medium'
+    : glassIntensity <= 80 ? 'Glassy'
+    : 'Max Glass';
 
   return (
     <div className="relative" ref={ref}>
@@ -168,48 +167,30 @@ export function ThemeSwitcher() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
-                <Layers className="w-3.5 h-3.5" /> Glass Effect Intensity
+                <Layers className="w-3.5 h-3.5" /> Glass Effect
               </p>
               <span className="text-[10px] font-black px-2 py-0.5 rounded-lg" style={{ background: `${currentAccent.hex}20`, color: currentAccent.hex }}>
-                {glassLevel.label}
+                {glassLabel} {glassIntensity}%
               </span>
             </div>
 
-            {/* Slider */}
+            {/* Continuous slider */}
             <div className="px-1">
               <input
                 type="range"
                 min="0"
                 max="100"
                 step="1"
-                value={sliderValue}
-                onChange={e => handleSlider(Number(e.target.value))}
+                value={glassIntensity}
+                onChange={e => setGlassIntensity(Number(e.target.value))}
                 className="w-full h-2 rounded-full appearance-none cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, ${currentAccent.hex} 0%, ${currentAccent.hex} ${sliderValue}%, var(--glass-border) ${sliderValue}%, var(--glass-border) 100%)`
+                  background: `linear-gradient(to right, ${currentAccent.hex} 0%, ${currentAccent.hex} ${glassIntensity}%, rgba(100,116,139,0.25) ${glassIntensity}%, rgba(100,116,139,0.25) 100%)`
                 }}
               />
-              <div className="flex justify-between text-[9px] font-bold mt-1" style={{ color: 'var(--text-muted, var(--text-secondary))' }}>
-                <span>Low</span><span>Medium</span><span>High</span>
+              <div className="flex justify-between text-[9px] font-bold mt-1.5" style={{ color: 'var(--text-secondary)' }}>
+                <span>Solid</span><span>Light</span><span>Medium</span><span>Max</span>
               </div>
-            </div>
-
-            {/* Preset buttons */}
-            <div className="grid grid-cols-3 gap-1">
-              {GLASS_LEVELS.map(({ id, label, desc }) => (
-                <button
-                  key={id}
-                  onClick={() => setGlassIntensity(id)}
-                  className="py-1.5 px-2 rounded-lg border text-center transition-all"
-                  style={glassIntensity === id
-                    ? { color: currentAccent.hex, borderColor: currentAccent.hex, background: `${currentAccent.hex}20` }
-                    : { color: 'var(--text-secondary)', borderColor: 'var(--glass-border)' }
-                  }
-                >
-                  <div className="text-[10px] font-extrabold">{label}</div>
-                  <div className="text-[8px] opacity-75">{desc}</div>
-                </button>
-              ))}
             </div>
           </div>
 
