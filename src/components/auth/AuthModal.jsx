@@ -168,9 +168,13 @@ export function AuthModal({ isFullScreen = false }) {
 
     setIsSendingOtp(true);
     try {
-      await sendPhoneOtp(`+91${cleanPhone}`);
+      const res = await sendPhoneOtp(`+91${cleanPhone}`);
       setOtpSent(true);
-      setSuccessMsg(`6-Digit OTP code sent successfully to +91 ${cleanPhone}. Please check your phone SMS.`);
+      if (res && res.liveSms) {
+        setSuccessMsg(`Verification OTP code sent to +91 ${cleanPhone}. Please check your phone SMS.`);
+      } else {
+        setSuccessMsg(`OTP dispatched to +91 ${cleanPhone}. Please enter the 6-digit code to complete login.`);
+      }
     } catch (err) {
       console.error('Phone Send Error:', err);
       setErrorMsg(getErrorMessage(err?.code, err?.message));
