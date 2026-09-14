@@ -117,18 +117,7 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       : (exam === 'bpsc' ? 'Bihar GK, Modern History, Geography, Polity, Economy' : 'History, Geography, Polity, Economy, Environment, Science');
     const difficulty = configData.difficulty || 'medium';
 
-    // Check API key
     const key = apiKey?.trim();
-    const hasKey = key && key.length > 10;
-
-    if (!hasKey) {
-      console.warn('[PrelimsHub] No API key — using static question bank');
-      const fallback = buildStaticFallback(exam, configData, targetCount);
-      setActiveQuestions(fallback);
-      setGenerationProgress({ done: fallback.length, total: targetCount });
-      setIsGenerating(false);
-      return;
-    }
 
     const allQ = [];
     const batchCount = Math.ceil(targetCount / BATCH_SIZE);

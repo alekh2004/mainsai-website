@@ -154,12 +154,18 @@ html, body {
 
 /* ── Mobile & Touch Hardware Optimization (Eliminates GPU crashes, whiteout, and tap lag) ── */
 @media (max-width: 1024px), (pointer: coarse), (hover: none) {
-  /* 1. Turn off heavy blurred radial gradient orbs (80px blur) to prevent GPU memory exhaustion */
+  /* 1. Mobile ambient background glow dynamically driven by accent color */
+  .app-root {
+    background-image:
+      radial-gradient(circle at 10% 10%, rgb(var(--accent)/0.22) 0%, transparent 55%),
+      radial-gradient(circle at 90% 75%, rgb(var(--accent2)/0.18) 0%, transparent 55%) !important;
+  }
+
   .neon-orb {
-    display: none !important;
+    display: block !important;
     animation: none !important;
-    filter: none !important;
-    will-change: auto !important;
+    filter: blur(30px) !important;
+    opacity: 0.55 !important;
   }
 
   /* 2. Disable SVG feGaussianBlur and continuous vector animations */

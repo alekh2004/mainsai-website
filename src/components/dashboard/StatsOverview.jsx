@@ -77,25 +77,28 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   const [slideIdx, setSlideIdx] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    // Primary Slide #1 stays for 10 seconds; subsequent slides stay for 4 seconds
+    const slideDuration = slideIdx === 0 ? 10000 : 4000;
+    const timer = setTimeout(() => {
       setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    }, slideDuration);
+    return () => clearTimeout(timer);
+  }, [slideIdx]);
 
   const slide = HERO_SLIDES[slideIdx];
 
   return (
-    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-700" style={{ minHeight: '260px' }}>
+    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000" style={{ minHeight: '260px' }}>
       {/* Dynamic Responsive Image Background — Desktop vs Mobile Aspect Ratios */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
         <picture>
           <source media="(min-width: 768px)" srcSet={slide.desktopBg} />
           <img
+            key={slide.id}
             src={slide.mobileBg}
             alt="Hero Background"
-            className={`w-full h-full object-cover object-center transition-all duration-1000 animate-fadeIn ${
-              slide.useKenBurns ? 'scale-105 animate-pulse' : ''
+            className={`w-full h-full object-cover object-center transition-opacity duration-1000 animate-fadeIn ${
+              slide.useKenBurns ? 'scale-105' : ''
             }`}
             style={slide.useKenBurns ? { animation: 'kenBurnsSlow 20s ease-in-out infinite alternate' } : {}}
           />
@@ -130,7 +133,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
           </span>
         </div>
 
-        {/* Greeting & Aspirant Name */}
+        {/* Greeting & Aspirant Name (Coffee emoji removed) */}
         <div>
           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-1" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
             {greeting},
@@ -143,7 +146,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
               WebkitTextFillColor: 'transparent',
             }}
           >
-            {user?.name?.split(' ')[0] || 'Alekh'} ☕
+            {user?.name?.split(' ')[0] || 'Alekh'}
           </h2>
           <p className="text-xs md:text-sm font-medium text-white/80 max-w-sm leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
             {isHi
