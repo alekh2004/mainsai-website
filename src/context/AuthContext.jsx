@@ -178,45 +178,12 @@ export function AuthProvider({ children }) {
     return window.recaptchaVerifier;
   };
 
-  // ── PHONE: Send real OTP via Firebase ────────────────────────────────
+  // ── PHONE: Send real live SMS OTP via Firebase ─────────────────────────
   const sendPhoneOtp = async (phoneNumber) => {
-    try {
-      const appVerifier = setupRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      window.confirmationResult = confirmationResult;
-      return confirmationResult;
-    } catch (err) {
-      console.warn('Firebase Phone Auth fallback check:', err);
-      if (
-        err.code === 'auth/invalid-app-credential' ||
-        err.code === 'auth/captcha-check-failed' ||
-        err.code === 'auth/quota-exceeded' ||
-        err.code === 'auth/admin-restricted-operation' ||
-        err.code === 'auth/billing-not-enabled' ||
-        err.code === 'auth/internal-error' ||
-        err.message?.includes('reCAPTCHA') ||
-        err.message?.includes('app-credential')
-      ) {
-        window.confirmationResult = {
-          confirm: async (otpCode) => {
-            if (!otpCode || otpCode.length < 4) {
-              const error = new Error('Invalid OTP code. Please enter 6-digit code.');
-              error.code = 'auth/invalid-verification-code';
-              throw error;
-            }
-            return {
-              user: {
-                uid: `phone_${phoneNumber.replace(/\D/g, '')}`,
-                phoneNumber: phoneNumber,
-                displayName: `Candidate (${phoneNumber.slice(-4)})`,
-              }
-            };
-          }
-        };
-        return window.confirmationResult;
-      }
-      throw err;
-    }
+    const appVerifier = setupRecaptcha();
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    window.confirmationResult = confirmationResult;
+    return confirmationResult;
   };
 
   // ── PHONE: Verify OTP ─────────────────────────────────────────────────
