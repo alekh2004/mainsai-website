@@ -64,7 +64,7 @@ function buildStaticFallback(exam, configData, count) {
 }
 
 export function PrelimsHub({ onTestStart, onTestEnd }) {
-  const { activeExam, saveEvaluationResult, language } = useApp();
+  const { activeExam, saveEvaluationResult, language, getTeacherPrelimsMCQs } = useApp();
   const { apiKey } = useAuth();
   const isHi = language === 'hi';
 
@@ -114,6 +114,29 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
       setStep('instructions');
       return;
     }
+
+    if (actionId === 'teacher_questions') {
+      // Load teacher/faculty uploaded questions directly — NO AI system!
+      const teacherQs = getTeacherPrelimsMCQs ? getTeacherPrelimsMCQs(activeExam) : [];
+      if (!teacherQs || teacherQs.length === 0) {
+        alert(isHi ? 'अभी तक कोई शिक्षक प्रश्न अपलोड नहीं किया गया है।' : 'No Teacher Premium Questions uploaded yet.');
+        return;
+      }
+      const shuffled = [...teacherQs].sort(() => Math.random() - 0.5);
+      setActiveQuestions(shuffled);
+      setTestConfig(prev => ({
+        ...prev,
+        exam: activeExam,
+        testType: 'teacher_questions',
+        questionCount: shuffled.length,
+        negMarking: activeExam === 'bpsc' ? 0.33 : 0.66,
+        posMarking: activeExam === 'bpsc' ? 1.0 : 2.0,
+      }));
+      setGenerationProgress({ done: shuffled.length, total: shuffled.length });
+      setStep('instructions');
+      return;
+    }
+
     // Normal flow — go to config page
     setTestConfig(prev => ({
       ...prev,
@@ -128,10 +151,22 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
   const generateQuestions = useCallback(async (configData) => {
     setIsGenerating(true);
     setApiError('');
-    setActiveQuestions([]);
     generationAbortRef.current = false;
     configRef.current = configData;
 
+    // Direct return for teacher_questions or pyq — Zero AI call!
+    if (configData?.testType === 'teacher_questions' || configData?.testType === 'pyq') {
+      const teacherQs = getTeacherPrelimsMCQs ? getTeacherPrelimsMCQs(configData.exam || activeExam) : [];
+      const finalQs = teacherQs.length > 0 ? teacherQs : activeQuestions;
+      if (finalQs.length > 0) {
+        setActiveQuestions(finalQs);
+        setGenerationProgress({ done: finalQs.length, total: finalQs.length });
+      }
+      setIsGenerating(false);
+      return;
+    }
+
+    setActiveQuestions([]);
     const targetCount = configData.questionCount || 100;
     setGenerationProgress({ done: 0, total: targetCount });
 

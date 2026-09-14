@@ -149,6 +149,140 @@ export function AppProvider({ children }) {
     ];
   });
 
+  // ── Teacher Prelims MCQs Bank ──
+  const [teacherPrelimsMCQs, setTeacherPrelimsMCQs] = useState(() => {
+    const saved = localStorage.getItem('mainsai_teacher_prelims_mcqs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 'tq-mcq-1',
+        exam: 'bpsc',
+        subject: 'History',
+        questionEn: 'Which among the following was the primary objective of the Azad Dasta formed by Jayaprakash Narayan during the 1942 Quit India Movement in Bihar?',
+        questionHi: '1942 के भारत छोड़ो आंदोलन के दौरान बिहार में जयप्रकाश नारायण द्वारा गठित आजाद दस्ता का प्राथमिक उद्देश्य निम्नलिखित में से क्या था?',
+        optionsEn: [
+          'To organize open non-violent civil disobedience rallies across Patna',
+          'To carry out underground guerrilla resistance and disrupt British communication and transport infrastructure',
+          'To form a constitutional negotiating team with the Viceroy Lord Linlithgow',
+          'To lead a peasant agitation in Champaran against indigo plantation owners',
+          'None of the above / More than one of the above'
+        ],
+        optionsHi: [
+          'पटना भर में खुले अहिंसक सविनय अवज्ञा रैलियों का आयोजन करना',
+          'भूमिगत छापामार प्रतिरोध चलाना तथा ब्रिटिश संचार और परिवहन बुनियादी ढांचे में बाधा डालना',
+          'वायसराय लॉर्ड लिनलिथगो के साथ एक संवैधानिक वार्ता दल का गठन करना',
+          'नील बागान मालिकों के खिलाफ चंपारण में किसान आंदोलन का नेतृत्व करना',
+          'उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक'
+        ],
+        correctIndex: 1,
+        explanationEn: 'Azad Dasta was established in Rajveer (Nepal forests) by Jayaprakash Narayan after escaping Hazaribagh Jail in 1942 for underground sabotage of British machinery.',
+        explanationHi: '1942 में हजारीबाग जेल से भागने के बाद जयप्रकाश नारायण द्वारा नेपाल के राजवीर जंगलों में आजाद दस्ता की स्थापना की गई थी। इसका मुख्य उद्देश्य ब्रिटिश शासन के संचार और परिवहन साधनों को पंगु बनाना था।',
+        author: 'Faculty Team',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'tq-mcq-2',
+        exam: 'bpsc',
+        subject: 'Polity',
+        questionEn: 'Under which Article of the Indian Constitution does the Governor of Bihar hold the power to promulgate Ordinances during recess of the State Legislature?',
+        questionHi: 'भारतीय संविधान के किस अनुच्छेद के तहत बिहार के राज्यपाल के पास राज्य विधानमंडल के विश्रांति काल में अध्यादेश प्रख्यापित करने की शक्ति है?',
+        optionsEn: [
+          'Article 123',
+          'Article 213',
+          'Article 163',
+          'Article 200',
+          'None of the above / More than one of the above'
+        ],
+        optionsHi: [
+          'अनुच्छेद 123',
+          'अनुच्छेद 213',
+          'अनुच्छेद 163',
+          'अनुच्छेद 200',
+          'उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक'
+        ],
+        correctIndex: 1,
+        explanationEn: 'Article 213 empowers the Governor to promulgate ordinances when the state legislature is not in session.',
+        explanationHi: 'अनुच्छेद 213 राज्य के राज्यपाल को विधानमंडल का सत्र न चलने पर अध्यादेश जारी करने की शक्ति देता है।',
+        author: 'Faculty Team',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'tq-mcq-3',
+        exam: 'upsc',
+        subject: 'Polity',
+        questionEn: 'With reference to the Writ jurisdiction in India, consider the following statements:\n1. Supreme Court can issue writs only for enforcement of Fundamental Rights.\n2. High Courts can issue writs for enforcement of Fundamental Rights as well as ordinary legal rights.\nWhich of the statements given above is/are correct?',
+        questionHi: 'भारत में रिट अधिकारिता के संदर्भ में निम्नलिखित कथनों पर विचार कीजिए:\n1. उच्चतम न्यायालय केवल मौलिक अधिकारों के प्रवर्तन के लिए रिट जारी कर सकता है।\n2. उच्च न्यायालय मौलिक अधिकारों के साथ-साथ किसी अन्य सामान्य कानूनी अधिकार के लिए भी रिट जारी कर सकते हैं।\nउपर्युक्त कथनों में से कौन-सा/से सही है/हैं?',
+        optionsEn: [
+          '1 only',
+          '2 only',
+          'Both 1 and 2',
+          'Neither 1 nor 2'
+        ],
+        optionsHi: [
+          'केवल 1',
+          'केवल 2',
+          '1 और 2 दोनों',
+          'न तो 1, न ही 2'
+        ],
+        correctIndex: 2,
+        explanationEn: 'Article 32 is restricted to Fundamental Rights, whereas Article 226 extends to ordinary legal rights as well.',
+        explanationHi: 'अनुच्छेद 32 केवल मौलिक अधिकारों के लिए है, जबकि अनुच्छेद 226 अन्य कानूनी अधिकारों के लिए भी है।',
+        author: 'Faculty Team',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'tq-mcq-4',
+        exam: 'upsc',
+        subject: 'Economy',
+        questionEn: 'Which of the following measures is most likely to be taken by the Reserve Bank of India (RBI) to control runaway inflation?',
+        questionHi: 'अर्थव्यवस्था में बेकाबू मुद्रास्फीति को नियंत्रित करने के लिए भारतीय रिजर्व बैंक (RBI) द्वारा निम्नलिखित में से कौन सा कदम उठाए जाने की सर्वाधिक संभावना है?',
+        optionsEn: [
+          'Lowering the Repo Rate and CRR',
+          'Increasing the Repo Rate and selling Government Securities in Open Market Operations',
+          'Buying Government Securities under Open Market Operations',
+          'Decreasing the MSF Rate'
+        ],
+        optionsHi: [
+          'रेपो दर और CRR को घटाना',
+          'रेपो दर बढ़ाना तथा खुले बाजार की प्रक्रियाओं (OMO) में सरकारी प्रतिभूतियों को बेचना',
+          'खुले बाजार की प्रक्रियाओं के तहत सरकारी प्रतिभूतियां खरीदना',
+          'MSF दर को घटाना'
+        ],
+        correctIndex: 1,
+        explanationEn: 'To curtail inflation, RBI tightens liquidity by raising Repo rate and selling government securities.',
+        explanationHi: 'मुद्रास्फीति को कम करने के लिए, आरबीआई रेपो दर बढ़ाकर और सरकारी प्रतिभूतियों को बेचकर तरलता को नियंत्रित करता है।',
+        author: 'Faculty Team',
+        createdAt: new Date().toISOString()
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('mainsai_teacher_prelims_mcqs', JSON.stringify(teacherPrelimsMCQs));
+  }, [teacherPrelimsMCQs]);
+
+  const addTeacherPrelimsMCQ = (mcqObj) => {
+    const newMcq = {
+      id: `tq-mcq-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      author: user?.name || 'Faculty Member',
+      ...mcqObj
+    };
+    setTeacherPrelimsMCQs(prev => [newMcq, ...prev]);
+    return newMcq;
+  };
+
+  const getTeacherPrelimsMCQs = (exam) => {
+    if (!exam) return teacherPrelimsMCQs;
+    const filtered = teacherPrelimsMCQs.filter(q => (q.exam || 'bpsc').toLowerCase() === exam.toLowerCase());
+    return filtered.length > 0 ? filtered : teacherPrelimsMCQs;
+  };
+
   // ── Evaluations History (Isolated per User) ──
   const getEvaluationStorageKey = (uid) => uid ? `mainsai_evaluations_${uid}` : 'mainsai_evaluations_guest';
 
@@ -624,6 +758,7 @@ export function AppProvider({ children }) {
       bgStyle, setBgStyle,
       glassIntensity, setGlassIntensity,
       adminQuestions, addAdminQuestion, addFacultyQuestion,
+      teacherPrelimsMCQs, addTeacherPrelimsMCQ, getTeacherPrelimsMCQs,
       evaluations, saveEvaluationResult,
       teacherQueue, submitToTeacherQueue, completeTeacherEvaluation, updateTeacherReview,
       notifications, addNotification, markNotificationRead, markAllNotificationsRead,

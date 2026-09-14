@@ -6,11 +6,11 @@ import confetti from 'canvas-confetti';
 
 export function AdminQuestionUpload({ isOpen, onClose }) {
   const { user, adminInbox, approveStudentAccess, rejectStudentAccess } = useAuth();
-  const { activeExam, addFacultyQuestion } = useApp();
+  const { activeExam, addFacultyQuestion, addTeacherPrelimsMCQ } = useApp();
 
-  const [adminTab, setAdminTab] = useState('inbox'); // 'inbox' | 'upload'
+  const [adminTab, setAdminTab] = useState('inbox'); // 'inbox' | 'upload' | 'prelims'
 
-  // Question Upload Form State
+  // Mains Question Upload Form State
   const [title, setTitle] = useState('');
   const [questionText, setQuestionText] = useState('');
   const [paper, setPaper] = useState('GS 1');
@@ -22,6 +22,25 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
   
   const [scannedImageUrl, setScannedImageUrl] = useState(null);
   const [imageFileName, setImageFileName] = useState('');
+
+  // Prelims MCQ Upload Form State
+  const [mcqExam, setMcqExam] = useState(activeExam || 'bpsc');
+  const [mcqSubject, setMcqSubject] = useState('History');
+  const [mcqQuestionEn, setMcqQuestionEn] = useState('');
+  const [mcqQuestionHi, setMcqQuestionHi] = useState('');
+  const [optAEn, setOptAEn] = useState('');
+  const [optAHi, setOptAHi] = useState('');
+  const [optBEn, setOptBEn] = useState('');
+  const [optBHi, setOptBHi] = useState('');
+  const [optCEn, setOptCEn] = useState('');
+  const [optCHi, setOptCHi] = useState('');
+  const [optDEn, setOptDEn] = useState('');
+  const [optDHi, setOptDHi] = useState('');
+  const [optEEn, setOptEEn] = useState('None of the above / More than one of the above');
+  const [optEHi, setOptEHi] = useState('उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक');
+  const [correctIndex, setCorrectIndex] = useState(0);
+  const [mcqExplanationEn, setMcqExplanationEn] = useState('');
+  const [mcqExplanationHi, setMcqExplanationHi] = useState('');
 
   if (!isOpen) return null;
 
@@ -62,6 +81,58 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
     setAdminTab('inbox');
   };
 
+  const handleMcqSubmit = (e) => {
+    e.preventDefault();
+    if (!mcqQuestionEn.trim() && !mcqQuestionHi.trim()) {
+      alert('Please enter question text.');
+      return;
+    }
+    if ((!optAEn.trim() && !optAHi.trim()) || (!optBEn.trim() && !optBHi.trim())) {
+      alert('Please enter Option A and Option B.');
+      return;
+    }
+
+    const optionsEn = [
+      optAEn || optAHi,
+      optBEn || optBHi,
+      optCEn || optCHi || 'Option C',
+      optDEn || optDHi || 'Option D',
+    ];
+    const optionsHi = [
+      optAHi || optAEn,
+      optBHi || optBEn,
+      optCHi || optCEn || 'विकल्प C',
+      optDHi || optDEn || 'विकल्प D',
+    ];
+
+    if (mcqExam === 'bpsc') {
+      optionsEn.push(optEEn || 'None of the above / More than one of the above');
+      optionsHi.push(optEHi || 'उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक');
+    }
+
+    addTeacherPrelimsMCQ({
+      exam: mcqExam,
+      subject: mcqSubject,
+      questionEn: mcqQuestionEn || mcqQuestionHi,
+      questionHi: mcqQuestionHi || mcqQuestionEn,
+      optionsEn,
+      optionsHi,
+      correctIndex: Number(correctIndex),
+      explanationEn: mcqExplanationEn || mcqExplanationHi || 'Faculty Solution Key provided.',
+      explanationHi: mcqExplanationHi || mcqExplanationEn || 'शिक्षक द्वारा उत्तर व्याख्या।'
+    });
+
+    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+    alert('✅ New Teacher MCQ published to Teacher Premium Bank!');
+    setMcqQuestionEn('');
+    setMcqQuestionHi('');
+    setOptAEn(''); setOptAHi('');
+    setOptBEn(''); setOptBHi('');
+    setOptCEn(''); setOptCHi('');
+    setOptDEn(''); setOptDHi('');
+    setMcqExplanationEn(''); setMcqExplanationHi('');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-fadeIn overflow-y-auto">
       <div className="relative w-full max-w-3xl glass-card-clean rounded-3xl p-6 lg:p-8 border border-amber-500/40 shadow-2xl my-8 space-y-6">
@@ -80,33 +151,44 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white m-0">App Developer Vault (Admin Control Panel)</h3>
-            <p className="text-xs text-amber-300 m-0 font-medium">Verify student login messages & publish custom questions</p>
+            <h3 className="text-lg font-bold text-white m-0">App Developer Vault (Admin / Faculty Control Panel)</h3>
+            <p className="text-xs text-amber-300 m-0 font-medium">Verify student login messages & publish Mains / Prelims questions</p>
           </div>
         </div>
 
         {/* Admin Section Tabs */}
-        <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-950 rounded-2xl border border-white/15">
+        <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-950 rounded-2xl border border-white/15">
           <button
             type="button"
             onClick={() => setAdminTab('inbox')}
-            className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
               adminTab === 'inbox' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
-            <span>Student Login Requests Inbox ({adminInbox.length})</span>
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Requests ({adminInbox.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setAdminTab('upload')}
-            className={`py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
               adminTab === 'upload' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Upload New Question & Solution</span>
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Mains Question</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAdminTab('prelims')}
+            className={`py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+              adminTab === 'prelims' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Prelims MCQ</span>
           </button>
         </div>
 
@@ -281,7 +363,150 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
               className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold text-xs shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] transition-all"
             >
               <PlusCircle className="w-4 h-4 fill-slate-950" />
-              <span>Publish Question to Admin Bank</span>
+              <span>Publish Mains Question to Admin Bank</span>
+            </button>
+          </form>
+        )}
+
+        {/* TAB 3: Upload Prelims MCQ (Teacher Premium Bank) */}
+        {adminTab === 'prelims' && (
+          <form onSubmit={handleMcqSubmit} className="space-y-4 animate-fadeIn">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Target Exam</label>
+                <select
+                  value={mcqExam}
+                  onChange={(e) => setMcqExam(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl glass-input-clean text-xs font-semibold text-white bg-slate-900"
+                >
+                  <option value="bpsc">🦁 BPSC Prelims (5 Options A-E)</option>
+                  <option value="upsc">🏛️ UPSC Prelims (4 Options A-D)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Subject</label>
+                <select
+                  value={mcqSubject}
+                  onChange={(e) => setMcqSubject(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl glass-input-clean text-xs font-semibold text-white bg-slate-900"
+                >
+                  <option value="History">History (इतिहास)</option>
+                  <option value="Polity">Polity (राजव्यवस्था)</option>
+                  <option value="Geography">Geography (भूगोल)</option>
+                  <option value="Economy">Economy (अर्थव्यवस्था)</option>
+                  <option value="Science">General Science (सामान्य विज्ञान)</option>
+                  <option value="Bihar GK">Bihar GK / Special</option>
+                  <option value="Environment">Environment & Ecology</option>
+                  <option value="Current Affairs">Current Affairs</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Question Text (En & Hi) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Question (English)</label>
+                <textarea
+                  rows={2}
+                  value={mcqQuestionEn}
+                  onChange={(e) => setMcqQuestionEn(e.target.value)}
+                  placeholder="Type MCQ statement in English..."
+                  className="w-full p-2.5 rounded-xl glass-input-clean text-xs leading-relaxed text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Question (Hindi / हिंदी)</label>
+                <textarea
+                  rows={2}
+                  value={mcqQuestionHi}
+                  onChange={(e) => setMcqQuestionHi(e.target.value)}
+                  placeholder="प्रश्न का हिंदी विवरण दर्ज करें..."
+                  className="w-full p-2.5 rounded-xl glass-input-clean text-xs leading-relaxed text-white"
+                />
+              </div>
+            </div>
+
+            {/* Options A - D */}
+            <div className="space-y-2 pt-1 border-t border-white/10">
+              <label className="block text-xs font-bold text-amber-400">Options / विकल्प (A to D)</label>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="Option A (English)" value={optAEn} onChange={e=>setOptAEn(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                <input type="text" placeholder="विकल्प A (हिंदी)" value={optAHi} onChange={e=>setOptAHi(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="Option B (English)" value={optBEn} onChange={e=>setOptBEn(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                <input type="text" placeholder="विकल्प B (हिंदी)" value={optBHi} onChange={e=>setOptBHi(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="Option C (English)" value={optCEn} onChange={e=>setOptCEn(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                <input type="text" placeholder="विकल्प C (हिंदी)" value={optCHi} onChange={e=>setOptCHi(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="Option D (English)" value={optDEn} onChange={e=>setOptDEn(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                <input type="text" placeholder="विकल्प D (हिंदी)" value={optDHi} onChange={e=>setOptDHi(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+              </div>
+
+              {mcqExam === 'bpsc' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <input type="text" placeholder="Option E (English)" value={optEEn} onChange={e=>setOptEEn(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                  <input type="text" placeholder="विकल्प E (हिंदी)" value={optEHi} onChange={e=>setOptEHi(e.target.value)} className="px-3 py-1.5 rounded-xl glass-input-clean text-xs text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Correct Option Selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-white/10">
+              <div>
+                <label className="block text-xs font-semibold text-emerald-400 mb-1">Correct Option / सही विकल्प</label>
+                <select
+                  value={correctIndex}
+                  onChange={(e) => setCorrectIndex(Number(e.target.value))}
+                  className="w-full px-3.5 py-2 rounded-xl glass-input-clean text-xs font-black text-emerald-300 bg-slate-900"
+                >
+                  <option value={0}>Option A (विकल्प A)</option>
+                  <option value={1}>Option B (विकल्प B)</option>
+                  <option value={2}>Option C (विकल्प C)</option>
+                  <option value={3}>Option D (विकल्प D)</option>
+                  {mcqExam === 'bpsc' && <option value={4}>Option E (विकल्प E)</option>}
+                </select>
+              </div>
+            </div>
+
+            {/* Explanation / Solution */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Explanation Key (English)</label>
+                <textarea
+                  rows={2}
+                  value={mcqExplanationEn}
+                  onChange={(e) => setMcqExplanationEn(e.target.value)}
+                  placeholder="Detailed solution explanation in English..."
+                  className="w-full p-2.5 rounded-xl glass-input-clean text-xs leading-relaxed text-white font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">उत्तर व्याख्या (हिंदी)</label>
+                <textarea
+                  rows={2}
+                  value={mcqExplanationHi}
+                  onChange={(e) => setMcqExplanationHi(e.target.value)}
+                  placeholder="विस्तृत उत्तर व्याख्या हिंदी में..."
+                  className="w-full p-2.5 rounded-xl glass-input-clean text-xs leading-relaxed text-white font-mono"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs shadow-xl flex items-center justify-center gap-2 hover:scale-[1.01] transition-all"
+            >
+              <PlusCircle className="w-4 h-4 fill-slate-950" />
+              <span>Publish MCQ to Teacher Premium Bank</span>
             </button>
           </form>
         )}

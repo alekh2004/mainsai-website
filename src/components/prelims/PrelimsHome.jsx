@@ -63,25 +63,18 @@ export function PrelimsHome({ onSelectAction }) {
 
       {/* Hero Banner */}
       <div
-        className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8"
+        className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8 flex flex-col justify-end"
         style={{
-          background: 'linear-gradient(135deg, rgba(4,10,30,0.92) 0%, rgba(14,35,100,0.80) 55%, rgba(4,10,30,0.50) 100%)',
-          minHeight: '170px',
+          minHeight: '230px',
         }}
       >
-        <div className="absolute inset-0 pointer-events-none bg-slate-950">
-          <picture>
-            <source media="(min-width: 768px)" srcSet="/indiagate_pixel_desktop.png" />
-            <img
-              src="/indiagate_pixel_mobile.png"
-              alt="India Gate Hero"
-              className="w-full h-full object-cover object-center opacity-65 transition-all duration-700"
-            />
-          </picture>
-        </div>
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-all duration-700"
+          style={{ backgroundImage: 'url(/prelims_hero.png)' }}
+        />
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(to right, rgba(4,7,18,0.82) 0%, rgba(4,7,18,0.40) 50%, rgba(4,7,18,0.05) 100%)' }}
+          style={{ background: 'linear-gradient(to right, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.45) 55%, rgba(4,7,18,0.1) 100%)' }}
         />
         <div className="relative z-10 space-y-3 max-w-lg">
           <span className="inline-block px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/50 text-xs font-extrabold uppercase tracking-wider backdrop-blur-md">
@@ -152,23 +145,6 @@ export function PrelimsHome({ onSelectAction }) {
             </div>
           );
         })}
-      </div>
-
-      {/* Quick Stats */}
-      <div
-        className="glass-card-clean p-4 rounded-2xl border flex items-center justify-around gap-3 text-center"
-        style={{ borderColor: 'var(--glass-border)' }}
-      >
-        {[
-          { val: 'AI ∞', label: isHi ? 'AI प्रश्न' : 'AI Questions', color: 'text-blue-500' },
-          { val: '2015-25', label: isHi ? 'PYQ कवरेज' : 'PYQ Coverage', color: 'text-emerald-500' },
-          { val: activeExam === 'bpsc' ? '-1/3' : '-2/3', label: isHi ? 'नेगेटिव मार्किंग' : 'Neg. Marking', color: 'text-rose-500' },
-        ].map((stat, i) => (
-          <div key={i} className="space-y-0.5">
-            <div className={`text-sm font-black ${stat.color}`}>{stat.val}</div>
-            <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
-          </div>
-        ))}
       </div>
 
     </div>
