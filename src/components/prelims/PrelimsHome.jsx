@@ -22,9 +22,9 @@ export function PrelimsHome({ onSelectAction }) {
       gradient: 'from-blue-600/10 to-blue-400/5',
       title: isHi ? 'फुल एवं विषयवार टेस्ट' : 'Full & Subject Tests',
       desc: isHi
-        ? `AI-generated ${activeExam === 'bpsc' ? 'BPSC' : 'UPSC'} MCQ मॉक — 10 से 150 प्रश्न, नेगेटिव मार्किंग के साथ`
-        : `AI-generated ${activeExam === 'bpsc' ? 'BPSC' : 'UPSC'} MCQ mocks — 10 to 150 questions with negative marking`,
-      badge: '🎯 AI Generated',
+        ? `${activeExam === 'bpsc' ? 'BPSC' : 'UPSC'} MCQ मॉक — 10 से 150 प्रश्न, नेगेटिव मार्किंग के साथ`
+        : `${activeExam === 'bpsc' ? 'BPSC' : 'UPSC'} MCQ mocks — 10 to 150 questions with negative marking`,
+      badge: '🎯 Practice Mocks',
       cta: isHi ? 'टेस्ट शुरू करें' : 'Start Test',
       locked: false,
     },

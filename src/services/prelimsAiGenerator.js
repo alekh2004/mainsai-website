@@ -81,57 +81,83 @@ async function callGeminiApi(prompt, apiKey) {
 
 function buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language, previousTitles = [] }) {
   const isBpsc = exam === 'bpsc';
-  const examLabel = isBpsc ? 'BPSC 72nd CCE Prelims' : 'UPSC Prelims GS Paper I (2026 Pattern)';
+  const examLabel = isBpsc ? 'BPSC 72nd CCE Prelims (Bihar Public Service Commission)' : 'UPSC Civil Services Prelims GS Paper I (2025-2026 Pattern)';
   const optionCount = isBpsc ? 5 : 4;
   const optionNote = isBpsc
-    ? 'BPSC 5-option format: Options A, B, C, D, and Option E MUST be "None of the above / More than one of the above"'
+    ? 'BPSC 5-option format: Options A, B, C, D, and Option E MUST be "None of the above / More than one of the above" (हिंदी: "उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक")'
     : 'UPSC 4-option format: Options A, B, C, D';
   const negNote = isBpsc ? '1/3 negative marking' : '2/3 negative marking';
   
   const excludeInstruction = previousTitles.length > 0
-    ? `CRITICAL UNIQUE RULE: DO NOT generate any question on these topics/questions already generated:\n${previousTitles.slice(-25).map(t => `- ${t}`).join('\n')}`
+    ? `CRITICAL DEDUPLICATION RULE: Do NOT repeat questions or concepts on these recently generated items:\n${previousTitles.slice(-25).map(t => `- ${t}`).join('\n')}`
     : '';
 
-  return `You are a Senior Question Setter for ${examLabel}. Generate exactly ${batchSize} UNIQUE, HIGH-LEVEL MCQ questions for ${examLabel}.
+  const textbookReferenceGuide = isBpsc
+    ? `AUTHORITATIVE REFERENCE SOURCES TO DRAW FROM:
+1. Bihar Special History & Culture: Imtiaz Ahmad (Bihar Ek Parichay), KBC Nano, Dr. UP Thakkur, Bihar Movement 1857 (Kunwar Singh), 1942 Quit India (Azad Dasta, Jayaprakash Narayan), Swami Sahajanand (Kisan Sabha), Champaran Satyagraha 1917.
+2. Bihar Geography & Economy: Bihar Economic Survey 2024-25, State Budget, River Systems (Ganga tributaries - Kosi, Gandak, Son, Punpun), Soil types, Agro-climatic zones, Mineral distribution (Rohtas pyrite, Mica, Bauxite).
+3. Indian Polity & Governance: M. Laxmikanth (Constitutional Articles, Amendments, Panchayati Raj 73rd/74th Amendments, Governor powers Art 213, State Legislature).
+4. Indian History & Freedom Struggle: NCERT Class 6-12, Spectrum (Rajiv Ahir), Modern India, Ancient Era (Magadha Empire, Maurya, Gupta, Nalanda & Vikramshila Mahavihara).
+5. Science & Environment: NCERT Physics/Chemistry/Biology, Environmental Conventions, Ramsar sites in Bihar (Kanwar Lake).`
+    : `AUTHORITATIVE REFERENCE SOURCES TO DRAW FROM:
+1. Indian Polity & Governance: M. Laxmikanth, Constitution of India Articles, Basic Structure doctrine, Landmark Supreme Court Verdicts (Puttaswamy, SR Bommai, Kesavananda), Parliamentary Committees & Writs (Art 32 & 226).
+2. Modern, Ancient & Medieval History: NCERT Class 6-12 (Old & New), Spectrum Modern India (Rajiv Ahir), Bipan Chandra, Art & Culture (Nitin Singhania) — Temple architecture, Bhakti/Sufi saints, UNESCO World Heritage sites.
+3. Physical & Indian Geography: NCERT Class 11-12, GC Leong, Map-based questions (Straits, Seas, Passes, River Basins, National Parks, Biosphere Reserves).
+4. Indian Economy: Ramesh Singh, Sanjiv Verma, RBI Monetary Policy Tools, Economic Survey, Inflation, Balance of Payments, Foreign Direct Investment, WTO agreements.
+5. Environment & Science/Tech: Shankar IAS Environment, PIB, Down To Earth, Quantum Technology, Semiconductor Mission, Space Missions (Gaganyaan, Aditya-L1), Biotechnology (CRISPR-Cas9).`;
 
-Subject/Topic: ${subject || 'General Studies (Polity, History, Geography, Economy, Environment, Science)'}
-Target Difficulty: ${difficulty === 'hard' ? 'High Analytical Depth (UPSC 2024-2026 standards)' : difficulty === 'easy' ? 'Factual with Distractor Options' : 'Moderate Analytical & Conceptual'}
-Batch Number: ${batchIndex + 1}
+  return `You are an Expert Member of the Central Question Setting Board for ${examLabel}.
+Generate exactly ${batchSize} AUTHENTIC, EXTREMELY HIGH QUALITY, TEXTBOOK-ALIGNED MCQ questions for ${examLabel}.
+
+Subject/Topic: ${subject || 'General Studies (Polity, History, Geography, Economy, Environment, General Science, Current Affairs)'}
+Target Difficulty: ${difficulty === 'hard' ? 'High Analytical & Conceptual Depth (UPSC 2024-2026 standards)' : difficulty === 'easy' ? 'Factual with Distractor Options' : 'Moderate Analytical & Conceptual'}
+Batch Index: ${batchIndex + 1}
 ${optionNote}
-Negative marking: ${negNote}
+Negative marking rule: ${negNote}
+
+${textbookReferenceGuide}
 
 ${excludeInstruction}
 
-QUESTION PATTERN DISTRIBUTIONS (MUST FOLLOW):
-1. 40% Statement-based: "Consider the following statements: 1. ... 2. ... 3. ... Which of the statements given above is/are correct?"
-2. 30% Pair Matching: "Consider the following pairs: ... How many of the above pairs are correctly matched?"
-3. 20% Assertion-Reason / Analytical: Deep conceptual clarity on Constitution, History, Economy, Environment, S&T.
-4. 10% Current Affairs / Special GS facts.
+QUESTION FORMAT SPECS (MUST DISTRIBUTE BALANCEDLY):
+- 40% Multi-Statement Questions:
+  "Consider the following statements regarding [Concept/Topic]:
+   1. Statement one details...
+   2. Statement two details...
+   3. Statement three details...
+   Which of the statements given above is/are correct?"
+- 30% Pair Matching Questions:
+  "Consider the following pairs:
+   [List I] - [List II]
+   1. Item A - Description X
+   2. Item B - Description Y
+   How many of the above pairs are correctly matched?"
+- 20% Statement-I & Statement-II / Assertion-Reason Questions:
+  "Statement-I: ... Statement-II: ... Which one of the following is correct in respect of the above statements?"
+- 10% Conceptual / Applied Fact-based Questions.
 
-Return ONLY valid JSON array of ${batchSize} objects. Format:
+RETURN ONLY VALID RAW JSON ARRAY of ${batchSize} objects formatted as follows:
 [
   {
-    "id": "ai-${exam}-${batchIndex}-0",
+    "id": "q-${exam}-${batchIndex}-0",
     "exam": "${exam}",
     "paper": "gs1",
     "subject": "${subject || 'General Studies'}",
-    "year": "2026 AI Model",
+    "year": "2026 Standard",
     "difficulty": "${difficulty}",
-    "questionEn": "Full question text in English...",
-    "questionHi": "समान प्रश्न हिंदी में...",
-    "optionsEn": ["Option A", "Option B", "Option C", "Option D"${isBpsc ? ', "None of the above / More than one of the above"' : ''}],
-    "optionsHi": ["विकल्प A", "विकल्प B", "विकल्प C", "विकल्प D"${isBpsc ? ', "उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक"' : ''}],
+    "questionEn": "Exhaustive question statement in English...",
+    "questionHi": "समान विस्तृत प्रश्न विवरण हिंदी में...",
+    "optionsEn": ["Option A text", "Option B text", "Option C text", "Option D text"${isBpsc ? ', "None of the above / More than one of the above"' : ''}],
+    "optionsHi": ["विकल्प A विवरण", "विकल्प B विवरण", "विकल्प C विवरण", "विकल्प D विवरण"${isBpsc ? ', "उपर्युक्त में से कोई नहीं / उपर्युक्त में से एक से अधिक"' : ''}],
     "correctIndex": 0,
-    "explanationEn": "Detailed 2-3 sentence explanation with relevant Articles, Acts, or historical facts.",
-    "explanationHi": "हिंदी में विस्तृत व्याख्या..."
+    "explanationEn": "Comprehensive 3-4 sentence detailed explanation key referencing standard textbooks, relevant Articles/Acts, or historical/scientific context.",
+    "explanationHi": "मानक पुस्तकों एवं संबंधित अनुच्छेदों के संदर्भ के साथ हिंदी में 3-4 वाक्यों का विस्तृत व्याख्यात्मक समाधान..."
   }
 ]
 
-IMPORTANT RULES:
-- correctIndex MUST be an integer 0 to ${optionCount - 1}.
-- NO DUPLICATE OR REPEATED QUESTIONS.
-- Every question must be distinct in subject matter and formulation.
-- Return ONLY the raw JSON array. No markdown code blocks, no intro text.`;
+CRITICAL CONSTRAINTS:
+- correctIndex MUST be an integer between 0 and ${optionCount - 1}.
+- Return ONLY the JSON array. Do NOT wrap in extra markdown or intro/outro prose.`;
 }
 
 function parseGeminiBatch(rawText, exam, batchIndex) {

@@ -340,8 +340,8 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
             <div className="flex-1 min-w-0">
               <div className="text-xs font-extrabold text-blue-600 mb-1.5">
                 {isHi
-                  ? `🤖 Gemini AI ${generationProgress.done}/${generationProgress.total} प्रश्न तैयार कर रहा है...`
-                  : `🤖 Gemini AI generating ${generationProgress.done}/${generationProgress.total} questions...`}
+                  ? `⚡ ${generationProgress.done}/${generationProgress.total} प्रश्न तैयार किए जा रहे हैं...`
+                  : `⚡ Generating ${generationProgress.done}/${generationProgress.total} questions...`}
               </div>
               <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
                 <div

@@ -144,8 +144,8 @@ export function PrelimsInstructions({ config, onGoBack, onStartTest, questionsRe
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>
                 {isHi
-                  ? `AI प्रश्न तैयार हो रहे हैं... (${generatedCount || 0} तैयार)`
-                  : `Preparing AI questions... (${generatedCount || 0} ready)`}
+                  ? `प्रश्न तैयार किए जा रहे हैं... (${generatedCount || 0} तैयार)`
+                  : `Preparing questions... (${generatedCount || 0} ready)`}
               </span>
             </>
           ) : (
