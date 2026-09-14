@@ -37,6 +37,156 @@ function getTimeGreeting(isHi) {
   return isHi ? 'शुभरात्रि' : 'Good Night';
 }
 
+const HERO_SLIDES = [
+  {
+    id: 'parliament',
+    title: 'Sansad Bhavan Edition',
+    tagHi: '🦁 संसद भवन एडिशन',
+    tagEn: '🦁 Parliament Edition',
+    desktopBg: '/parliament_pixel_desktop.png',
+    mobileBg: '/parliament_pixel_mobile.png',
+  },
+  {
+    id: 'indiagate',
+    title: 'India Gate Zone',
+    tagHi: '🇮🇳 इंडिया गेट ज़ोन',
+    tagEn: '🇮🇳 India Gate Zone',
+    desktopBg: '/indiagate_pixel_desktop.png',
+    mobileBg: '/indiagate_pixel_mobile.png',
+  },
+  {
+    id: 'upschouse',
+    title: 'UPSC Dholpur House Stambha',
+    tagHi: '🏛️ UPSC ढोलपुर हाउस',
+    tagEn: '🏛️ UPSC Dholpur House',
+    desktopBg: '/upschouse_pixel_desktop.png',
+    mobileBg: '/upschouse_pixel_mobile.png',
+  }
+];
+
+function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
+  const [slideIdx, setSlideIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const slide = HERO_SLIDES[slideIdx];
+
+  return (
+    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-700" style={{ minHeight: '260px' }}>
+      {/* Dynamic Responsive Image Background — Desktop vs Mobile Aspect Ratios */}
+      <div className="absolute inset-0 bg-slate-950">
+        <picture>
+          <source media="(min-width: 768px)" srcSet={slide.desktopBg} />
+          <img
+            src={slide.mobileBg}
+            alt="Hero Background"
+            className="w-full h-full object-cover object-center transition-all duration-1000 animate-fadeIn"
+          />
+        </picture>
+      </div>
+
+      {/* Dark Readability Overlay */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(100deg, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.60) 50%, rgba(4,7,18,0.15) 80%, transparent 100%)' }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(to top, rgba(4,7,18,0.65) 0%, transparent 60%)' }}
+      />
+
+      {/* Content Overlay */}
+      <div className="relative z-10 p-6 md:p-8 flex flex-col justify-between h-full min-h-[260px]">
+        {/* Top Badges */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span
+            className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-md"
+            style={{ background: 'rgba(251,191,36,0.22)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.45)' }}
+          >
+            {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE AI' : '🏛️ UPSC 2026 AI'}
+          </span>
+          <span
+            className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full backdrop-blur-md text-white/80"
+            style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+          >
+            {isHi ? slide.tagHi : slide.tagEn}
+          </span>
+        </div>
+
+        {/* Greeting & Aspirant Name */}
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-1" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+            {greeting},
+          </h2>
+          <h2
+            className="text-3xl md:text-4xl font-black leading-tight mb-2"
+            style={{
+              background: 'linear-gradient(90deg, #fbbf24, #fb923c)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {user?.name?.split(' ')[0] || 'Alekh'} ☕
+          </h2>
+          <p className="text-xs md:text-sm font-medium text-white/80 max-w-sm leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+            {isHi
+              ? 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।'
+              : 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.'}
+          </p>
+        </div>
+
+        {/* Stat Pills & Carousel Indicator Dots */}
+        <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+              style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>{totalCount} {isHi ? 'टेस्ट' : 'Tests'}</span>
+            </div>
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+              style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#4ade80' }}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>{safeAvgPct}% {isHi ? 'औसत' : 'Avg'}</span>
+            </div>
+            {totalCount > 0 && (
+              <div
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa' }}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>{percentile}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Carousel Slide Indicators */}
+          <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
+            {HERO_SLIDES.map((s, idx) => (
+              <button
+                key={s.id}
+                onClick={() => setSlideIdx(idx)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === slideIdx ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'
+                }`}
+                title={s.title}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AnnouncementsWidget({ isHi }) {
   const YOUTUBE_URL = 'https://www.youtube.com/@UPSCBPSCMainsAI';
   return (
@@ -118,96 +268,16 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
   return (
     <div className="w-full space-y-5 animate-fadeIn">
 
-      {/* ── 1. HERO BANNER ── */}
-      <div
-        className="relative rounded-3xl overflow-hidden shadow-2xl"
-        style={{ minHeight: '240px' }}
-      >
-        {/* Merged Parliament+Student background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url(/parliament_hero.jpg)',
-            animation: 'kenBurnsSlow 20s ease-in-out infinite alternate',
-          }}
-        />
-        {/* Left gradient overlay — only left half dark for text readability */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(100deg, rgba(4,7,18,0.80) 0%, rgba(4,7,18,0.55) 45%, rgba(4,7,18,0.05) 70%, transparent 100%)' }}
-        />
-        {/* Bottom vignette */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to top, rgba(4,7,18,0.45) 0%, transparent 55%)' }}
-        />
-
-        {/* Hero Content — left side only */}
-        <div className="relative z-10 p-6 md:p-8 flex flex-col justify-between h-full" style={{ minHeight: '240px' }}>
-          {/* Exam tag — clean text only */}
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full"
-              style={{ background: 'rgba(251,191,36,0.18)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.35)' }}
-            >
-              {activeExam === 'bpsc' ? 'BPSC Mains AI' : 'UPSC Mains AI'}
-            </span>
-            <span className="text-[10px] font-semibold text-white/50">Discipline Today, Brighter Tomorrow</span>
-          </div>
-
-          {/* Greeting */}
-          <div>
-            <h2
-              className="text-2xl md:text-3xl font-black text-white leading-tight mb-1"
-              style={{ textShadow: '0 2px 20px rgba(0,0,0,0.6)' }}
-            >
-              {greeting},
-            </h2>
-            <h2
-              className="text-3xl md:text-4xl font-black leading-tight mb-3"
-              style={{
-                background: 'linear-gradient(90deg, #fbbf24, #fb923c)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              {user?.name?.split(' ')[0] || 'Aspirant'}
-            </h2>
-            <p className="text-sm font-medium text-white/70 max-w-xs leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
-              {isHi
-                ? 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।'
-                : 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.'}
-            </p>
-          </div>
-
-          {/* Stat pills */}
-          <div className="flex items-center gap-3 mt-4 flex-wrap">
-            <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
-              style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}
-            >
-              <Trophy className="w-3.5 h-3.5" />
-              <span>{totalCount} {isHi ? 'टेस्ट' : 'Tests'}</span>
-            </div>
-            <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
-              style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.35)', color: '#4ade80' }}
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>{safeAvgPct}% {isHi ? 'औसत' : 'Avg'}</span>
-            </div>
-            {totalCount > 0 && (
-              <div
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
-                style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.35)', color: '#a78bfa' }}
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>{percentile}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* ── 1. ANIMATED 5-SECOND HERO CAROUSEL ── */}
+      <HeroCarousel
+        user={user}
+        greeting={greeting}
+        isHi={isHi}
+        activeExam={activeExam}
+        totalCount={totalCount}
+        safeAvgPct={safeAvgPct}
+        percentile={percentile}
+      />
 
 
       {/* ── 2. STUDY TOOLS ── */}

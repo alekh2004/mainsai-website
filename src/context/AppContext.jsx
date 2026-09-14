@@ -78,23 +78,33 @@ export function AppProvider({ children }) {
       .replace(/glass-intensity-\w+/g, '')
       .trim();
     if (theme !== 'light') root.classList.add(`theme-${theme}`);
-    if (accentColor !== 'blue') root.classList.add(`accent-${accentColor}`);
+    root.classList.add(`accent-${accentColor}`);
     root.classList.add(`bg-style-${bgStyle}`);
     root.classList.add(`glass-intensity-${glassIntensity}`);
+
+    // Map accent color to RGB and Hex for instant application across mobile & desktop
+    const ACCENT_MAP = {
+      cyan:    { rgb: '8 145 178',   hex: '#0891b2' },
+      blue:    { rgb: '37 99 235',   hex: '#2563eb' },
+      emerald: { rgb: '5 150 105',   hex: '#059669' },
+      violet:  { rgb: '124 58 237', hex: '#7c3aed' },
+      rose:    { rgb: '225 29 72',   hex: '#e11d48' },
+      amber:   { rgb: '180 83 9',    hex: '#b45309' },
+    };
+    const accInfo = ACCENT_MAP[accentColor] || ACCENT_MAP.cyan;
+    root.style.setProperty('--accent', accInfo.rgb);
+    root.style.setProperty('--accent-hex', accInfo.hex);
 
     // 2. Directly wire glass intensity (0-100) to CSS variables
     const isDark = theme === 'dark';
     const isMedium = theme === 'medium';
     const baseR = isDark ? '15,23,42' : isMedium ? '30,41,59' : '255,255,255';
-    // glassIntensity: 0 = fully solid, 100 = maximum glass blur
-    const g = Number(glassIntensity) || 55; // 0–100
-    // For light mode: opacity goes from 0.99 (g=0) to 0.72 (g=100)
-    // For dark/medium: opacity goes from 0.97 to 0.60
+    const g = Number(glassIntensity) || 55;
     const minAlpha = isDark || isMedium ? 0.60 : 0.72;
     const maxAlpha = isDark || isMedium ? 0.97 : 0.99;
     const alpha = parseFloat((maxAlpha - ((g / 100) * (maxAlpha - minAlpha))).toFixed(3));
-    const blurPx = Math.round(2 + (g / 100) * 32); // 2px to 34px
-    const saturate = (1.0 + (g / 100) * 0.75).toFixed(2); // 1.0 to 1.75
+    const blurPx = Math.round(2 + (g / 100) * 32);
+    const saturate = (1.0 + (g / 100) * 0.75).toFixed(2);
     root.style.setProperty('--card-bg', `rgba(${baseR},${alpha})`);
     root.style.setProperty('--glass-blur', `${blurPx}px`);
     root.style.setProperty('--glass-saturate', saturate);

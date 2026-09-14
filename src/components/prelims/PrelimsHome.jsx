@@ -69,16 +69,16 @@ export function PrelimsHome({ onSelectAction }) {
           minHeight: '170px',
         }}
       >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: 'url(/prelims_hero.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center right',
-            opacity: 0.55,
-            filter: 'saturate(1.2) contrast(1.05) brightness(1.1)'
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none bg-slate-950">
+          <picture>
+            <source media="(min-width: 768px)" srcSet="/indiagate_pixel_desktop.png" />
+            <img
+              src="/indiagate_pixel_mobile.png"
+              alt="India Gate Hero"
+              className="w-full h-full object-cover object-center opacity-65 transition-all duration-700"
+            />
+          </picture>
+        </div>
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'linear-gradient(to right, rgba(4,7,18,0.82) 0%, rgba(4,7,18,0.40) 50%, rgba(4,7,18,0.05) 100%)' }}

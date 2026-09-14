@@ -6,52 +6,78 @@
 
 const GEMINI_MODELS = [
   'gemini-2.5-flash',
+  'gemini-2.5-pro',
+  'gemini-2.0-flash-exp',
   'gemini-2.0-flash',
   'gemini-1.5-flash',
+  'gemini-1.5-pro',
+  'gemini-flash-latest',
+  'gemini-pro-latest'
 ];
 
 async function callGeminiApi(prompt, apiKey) {
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.75,
-      maxOutputTokens: 8192,
-    }
-  };
+  const cleanKey = (apiKey || '').trim();
+  if (!cleanKey || cleanKey.length < 10) {
+    throw new Error('API key is missing or invalid');
+  }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  let lastError = null;
 
   for (const model of GEMINI_MODELS) {
-    try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        }
-      );
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '');
-        console.warn(`[Gemini ${model}] HTTP ${res.status}:`, errText.slice(0, 200));
-        continue;
+    // Try first with responseMimeType: application/json
+    const bodyWithJson = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
       }
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text && text.length > 50) {
+    };
+
+    const bodyStandard = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+      }
+    };
+
+    for (const bodyPayload of [bodyWithJson, bodyStandard]) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000); // 20s per call
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload),
+            signal: controller.signal,
+          }
+        );
         clearTimeout(timeout);
-        return text;
+
+        if (res.ok) {
+          const data = await res.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && text.length > 30) {
+            console.log(`[Gemini API Success] Model: ${model}`);
+            return text;
+          }
+        } else {
+          const errText = await res.text().catch(() => '');
+          console.warn(`[Gemini ${model}] HTTP ${res.status}:`, errText.slice(0, 150));
+          lastError = new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
+        }
+      } catch (e) {
+        console.warn(`[Gemini ${model}] Fetch failed:`, e.message);
+        lastError = e;
       }
-    } catch (e) {
-      if (e.name === 'AbortError') break;
-      console.warn(`[Gemini ${model}] Error:`, e.message);
-      continue;
     }
   }
-  clearTimeout(timeout);
-  throw new Error('All Gemini models failed');
+
+  throw lastError || new Error('All Gemini model endpoints failed');
 }
 
 function buildPrompt({ exam, subject, difficulty, batchIndex, batchSize, language }) {
