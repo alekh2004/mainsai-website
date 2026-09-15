@@ -761,6 +761,15 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+/* Enhanced smooth cinematic Ken-Burns for Gender Hero Slide — 120fps cubic-bezier */
+@keyframes kenBurnsHero {
+  0%   { transform: scale(1.00) translate(0%, 0%);     }
+  20%  { transform: scale(1.05) translate(-0.8%, -0.5%); }
+  50%  { transform: scale(1.08) translate(-1.5%, -1.0%); }
+  80%  { transform: scale(1.04) translate(0.5%, -0.8%);  }
+  100% { transform: scale(1.00) translate(0%, 0%);     }
+}
+
 @keyframes sunBeamPulse {
   0%, 100% {
     opacity: 0.28;

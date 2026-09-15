@@ -37,7 +37,8 @@ function getTimeGreeting(isHi) {
   return isHi ? 'शुभरात्रि' : 'Good Night';
 }
 
-const HERO_SLIDES = [
+// ── Static background slides (Parliament, India Gate etc.) ──────────────
+const BG_SLIDES = [
   {
     id: 'original_parliament',
     title: 'Sansad Bhavan AI Edition',
@@ -54,6 +55,7 @@ const HERO_SLIDES = [
     tagEn: '🇮🇳 India Gate Zone',
     desktopBg: '/indiagate_pixel_desktop.png',
     mobileBg: '/indiagate_pixel_mobile.png',
+    useKenBurns: true,
   },
   {
     id: 'upschouse',
@@ -62,6 +64,7 @@ const HERO_SLIDES = [
     tagEn: '🦁 UPSC Dholpur House',
     desktopBg: '/upschouse_pixel_desktop.png',
     mobileBg: '/upschouse_pixel_mobile.png',
+    useKenBurns: true,
   },
   {
     id: 'parliament_pixel',
@@ -70,15 +73,51 @@ const HERO_SLIDES = [
     tagEn: '🎨 Parliament (Pixel Art)',
     desktopBg: '/parliament_pixel_desktop.png',
     mobileBg: '/parliament_pixel_mobile.png',
+    useKenBurns: true,
   }
 ];
 
+// ── Detect gender from user profile ──────────────────────────────────────
+function detectGender(user) {
+  if (!user) return 'male';
+  if (user.gender) return user.gender; // explicit gender from profile
+  // Heuristic: common Indian female name endings
+  const name = (user.name || '').toLowerCase().trim();
+  const femalePatterns = [
+    'a', 'i', 'ita', 'ita', 'ana', 'ini', 'devi', 'kumari', 'bala',
+    'lata', 'priya', 'nita', 'mala', 'maya', 'rani', 'vati', 'wati',
+    'shri', 'dha', 'tha', 'asha', 'usha', 'sona', 'nisha', 'rekha',
+    'geeta', 'sita', 'rita', 'anita', 'kavita', 'sunita', 'sumita',
+    'pooja', 'divya', 'meera', 'neeta', 'seeta', 'radha', 'sudha',
+    'rupa', 'rupa', 'laxmi', 'neha', 'sneha', 'trisha', 'preeti',
+    'pinki', 'rinki', 'rinki', 'namita', 'mamita', 'sangita', 'nandita',
+  ];
+  const firstWord = name.split(' ')[0];
+  if (femalePatterns.some(p => firstWord.endsWith(p) && firstWord.length > 3)) return 'female';
+  return 'male';
+}
+
 function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
+  const gender = detectGender(user);
+
+  // Build gender-specific first slide
+  const genderSlide = {
+    id: 'gender_hero',
+    title: gender === 'female' ? 'ET Academy Aspirant' : 'ET Academy Aspirant',
+    tagHi: gender === 'female' ? '🎓 तुम्हारा सपना, हमारा लक्ष्य' : '🎓 तुम्हारा सपना, हमारा लक्ष्य',
+    tagEn: gender === 'female' ? '🎓 Your Dream, Our Mission' : '🎓 Your Dream, Our Mission',
+    desktopBg: gender === 'female' ? '/hero_girl_desktop.jpg' : '/hero_boy_mobile.jpg',
+    mobileBg: gender === 'female' ? '/hero_girl_mobile.jpg' : '/hero_boy_mobile.jpg',
+    useKenBurns: true,
+  };
+
+  const HERO_SLIDES = [genderSlide, ...BG_SLIDES];
+
   const [slideIdx, setSlideIdx] = useState(0);
 
   useEffect(() => {
-    // Primary Slide #1 stays for 10 seconds; subsequent slides stay for 4 seconds
-    const slideDuration = slideIdx === 0 ? 10000 : 4000;
+    // Gender slide stays 12 seconds; others stay 5 seconds
+    const slideDuration = slideIdx === 0 ? 12000 : 5000;
     const timer = setTimeout(() => {
       setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
     }, slideDuration);
@@ -97,18 +136,25 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
             key={slide.id}
             src={slide.mobileBg}
             alt="Hero Background"
-            className={`w-full h-full object-cover object-center transition-opacity duration-1000 animate-fadeIn ${
-              slide.useKenBurns ? 'scale-105' : ''
-            }`}
-            style={slide.useKenBurns ? { animation: 'kenBurnsSlow 20s ease-in-out infinite alternate' } : {}}
+            className="w-full h-full object-cover object-center transition-opacity duration-1000 animate-fadeIn"
+            style={{
+              animation: slide.id === 'gender_hero'
+                ? 'kenBurnsHero 20s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
+                : 'kenBurnsSlow 18s ease-in-out infinite alternate',
+              willChange: 'transform',
+            }}
           />
         </picture>
       </div>
 
-      {/* Dark Readability Overlay */}
+      {/* Dark Readability Overlay — lighter on gender hero so character is visible */}
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(100deg, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.60) 50%, rgba(4,7,18,0.15) 80%, transparent 100%)' }}
+        style={{
+          background: slide.id === 'gender_hero'
+            ? 'linear-gradient(100deg, rgba(4,7,18,0.78) 0%, rgba(4,7,18,0.40) 45%, rgba(4,7,18,0.05) 70%, transparent 100%)'
+            : 'linear-gradient(100deg, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.60) 50%, rgba(4,7,18,0.15) 80%, transparent 100%)'
+        }}
       />
       <div
         className="absolute inset-0"
@@ -186,15 +232,17 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
           {/* Carousel Slide Indicators */}
           <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
             {HERO_SLIDES.map((s, idx) => (
-              <button
-                key={s.id}
-                onClick={() => setSlideIdx(idx)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  idx === slideIdx ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'
-                }`}
-                title={s.title}
-              />
-            ))}
+            <button
+              key={s.id}
+              onClick={() => setSlideIdx(idx)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === slideIdx
+                  ? 'w-6 ' + (idx === 0 ? 'bg-pink-400' : 'bg-amber-400')
+                  : 'w-2 bg-white/40 hover:bg-white/70'
+              }`}
+              title={s.title}
+            />
+          ))}
           </div>
         </div>
       </div>
