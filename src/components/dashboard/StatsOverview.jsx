@@ -37,90 +37,78 @@ function getTimeGreeting(isHi) {
   return isHi ? 'शुभरात्रि' : 'Good Night';
 }
 
-// ── Static background slides (Parliament, India Gate etc.) ──────────────
+// ── Static background slides ─────────────────────────────────────────────
+// Slide 1: parliament_cartoon_hero (landscape/desktop art) — ALWAYS FIRST (12 sec)
+// Slides 2+: gender-personalized boy/girl images
 const BG_SLIDES = [
   {
-    id: 'boy_hero',
-    title: 'ET Academy Boy Aspirant',
-    tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
-    tagEn: '🎓 Dream Big. Work Hard. Succeed.',
-    desktopBg: '/hero_boy_mobile.jpg',
-    mobileBg: '/hero_boy_mobile.jpg',
+    id: 'parliament_cartoon_hero',
+    title: 'ET Academy Parliament Hero',
+    tagHi: '🏛️ संसद भवन — सपनों की नींव',
+    tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+    desktopBg: '/parliament_cartoon_hero_desktop.jpg',
+    mobileBg: '/parliament_cartoon_hero_desktop.jpg', // landscape only — cropped nicely on mobile via object-position
     useKenBurns: true,
+    mobileObjectPosition: 'center 30%',  // show upper half on mobile (boy's face + building)
+    desktopObjectPosition: 'center center',
   },
-  {
-    id: 'girl_hero_desktop',
-    title: 'ET Academy Girl Aspirant',
-    tagHi: '🌟 हर लड़की IAS बन सकती है',
-    tagEn: '🌟 Every Girl Can Become an IAS Officer',
-    desktopBg: '/hero_girl_desktop.jpg',
-    mobileBg: '/hero_girl_mobile.jpg',
-    useKenBurns: true,
-  },
-  {
-    id: 'indiagate',
-    title: 'India Gate Zone',
-    tagHi: '🇮🇳 इंडिया गेट ज़ोन',
-    tagEn: '🇮🇳 India Gate Zone',
-    desktopBg: '/indiagate_pixel_desktop.png',
-    mobileBg: '/indiagate_pixel_mobile.png',
-    useKenBurns: true,
-  },
-  {
-    id: 'upschouse',
-    title: 'UPSC Dholpur House Stambha',
-    tagHi: '🦁 UPSC ढोलपुर हाउस',
-    tagEn: '🦁 UPSC Dholpur House',
-    desktopBg: '/upschouse_pixel_desktop.png',
-    mobileBg: '/upschouse_pixel_mobile.png',
-    useKenBurns: true,
-  },
-  {
-    id: 'parliament_pixel',
-    title: 'Sansad Bhavan Pixel Art',
-    tagHi: '🎨 संसद भवन (पिक्सेल आर्ट)',
-    tagEn: '🎨 Parliament (Pixel Art)',
-    desktopBg: '/parliament_pixel_desktop.png',
-    mobileBg: '/parliament_pixel_mobile.png',
-    useKenBurns: true,
-  }
 ];
 
 // ── Detect gender from user profile ──────────────────────────────────────
 function detectGender(user) {
   if (!user) return 'male';
-  if (user.gender) return user.gender; // explicit gender from profile
-  // Heuristic: common Indian female name endings
+  if (user.gender) return user.gender;
   const name = (user.name || '').toLowerCase().trim();
-  const femalePatterns = [
-    'a', 'i', 'ita', 'ita', 'ana', 'ini', 'devi', 'kumari', 'bala',
-    'lata', 'priya', 'nita', 'mala', 'maya', 'rani', 'vati', 'wati',
-    'shri', 'dha', 'tha', 'asha', 'usha', 'sona', 'nisha', 'rekha',
-    'geeta', 'sita', 'rita', 'anita', 'kavita', 'sunita', 'sumita',
-    'pooja', 'divya', 'meera', 'neeta', 'seeta', 'radha', 'sudha',
-    'rupa', 'rupa', 'laxmi', 'neha', 'sneha', 'trisha', 'preeti',
-    'pinki', 'rinki', 'rinki', 'namita', 'mamita', 'sangita', 'nandita',
+  const femaleNames = [
+    'priya', 'neha', 'sneha', 'pooja', 'divya', 'anita', 'kavita',
+    'sunita', 'sumita', 'meera', 'radha', 'sita', 'geeta', 'rekha',
+    'usha', 'asha', 'nisha', 'sona', 'maya', 'rani', 'lata', 'nita',
+    'mala', 'sudha', 'rupa', 'laxmi', 'trisha', 'preeti', 'namita',
+    'mamita', 'sangita', 'nandita', 'devi', 'kumari', 'bala', 'pinki',
+    'seeta', 'neeta', 'anushka', 'isha', 'diksha', 'pratiksha', 'akanksha',
+    'shreya', 'priyanka', 'deepika', 'riya', 'siya', 'tanya', 'monika',
+    'sonika', 'komal', 'sapna', 'swati', 'bharti', 'jyoti', 'anjali',
+    'nidhi', 'renu', 'manu', 'lata', 'shweta', 'sujata', 'sarita',
   ];
   const firstWord = name.split(' ')[0];
-  if (femalePatterns.some(p => firstWord.endsWith(p) && firstWord.length > 3)) return 'female';
+  if (femaleNames.includes(firstWord)) return 'female';
+  if (femaleNames.some(n => firstWord.endsWith(n) && firstWord.length > 4)) return 'female';
   return 'male';
 }
 
 function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
   const gender = detectGender(user);
 
-  // Build gender-specific first slide
-  const genderSlide = {
-    id: 'gender_hero',
-    title: gender === 'female' ? 'ET Academy Aspirant' : 'ET Academy Aspirant',
-    tagHi: gender === 'female' ? '🎓 तुम्हारा सपना, हमारा लक्ष्य' : '🎓 तुम्हारा सपना, हमारा लक्ष्य',
-    tagEn: gender === 'female' ? '🎓 Your Dream, Our Mission' : '🎓 Your Dream, Our Mission',
-    desktopBg: gender === 'female' ? '/hero_girl_desktop.jpg' : '/hero_boy_mobile.jpg',
-    mobileBg: gender === 'female' ? '/hero_girl_mobile.jpg' : '/hero_boy_mobile.jpg',
-    useKenBurns: true,
-  };
+  // Gender-specific slides: shown AFTER parliament_cartoon_hero
+  const genderSlides = gender === 'female'
+    ? [
+        {
+          id: 'girl_hero',
+          title: 'ET Academy Girl Aspirant',
+          tagHi: '🌟 हर लड़की IAS बन सकती है',
+          tagEn: '🌟 Every Girl Can Become an IAS Officer',
+          desktopBg: '/hero_girl_desktop.jpg',         // landscape — desktop
+          mobileBg: '/hero_girl_mobile.jpg',           // portrait — mobile
+          useKenBurns: true,
+          mobileObjectPosition: 'center center',
+          desktopObjectPosition: 'center center',
+        }
+      ]
+    : [
+        {
+          id: 'boy_hero',
+          title: 'ET Academy Boy Aspirant',
+          tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
+          tagEn: '🎓 Dream Big. Work Hard. Succeed.',
+          desktopBg: '/hero_boy_mobile.jpg',           // portrait — use object-position on desktop
+          mobileBg: '/hero_boy_mobile.jpg',            // portrait — correct on mobile
+          useKenBurns: true,
+          mobileObjectPosition: 'center center',
+          desktopObjectPosition: 'center 20%',        // show top portion (face) on desktop
+        }
+      ];
 
-  const HERO_SLIDES = [genderSlide, ...BG_SLIDES];
+  const HERO_SLIDES = [...BG_SLIDES, ...genderSlides];
 
   const [slideIdx, setSlideIdx] = useState(0);
 
@@ -137,32 +125,51 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
 
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000" style={{ minHeight: '260px' }}>
-      {/* Dynamic Responsive Image Background — Desktop vs Mobile Aspect Ratios */}
+      {/* Dynamic Responsive Image Background with aspect-ratio-aware object-position */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
-        <picture>
-          <source media="(min-width: 768px)" srcSet={slide.desktopBg} />
-          <img
-            key={slide.id}
-            src={slide.mobileBg}
-            alt="Hero Background"
-            className="w-full h-full object-cover object-center transition-opacity duration-1000 animate-fadeIn"
-            style={{
-              animation: slide.id === 'gender_hero'
-                ? 'kenBurnsHero 20s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
-                : 'kenBurnsSlow 18s ease-in-out infinite alternate',
-              willChange: 'transform',
-            }}
-          />
-        </picture>
+        {/*
+          We render TWO img elements controlled by CSS display:
+          - .hero-mobile-img  → visible only on mobile (<768px)
+          - .hero-desktop-img → visible only on desktop (≥768px)
+          Each gets the correct src AND correct object-position for its viewport.
+        */}
+        {/* Mobile image */}
+        <img
+          key={`${slide.id}-mobile`}
+          src={slide.mobileBg}
+          alt="Hero Background"
+          className="hero-mobile-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          style={{
+            objectPosition: slide.mobileObjectPosition || 'center center',
+            animation: slide.id === 'parliament_cartoon_hero'
+              ? 'kenBurnsHero 22s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
+              : 'kenBurnsSlow 18s ease-in-out infinite alternate',
+            willChange: 'transform',
+          }}
+        />
+        {/* Desktop image (different src when desktopBg !== mobileBg) */}
+        <img
+          key={`${slide.id}-desktop`}
+          src={slide.desktopBg}
+          alt="Hero Background"
+          className="hero-desktop-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          style={{
+            objectPosition: slide.desktopObjectPosition || 'center center',
+            animation: slide.id === 'parliament_cartoon_hero'
+              ? 'kenBurnsHero 22s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
+              : 'kenBurnsSlow 18s ease-in-out infinite alternate',
+            willChange: 'transform',
+          }}
+        />
       </div>
 
-      {/* Dark Readability Overlay — lighter on gender hero so character is visible */}
+      {/* Dark Readability Overlay — lighter on gender/character slides so person is clearly visible */}
       <div
         className="absolute inset-0"
         style={{
-          background: slide.id === 'gender_hero'
-            ? 'linear-gradient(100deg, rgba(4,7,18,0.78) 0%, rgba(4,7,18,0.40) 45%, rgba(4,7,18,0.05) 70%, transparent 100%)'
-            : 'linear-gradient(100deg, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.60) 50%, rgba(4,7,18,0.15) 80%, transparent 100%)'
+          background: (slide.id === 'boy_hero' || slide.id === 'girl_hero')
+            ? 'linear-gradient(100deg, rgba(4,7,18,0.80) 0%, rgba(4,7,18,0.42) 45%, rgba(4,7,18,0.05) 70%, transparent 100%)'
+            : 'linear-gradient(100deg, rgba(4,7,18,0.82) 0%, rgba(4,7,18,0.55) 50%, rgba(4,7,18,0.12) 80%, transparent 100%)'
         }}
       />
       <div

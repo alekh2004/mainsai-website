@@ -770,6 +770,17 @@ input[type="range"]::-moz-range-thumb {
   100% { transform: scale(1.00) translate(0%, 0%);     }
 }
 
+/* ── Responsive Hero Image: device-correct aspect ratio without pixelation ── */
+/* Mobile (<768px): show portrait src, hide landscape desktop image           */
+.hero-desktop-img { display: none; }
+.hero-mobile-img  { display: block; }
+
+@media (min-width: 768px) {
+  /* Desktop (≥768px): show landscape src, hide portrait mobile image         */
+  .hero-desktop-img { display: block; }
+  .hero-mobile-img  { display: none; }
+}
+
 @keyframes sunBeamPulse {
   0%, 100% {
     opacity: 0.28;
