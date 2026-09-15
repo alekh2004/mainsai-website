@@ -40,12 +40,21 @@ function getTimeGreeting(isHi) {
 // ── Static background slides (Parliament, India Gate etc.) ──────────────
 const BG_SLIDES = [
   {
-    id: 'original_parliament',
-    title: 'Sansad Bhavan AI Edition',
-    tagHi: '🏛️ संसद भवन (ओरिजिनल एनीमेशन)',
-    tagEn: '🏛️ Parliament Bhavan (Animated Original)',
-    desktopBg: '/parliament_hero.jpg',
-    mobileBg: '/parliament_hero.jpg',
+    id: 'boy_hero',
+    title: 'ET Academy Boy Aspirant',
+    tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
+    tagEn: '🎓 Dream Big. Work Hard. Succeed.',
+    desktopBg: '/hero_boy_mobile.jpg',
+    mobileBg: '/hero_boy_mobile.jpg',
+    useKenBurns: true,
+  },
+  {
+    id: 'girl_hero_desktop',
+    title: 'ET Academy Girl Aspirant',
+    tagHi: '🌟 हर लड़की IAS बन सकती है',
+    tagEn: '🌟 Every Girl Can Become an IAS Officer',
+    desktopBg: '/hero_girl_desktop.jpg',
+    mobileBg: '/hero_girl_mobile.jpg',
     useKenBurns: true,
   },
   {
