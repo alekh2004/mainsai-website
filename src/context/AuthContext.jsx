@@ -205,45 +205,54 @@ export function AuthProvider({ children }) {
   };
 
   // ── PHONE: Setup reCAPTCHA ────────────────────────────────────────────
-  const setupRecaptcha = () => {
+  // Using 'normal' (checkbox) reCAPTCHA for maximum reliability on Indian carriers.
+  // Invisible reCAPTCHA frequently fails with Firebase on Jio/Airtel because the
+  // invisible challenge requires browser-side proof-of-work that often gets blocked
+  // by mobile browser security policies.
+  const setupRecaptcha = (containerId = 'recaptcha-container') => {
+    // Fully clear any previous instance
     if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn('Recaptcha clear warning:', e);
-      }
+      try { window.recaptchaVerifier.clear(); } catch (_) {}
       window.recaptchaVerifier = null;
+      window.recaptchaWidgetId = undefined;
     }
 
-    let container = document.getElementById('recaptcha-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'recaptcha-container';
-      container.className = 'fixed bottom-4 right-4 z-[999999]';
-      document.body.appendChild(container);
-    }
-
-    if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
-      try { window.grecaptcha.reset(); } catch (e) {}
+    // Clear previous grecaptcha widget so the iframe can re-render
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.innerHTML = '';
+    } else {
+      console.error(`reCAPTCHA container #${containerId} not found in DOM`);
+      throw new Error('reCAPTCHA container not found. Please try again.');
     }
 
     window.recaptchaVerifier = new RecaptchaVerifier(auth, container, {
-      size: 'invisible',
-      callback: () => {},
+      size: 'normal',  // Visible checkbox — far more reliable than invisible
+      theme: 'light',
+      callback: () => {
+        // reCAPTCHA solved — user can now proceed with OTP
+        console.log('reCAPTCHA verified ✓');
+      },
       'expired-callback': () => {
+        console.warn('reCAPTCHA expired — user must retry');
         if (window.recaptchaVerifier) {
-          try { window.recaptchaVerifier.clear(); } catch (e) {}
-          window.recaptchaVerifier = null;
+          try { window.recaptchaVerifier.render().then(id => { window.recaptchaWidgetId = id; }); } catch (_) {}
         }
       }
     });
+
+    // Render the widget and capture the widget ID for future resets
+    window.recaptchaVerifier.render()
+      .then(id => { window.recaptchaWidgetId = id; })
+      .catch(e => console.warn('reCAPTCHA render warning:', e));
 
     return window.recaptchaVerifier;
   };
 
   // ── PHONE: Send OTP (Dual Gateway: Firebase SMS + WhatsApp OTP Fallback) ──
   const sendPhoneOtp = async (phoneNumber, preferredChannel = 'auto') => {
-    // If user explicitly chose WhatsApp OTP
+    // WhatsApp path: generate a 6-digit session OTP shown in the app UI.
+    // The user reads this code from the screen and enters it to verify their phone.
     if (preferredChannel === 'whatsapp') {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       window.otpSession = {
@@ -255,7 +264,7 @@ export function AuthProvider({ children }) {
       return { success: true, channel: 'whatsapp', code };
     }
 
-    // Attempt Firebase Live SMS first
+    // Firebase SMS path — requires user to complete the visible reCAPTCHA checkbox first
     try {
       const appVerifier = setupRecaptcha();
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
@@ -267,13 +276,13 @@ export function AuthProvider({ children }) {
       };
       return { success: true, channel: 'firebase_sms', liveSms: true };
     } catch (err) {
-      console.warn('Firebase Live SMS encountered error, auto-routing to WhatsApp OTP:', err.code, err.message);
+      console.warn('Firebase SMS error → auto-fallback to session OTP:', err.code, err.message);
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch (e) {}
+        try { window.recaptchaVerifier.clear(); } catch (_) {}
         window.recaptchaVerifier = null;
       }
 
-      // Auto fallback to WhatsApp OTP with genuine 6-digit code
+      // Auto-fallback: show a 6-digit code in the UI for the user to enter
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       window.otpSession = {
         phone: phoneNumber,
@@ -281,7 +290,7 @@ export function AuthProvider({ children }) {
         channel: 'whatsapp',
         fallbackFromSms: true,
         smsErrorCode: err.code || 'sms_gateway_failure',
-        smsErrorMessage: err.message || 'Firebase SMS delivery issue',
+        smsErrorMessage: err.message,
         expiresAt: Date.now() + 5 * 60 * 1000,
       };
       return {

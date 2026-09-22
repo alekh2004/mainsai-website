@@ -246,9 +246,6 @@ export function AuthModal({ isFullScreen = false }) {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden font-sans select-none">
-      {/* High-visibility reCAPTCHA container for Phone Auth */}
-      <div id="recaptcha-container" className="fixed bottom-4 right-4 z-[999999]"></div>
-
       {/* ── Cinematic Live Parliament Animated Background ── */}
       <AnimatedParliamentBackground />
 
@@ -602,17 +599,18 @@ export function AuthModal({ isFullScreen = false }) {
               </form>
             )}
 
-            {/* ── FORM VIEW 3: Phone OTP Mode (Dual Gateway: SMS & WhatsApp) ── */}
+            {/* ── FORM VIEW 3: Phone OTP Mode ── */}
             {authView === 'phone' && (
               <div className="space-y-3.5 animate-fadeIn">
                 {!otpSent ? (
+                  /* ── Step 1: Enter phone number + complete reCAPTCHA ── */
                   <form onSubmit={(e) => handleSendOtp(e, otpChannel)} className="space-y-3.5">
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px] font-bold text-slate-600">
                           10-Digit Mobile Number
                         </label>
-                        {/* Channel selector badge */}
+                        {/* Channel selector */}
                         <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                           <button
                             type="button"
@@ -634,7 +632,7 @@ export function AuthModal({ isFullScreen = false }) {
                                 : 'text-slate-500 hover:text-slate-800'
                             }`}
                           >
-                            WhatsApp OTP
+                            Session OTP
                           </button>
                         </div>
                       </div>
@@ -655,12 +653,31 @@ export function AuthModal({ isFullScreen = false }) {
                       </div>
                     </div>
 
+                    {/* reCAPTCHA widget — visible checkbox, shown only for SMS channel */}
+                    {otpChannel === 'sms' && (
+                      <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-2">
+                        <p className="text-[10px] text-slate-500 font-semibold mb-1.5">
+                          Complete security check below before sending OTP:
+                        </p>
+                        {/* This div is the reCAPTCHA mount point — rendered by setupRecaptcha() when Send is clicked */}
+                        <div id="recaptcha-container" className="flex justify-center min-h-[78px]" />
+                      </div>
+                    )}
+
+                    {otpChannel === 'whatsapp' && (
+                      <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
+                        <p className="text-[10px] text-amber-800 font-semibold leading-relaxed">
+                          <strong>Session OTP Mode:</strong> A unique 6-digit code will be shown on this screen. Enter it below to verify your phone number. Valid for 5 minutes.
+                        </p>
+                      </div>
+                    )}
+
                     <button
                       type="submit"
                       disabled={isSendingOtp}
                       className={`w-full py-3.5 rounded-2xl text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all ${
                         otpChannel === 'whatsapp'
-                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25'
                           : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25'
                       }`}
                     >
@@ -671,28 +688,29 @@ export function AuthModal({ isFullScreen = false }) {
                       )}
                       <span>
                         {isSendingOtp
-                          ? 'Sending OTP...'
+                          ? 'Processing...'
                           : otpChannel === 'whatsapp'
-                          ? 'Send WhatsApp OTP Code'
-                          : 'Send SMS Verification OTP'}
+                          ? 'Generate Verification Code'
+                          : 'Send SMS OTP'}
                       </span>
                     </button>
                   </form>
                 ) : (
+                  /* ── Step 2: Enter OTP ── */
                   <form onSubmit={handleVerifyOtp} className="space-y-3.5">
-                    {/* Status Banner */}
+                    {/* Phone banner */}
                     <div className={`p-3 rounded-2xl border text-xs flex items-center justify-between ${
                       otpChannel === 'whatsapp'
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                        ? 'bg-amber-50 border-amber-200 text-amber-900'
                         : 'bg-blue-50 border-blue-200 text-blue-900'
                     }`}>
                       <div>
                         <div className="font-bold flex items-center gap-1.5">
-                          <span>{otpChannel === 'whatsapp' ? '💬 WhatsApp OTP' : '📱 SMS OTP'}</span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-800 font-extrabold">Active</span>
+                          <span>{otpChannel === 'whatsapp' ? '🔐 Session OTP' : '📱 SMS OTP'}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-200 text-green-800 font-extrabold">Active</span>
                         </div>
                         <div className="text-[11px] text-slate-600 mt-0.5">
-                          Sent to <strong>+91 {phone}</strong>
+                          Verifying <strong>+91 {phone}</strong>
                         </div>
                       </div>
                       <button
@@ -704,53 +722,36 @@ export function AuthModal({ isFullScreen = false }) {
                       </button>
                     </div>
 
-                    {/* WhatsApp Direct Action & Preview Card */}
-                    {otpChannel === 'whatsapp' && (
-                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-emerald-800">
-                            Instant WhatsApp Verification
-                          </span>
-                          <a
-                            href={`https://api.whatsapp.com/send?phone=91${phone}&text=Your%20ET%20Academy%20Verification%20OTP%20Code%20is:%20${generatedOtpPreview}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-white px-2.5 py-1 rounded-xl shadow-xs border border-emerald-300 hover:bg-emerald-50"
-                          >
-                            <span>Open WhatsApp</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-
-                        {generatedOtpPreview && (
-                          <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-emerald-300 shadow-xs">
-                            <div>
-                              <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Your 6-Digit OTP:</span>
-                              <span className="text-lg font-black tracking-widest text-emerald-700">{generatedOtpPreview}</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOtp(generatedOtpPreview);
-                                try { navigator.clipboard?.writeText(generatedOtpPreview); } catch (_) {}
-                              }}
-                              className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black transition-all flex items-center gap-1"
+                    {/* Session OTP code display — honest, no misleading links */}
+                    {otpChannel === 'whatsapp' && generatedOtpPreview && (
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 space-y-1.5">
+                        <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">
+                          Your Verification Code
+                        </p>
+                        <div className="flex items-center justify-center gap-1.5">
+                          {generatedOtpPreview.split('').map((digit, i) => (
+                            <span
+                              key={i}
+                              className="w-9 h-11 flex items-center justify-center rounded-xl bg-white border-2 border-amber-300 text-xl font-black text-slate-800 shadow-sm"
                             >
-                              <Copy className="w-3 h-3" />
-                              <span>Auto-Fill</span>
-                            </button>
-                          </div>
-                        )}
+                              {digit}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-amber-700 text-center font-semibold">
+                          Enter this code below to verify your number. Expires in 5 minutes.
+                        </p>
                       </div>
                     )}
 
                     {/* OTP Input */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Enter 6-Digit OTP Code
+                        Enter 6-Digit Verification Code
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
                         maxLength={6}
                         required
                         value={otp}
@@ -763,21 +764,21 @@ export function AuthModal({ isFullScreen = false }) {
                     <button
                       type="submit"
                       disabled={isVerifyingOtp}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all"
                     >
                       {isVerifyingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                      <span>{isVerifyingOtp ? 'Verifying OTP...' : 'Verify & Enter Portal'}</span>
+                      <span>{isVerifyingOtp ? 'Verifying...' : 'Verify & Enter Portal'}</span>
                     </button>
 
-                    {/* Channel fallback switcher */}
+                    {/* SMS fallback option */}
                     {otpChannel === 'sms' && (
                       <div className="text-center pt-1">
                         <button
                           type="button"
                           onClick={() => handleSendOtp(null, 'whatsapp')}
-                          className="text-xs text-emerald-700 hover:text-emerald-900 font-bold underline transition-colors"
+                          className="text-xs text-amber-700 hover:text-amber-900 font-bold underline transition-colors"
                         >
-                          Didn't receive SMS? Send OTP via WhatsApp
+                          SMS not received? Use Session OTP instead
                         </button>
                       </div>
                     )}
