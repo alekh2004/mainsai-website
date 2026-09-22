@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { auth } from '../../firebase';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -16,6 +16,7 @@ export function AuthModal({ isFullScreen = false }) {
     loginWithGoogle,
     loginWithEmail,
     signupWithEmail,
+    setupRecaptcha,
     sendPhoneOtp,
     verifyPhoneOtp,
     switchRole,
@@ -55,6 +56,28 @@ export function AuthModal({ isFullScreen = false }) {
   const [successMsg, setSuccessMsg] = useState('');
 
   const emailInputRef = useRef(null);
+
+  // ── Initialize reCAPTCHA as soon as Phone + SMS view is visible ───────
+  // This ensures the checkbox renders BEFORE the user clicks Send OTP.
+  // signInWithPhoneNumber only succeeds once the user has ticked the checkbox.
+  useEffect(() => {
+    if (authView !== 'phone' || otpChannel !== 'sms' || otpSent) return;
+
+    // Small delay to ensure #recaptcha-container is mounted in the DOM
+    const timer = setTimeout(() => {
+      if (setupRecaptcha) setupRecaptcha('recaptcha-container');
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      // Clean up verifier when leaving phone view
+      if (window.recaptchaVerifier) {
+        try { window.recaptchaVerifier.clear(); } catch (_) {}
+        window.recaptchaVerifier = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authView, otpChannel, otpSent]);
 
   // ── Standard Friendly Error Mapping ──────────────────────────────────
   const getErrorMessage = (code, rawMessage) => {

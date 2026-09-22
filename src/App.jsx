@@ -252,6 +252,7 @@ function MainAppContent() {
       {/* ── Modals ── */}
       <CompleteProfileModal
         isOpen={isProfileIncomplete || showEditProfileModal}
+        isMandatory={isProfileIncomplete}
         onClose={() => setShowEditProfileModal(false)}
       />
       <ApiKeyModal isOpen={showApiKeyModal} onClose={() => setShowApiKeyModal(false)} />

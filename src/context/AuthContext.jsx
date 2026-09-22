@@ -205,54 +205,49 @@ export function AuthProvider({ children }) {
   };
 
   // ── PHONE: Setup reCAPTCHA ────────────────────────────────────────────
-  // Using 'normal' (checkbox) reCAPTCHA for maximum reliability on Indian carriers.
-  // Invisible reCAPTCHA frequently fails with Firebase on Jio/Airtel because the
-  // invisible challenge requires browser-side proof-of-work that often gets blocked
-  // by mobile browser security policies.
+  // Call this early — when user switches to the Phone view (useEffect in AuthModal).
+  // This renders the visible checkbox widget. The user checks it, THEN clicks Send.
+  // Only after the checkbox is solved does signInWithPhoneNumber succeed.
   const setupRecaptcha = (containerId = 'recaptcha-container') => {
-    // Fully clear any previous instance
+    // Tear down any existing verifier first
     if (window.recaptchaVerifier) {
       try { window.recaptchaVerifier.clear(); } catch (_) {}
       window.recaptchaVerifier = null;
       window.recaptchaWidgetId = undefined;
     }
 
-    // Clear previous grecaptcha widget so the iframe can re-render
     const container = document.getElementById(containerId);
-    if (container) {
-      container.innerHTML = '';
-    } else {
-      console.error(`reCAPTCHA container #${containerId} not found in DOM`);
-      throw new Error('reCAPTCHA container not found. Please try again.');
+    if (!container) {
+      console.warn(`reCAPTCHA container #${containerId} not in DOM yet — will retry`);
+      return null;
     }
+    container.innerHTML = ''; // clear any stale iframe
 
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, container, {
-      size: 'normal',  // Visible checkbox — far more reliable than invisible
+    const verifier = new RecaptchaVerifier(auth, container, {
+      size: 'normal', // visible checkbox — reliable on Indian carriers
       theme: 'light',
       callback: () => {
-        // reCAPTCHA solved — user can now proceed with OTP
-        console.log('reCAPTCHA verified ✓');
+        console.log('reCAPTCHA ✓ solved — user may now send OTP');
+        window.recaptchaSolved = true;
       },
       'expired-callback': () => {
-        console.warn('reCAPTCHA expired — user must retry');
-        if (window.recaptchaVerifier) {
-          try { window.recaptchaVerifier.render().then(id => { window.recaptchaWidgetId = id; }); } catch (_) {}
-        }
-      }
+        console.warn('reCAPTCHA expired — needs re-solve');
+        window.recaptchaSolved = false;
+      },
     });
 
-    // Render the widget and capture the widget ID for future resets
-    window.recaptchaVerifier.render()
+    verifier.render()
       .then(id => { window.recaptchaWidgetId = id; })
-      .catch(e => console.warn('reCAPTCHA render warning:', e));
+      .catch(e => console.warn('reCAPTCHA render error:', e));
 
-    return window.recaptchaVerifier;
+    window.recaptchaVerifier = verifier;
+    window.recaptchaSolved = false;
+    return verifier;
   };
 
-  // ── PHONE: Send OTP (Dual Gateway: Firebase SMS + WhatsApp OTP Fallback) ──
+  // ── PHONE: Send OTP ───────────────────────────────────────────────────
   const sendPhoneOtp = async (phoneNumber, preferredChannel = 'auto') => {
-    // WhatsApp path: generate a 6-digit session OTP shown in the app UI.
-    // The user reads this code from the screen and enters it to verify their phone.
+    // Session OTP path (no Firebase, no reCAPTCHA needed)
     if (preferredChannel === 'whatsapp') {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       window.otpSession = {
@@ -264,11 +259,19 @@ export function AuthProvider({ children }) {
       return { success: true, channel: 'whatsapp', code };
     }
 
-    // Firebase SMS path — requires user to complete the visible reCAPTCHA checkbox first
+    // Firebase SMS — reCAPTCHA must already be rendered & solved by the user
+    const appVerifier = window.recaptchaVerifier;
+    if (!appVerifier) {
+      throw Object.assign(
+        new Error('Security check not ready. Please wait for the reCAPTCHA to load, then try again.'),
+        { code: 'auth/recaptcha-not-ready' }
+      );
+    }
+
     try {
-      const appVerifier = setupRecaptcha();
       const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       window.confirmationResult = confirmationResult;
+      window.recaptchaSolved = false; // reset for next time
       window.otpSession = {
         phone: phoneNumber,
         channel: 'firebase_sms',
@@ -276,20 +279,21 @@ export function AuthProvider({ children }) {
       };
       return { success: true, channel: 'firebase_sms', liveSms: true };
     } catch (err) {
-      console.warn('Firebase SMS error → auto-fallback to session OTP:', err.code, err.message);
+      console.warn('Firebase SMS error:', err.code, err.message);
+      // Clean up so the reCAPTCHA can be re-initialized on retry
       if (window.recaptchaVerifier) {
         try { window.recaptchaVerifier.clear(); } catch (_) {}
         window.recaptchaVerifier = null;
       }
 
-      // Auto-fallback: show a 6-digit code in the UI for the user to enter
+      // Auto-fallback: generate a local session code shown in the UI
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       window.otpSession = {
         phone: phoneNumber,
         code,
         channel: 'whatsapp',
         fallbackFromSms: true,
-        smsErrorCode: err.code || 'sms_gateway_failure',
+        smsErrorCode: err.code || 'sms_failure',
         smsErrorMessage: err.message,
         expiresAt: Date.now() + 5 * 60 * 1000,
       };
@@ -502,6 +506,7 @@ export function AuthProvider({ children }) {
       updateApiKey,
       loginWithGoogle,
       loginAsDemo,
+      setupRecaptcha,
       sendPhoneOtp,
       verifyPhoneOtp,
       updateProfileData,

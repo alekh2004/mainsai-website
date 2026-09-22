@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export function CompleteProfileModal({ isOpen, onClose }) {
+export function CompleteProfileModal({ isOpen, isMandatory = false, onClose }) {
   const { user, updateProfileData } = useAuth();
 
   const [name, setName] = useState('');
@@ -77,7 +77,7 @@ export function CompleteProfileModal({ isOpen, onClose }) {
       <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
 
         {/* Gradient border wrapper */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/40 via-purple-500/20 to-indigo-500/40 p-px pointer-events-none" />
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-500/40 via-purple-500/20 to-indigo-500/40 pointer-events-none" />
 
         {/* Card body */}
         <div className="relative bg-slate-900/95 rounded-3xl p-6 sm:p-7 text-white">
@@ -100,16 +100,17 @@ export function CompleteProfileModal({ isOpen, onClose }) {
                 Complete Your Aspirant Profile
               </h3>
               <p className="text-[11px] text-slate-400 m-0 mt-0.5 leading-relaxed">
-                Personalise your dashboard, hero wallpaper & exam journey tracking.
+                Personalise your dashboard, hero wallpaper &amp; exam journey tracking.
               </p>
             </div>
-            {/* Close (skip) button — only for non-mandatory mode */}
-            {onClose && (
+
+            {/* X close button — hidden when profile completion is mandatory */}
+            {!isMandatory && onClose && (
               <button
                 type="button"
                 onClick={onClose}
                 className="shrink-0 w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all"
-                title="Skip for now"
+                title="Close"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -149,9 +150,6 @@ export function CompleteProfileModal({ isOpen, onClose }) {
             <div>
               <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Gender <span className="text-rose-400">*</span>
-                <span className="text-[10px] text-slate-500 font-normal normal-case ml-2">
-                  — Sets your dashboard wallpaper & avatar
-                </span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -164,10 +162,7 @@ export function CompleteProfileModal({ isOpen, onClose }) {
                   }`}
                 >
                   <span className="text-2xl">👦</span>
-                  <div>
-                    <div className="text-xs font-black">Male</div>
-                    <div className="text-[10px] text-slate-400 font-normal">Boy Hero Wallpaper</div>
-                  </div>
+                  <span className="text-sm font-black">Male</span>
                   {gender === 'male' && (
                     <CheckCircle2 className="w-4 h-4 text-blue-400 ml-auto shrink-0" />
                   )}
@@ -183,10 +178,7 @@ export function CompleteProfileModal({ isOpen, onClose }) {
                   }`}
                 >
                   <span className="text-2xl">👧</span>
-                  <div>
-                    <div className="text-xs font-black">Female</div>
-                    <div className="text-[10px] text-slate-400 font-normal">Girl Hero Wallpaper</div>
-                  </div>
+                  <span className="text-sm font-black">Female</span>
                   {gender === 'female' && (
                     <CheckCircle2 className="w-4 h-4 text-purple-400 ml-auto shrink-0" />
                   )}
