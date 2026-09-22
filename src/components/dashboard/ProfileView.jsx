@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { Crown, Settings, LogOut, ChevronRight, Star, TrendingUp, BarChart3, User } from 'lucide-react';
 
-export function ProfileView({ onOpenSubscription, onOpenSettings }) {
+export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProfile }) {
   const { user, logout } = useAuth();
   const { evaluations = [], getInsightsData, language } = useApp();
 
@@ -43,7 +43,7 @@ export function ProfileView({ onOpenSubscription, onOpenSettings }) {
               boxShadow: '0 8px 32px rgba(6,182,212,0.25)',
             }}
           >
-            {user?.avatar || '🎓'}
+            {user?.avatar || (user?.gender === 'female' ? '👩‍🎓' : '👨‍🎓')}
           </div>
 
           {/* Name */}
@@ -102,6 +102,58 @@ export function ProfileView({ onOpenSubscription, onOpenSettings }) {
             ))}
           </div>
 
+        </div>
+      </div>
+
+      {/* ── Personal Aspirant Info (Gender, DOB, Target Exam) ── */}
+      <div
+        className="rounded-3xl glass-card-clean p-5 border space-y-3"
+        style={{ borderColor: 'var(--glass-border)', background: 'var(--card-bg)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-blue-500" />
+            <h4 className="text-xs font-black uppercase tracking-wider m-0" style={{ color: 'var(--text-primary)' }}>
+              {isHi ? 'अभ्यर्थी विवरण (Personal Info)' : 'Aspirant Details'}
+            </h4>
+          </div>
+          {onOpenEditProfile && (
+            <button
+              onClick={onOpenEditProfile}
+              className="text-xs font-black text-blue-500 hover:text-blue-400 transition-colors"
+            >
+              {isHi ? 'बदलें (Edit)' : 'Edit Profile'}
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2.5 pt-1">
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-center">
+            <span className="text-[10px] font-bold block text-slate-400">
+              {isHi ? 'लिंग' : 'Gender'}
+            </span>
+            <span className="text-xs font-black block mt-0.5" style={{ color: 'var(--text-primary)' }}>
+              {user?.gender === 'female' ? '👧 Female' : user?.gender === 'male' ? '👦 Male' : 'Not set'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-center">
+            <span className="text-[10px] font-bold block text-slate-400">
+              {isHi ? 'जन्म तिथि' : 'Date of Birth'}
+            </span>
+            <span className="text-xs font-black block mt-0.5 truncate" style={{ color: 'var(--text-primary)' }}>
+              {user?.dob || 'Not set'}
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-center">
+            <span className="text-[10px] font-bold block text-slate-400">
+              {isHi ? 'लक्ष्य' : 'Target'}
+            </span>
+            <span className="text-xs font-black block mt-0.5 uppercase" style={{ color: 'var(--text-primary)' }}>
+              {user?.targetExam || 'UPSC'}
+            </span>
+          </div>
         </div>
       </div>
 

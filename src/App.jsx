@@ -27,6 +27,7 @@ import { SubscriptionModal } from './components/payment/SubscriptionModal';
 import { AiFlashcardsModal } from './components/study/AiFlashcardsModal';
 import { AiMainsNotesModal } from './components/study/AiMainsNotesModal';
 import { PrelimsHub } from './components/prelims/PrelimsHub';
+import { CompleteProfileModal } from './components/auth/CompleteProfileModal';
 import { ArrowLeft, Heart, Home, Sparkles, History, BarChart3, User, Layers, BookOpen } from 'lucide-react';
 
 import { BackgroundRenderer } from './components/common/BackgroundRenderer';
@@ -49,10 +50,23 @@ function MainAppContent() {
   const [showMainsNotesModal, setShowMainsNotesModal] = useState(false);
   const [showDeepChecker, setShowDeepChecker] = useState(false);
   const [deepCheckerQuestion, setDeepCheckerQuestion] = useState(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [isTestActive, setIsTestActive] = useState(false); // CBT mode — sidebar collapses
 
   const [selectedAttemptQuestion, setSelectedAttemptQuestion] = useState(null);
   const [activeEvaluationResult, setActiveEvaluationResult] = useState(null);
+
+  // Detect if user logged in via Phone / OAuth but has incomplete name/dob/gender
+  const isProfileIncomplete = Boolean(
+    user && (
+      !user.profileCompleted ||
+      !user.name ||
+      user.name.startsWith('Candidate') ||
+      user.name === 'Aspirant Student' ||
+      !user.dob ||
+      !user.gender
+    )
+  );
 
   const handleResetToHome = () => {
     setActiveTab('home');
@@ -205,7 +219,11 @@ function MainAppContent() {
 
               {activeTab === 'profile' && (
                 <div className="animate-fadeIn">
-                  <ProfileView onOpenSubscription={() => openPayModal(true)} onOpenSettings={() => setShowApiKeyModal(true)} />
+                  <ProfileView
+                    onOpenSubscription={() => openPayModal(true)}
+                    onOpenSettings={() => setShowApiKeyModal(true)}
+                    onOpenEditProfile={() => setShowEditProfileModal(true)}
+                  />
                 </div>
               )}
 
@@ -231,7 +249,11 @@ function MainAppContent() {
       </div>
 
 
-      {/* â”€â”€ Modals â”€â”€ */}
+      {/* ── Modals ── */}
+      <CompleteProfileModal
+        isOpen={isProfileIncomplete || showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+      />
       <ApiKeyModal isOpen={showApiKeyModal} onClose={() => setShowApiKeyModal(false)} />
       <AdminQuestionUpload isOpen={showAdminModal} onClose={() => setShowAdminModal(false)} />
       <TeacherReviewQueue isOpen={showTeacherModal} onClose={() => setShowTeacherModal(false)} />

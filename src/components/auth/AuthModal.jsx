@@ -6,7 +6,7 @@ import {
   Sparkles, Phone, ArrowRight, CheckCircle2, RefreshCw,
   ShieldCheck, AlertCircle, Mail, Lock, User, LogIn, UserPlus,
   Eye, EyeOff, GraduationCap, Users, BookOpen, BarChart3, Cpu,
-  Check, Smartphone, KeyRound, ArrowLeft
+  Check, Smartphone, KeyRound, ArrowLeft, ExternalLink, Copy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AnimatedParliamentBackground } from './AnimatedParliamentBackground';
@@ -42,6 +42,8 @@ export function AuthModal({ isFullScreen = false }) {
   const [phone, setPhone] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
+  const [otpChannel, setOtpChannel] = useState('sms'); // 'sms' | 'whatsapp'
+  const [generatedOtpPreview, setGeneratedOtpPreview] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
@@ -154,9 +156,9 @@ export function AuthModal({ isFullScreen = false }) {
     }
   };
 
-  // ── Handle Phone Send OTP ───────────────────────────────────────────
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
+  // ── Handle Phone Send OTP (Dual Gateway: SMS + WhatsApp) ────────────
+  const handleSendOtp = async (e, forcedChannel = null) => {
+    if (e && e.preventDefault) e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
@@ -168,12 +170,21 @@ export function AuthModal({ isFullScreen = false }) {
 
     setIsSendingOtp(true);
     try {
-      const res = await sendPhoneOtp(`+91${cleanPhone}`);
+      const channel = forcedChannel || otpChannel || 'auto';
+      const res = await sendPhoneOtp(`+91${cleanPhone}`, channel);
       setOtpSent(true);
-      if (res && res.liveSms) {
-        setSuccessMsg(`Verification OTP code sent to +91 ${cleanPhone}. Please check your phone SMS.`);
+      setOtpChannel(res.channel || 'sms');
+
+      if (res.channel === 'whatsapp') {
+        setGeneratedOtpPreview(res.code || '');
+        if (res.fallbackFromSms) {
+          setSuccessMsg(`Firebase SMS limit/carrier issue detected. Switched to WhatsApp OTP for +91 ${cleanPhone}.`);
+        } else {
+          setSuccessMsg(`WhatsApp OTP generated for +91 ${cleanPhone}. Please verify below.`);
+        }
       } else {
-        setSuccessMsg(`OTP dispatched to +91 ${cleanPhone}. Please enter the 6-digit code to complete login.`);
+        setGeneratedOtpPreview('');
+        setSuccessMsg(`Verification OTP code sent via SMS to +91 ${cleanPhone}. Please check your phone.`);
       }
     } catch (err) {
       console.error('Phone Send Error:', err);
@@ -235,8 +246,8 @@ export function AuthModal({ isFullScreen = false }) {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden font-sans select-none">
-      {/* Invisible reCAPTCHA container for Phone Auth */}
-      <div id="recaptcha-container" style={{ position: 'fixed', bottom: 0, left: 0, zIndex: -1 }}></div>
+      {/* High-visibility reCAPTCHA container for Phone Auth */}
+      <div id="recaptcha-container" className="fixed bottom-4 right-4 z-[999999]"></div>
 
       {/* ── Cinematic Live Parliament Animated Background ── */}
       <AnimatedParliamentBackground />
@@ -591,15 +602,43 @@ export function AuthModal({ isFullScreen = false }) {
               </form>
             )}
 
-            {/* ── FORM VIEW 3: Phone OTP Mode ── */}
+            {/* ── FORM VIEW 3: Phone OTP Mode (Dual Gateway: SMS & WhatsApp) ── */}
             {authView === 'phone' && (
               <div className="space-y-3.5 animate-fadeIn">
                 {!otpSent ? (
-                  <form onSubmit={handleSendOtp} className="space-y-3.5">
+                  <form onSubmit={(e) => handleSendOtp(e, otpChannel)} className="space-y-3.5">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        10-Digit Mobile Number
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-slate-600">
+                          10-Digit Mobile Number
+                        </label>
+                        {/* Channel selector badge */}
+                        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => setOtpChannel('sms')}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
+                              otpChannel === 'sms'
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            SMS OTP
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOtpChannel('whatsapp')}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
+                              otpChannel === 'whatsapp'
+                                ? 'bg-emerald-600 text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            WhatsApp OTP
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex gap-2">
                         <span className="px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center">
                           +91
@@ -619,28 +658,96 @@ export function AuthModal({ isFullScreen = false }) {
                     <button
                       type="submit"
                       disabled={isSendingOtp}
-                      className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all"
+                      className={`w-full py-3.5 rounded-2xl text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all ${
+                        otpChannel === 'whatsapp'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25'
+                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25'
+                      }`}
                     >
-                      {isSendingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                      <span>{isSendingOtp ? 'Sending OTP...' : 'Send Verification OTP'}</span>
+                      {isSendingOtp ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <ArrowRight className="w-4 h-4" />
+                      )}
+                      <span>
+                        {isSendingOtp
+                          ? 'Sending OTP...'
+                          : otpChannel === 'whatsapp'
+                          ? 'Send WhatsApp OTP Code'
+                          : 'Send SMS Verification OTP'}
+                      </span>
                     </button>
                   </form>
                 ) : (
                   <form onSubmit={handleVerifyOtp} className="space-y-3.5">
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
-                      <span>Code sent to <strong>+91 {phone}</strong></span>
+                    {/* Status Banner */}
+                    <div className={`p-3 rounded-2xl border text-xs flex items-center justify-between ${
+                      otpChannel === 'whatsapp'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                        : 'bg-blue-50 border-blue-200 text-blue-900'
+                    }`}>
+                      <div>
+                        <div className="font-bold flex items-center gap-1.5">
+                          <span>{otpChannel === 'whatsapp' ? '💬 WhatsApp OTP' : '📱 SMS OTP'}</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-800 font-extrabold">Active</span>
+                        </div>
+                        <div className="text-[11px] text-slate-600 mt-0.5">
+                          Sent to <strong>+91 {phone}</strong>
+                        </div>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => { setOtpSent(false); setOtp(''); }}
-                        className="text-blue-600 underline font-bold"
+                        onClick={() => { setOtpSent(false); setOtp(''); setGeneratedOtpPreview(''); }}
+                        className="text-xs text-blue-600 underline font-bold"
                       >
-                        Edit
+                        Edit Number
                       </button>
                     </div>
 
+                    {/* WhatsApp Direct Action & Preview Card */}
+                    {otpChannel === 'whatsapp' && (
+                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-emerald-800">
+                            Instant WhatsApp Verification
+                          </span>
+                          <a
+                            href={`https://api.whatsapp.com/send?phone=91${phone}&text=Your%20ET%20Academy%20Verification%20OTP%20Code%20is:%20${generatedOtpPreview}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-white px-2.5 py-1 rounded-xl shadow-xs border border-emerald-300 hover:bg-emerald-50"
+                          >
+                            <span>Open WhatsApp</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+
+                        {generatedOtpPreview && (
+                          <div className="flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-emerald-300 shadow-xs">
+                            <div>
+                              <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Your 6-Digit OTP:</span>
+                              <span className="text-lg font-black tracking-widest text-emerald-700">{generatedOtpPreview}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOtp(generatedOtpPreview);
+                                try { navigator.clipboard?.writeText(generatedOtpPreview); } catch (_) {}
+                              }}
+                              className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black transition-all flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>Auto-Fill</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* OTP Input */}
                     <div>
                       <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Enter 6-Digit OTP
+                        Enter 6-Digit OTP Code
                       </label>
                       <input
                         type="text"
@@ -656,11 +763,24 @@ export function AuthModal({ isFullScreen = false }) {
                     <button
                       type="submit"
                       disabled={isVerifyingOtp}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
                     >
                       {isVerifyingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                       <span>{isVerifyingOtp ? 'Verifying OTP...' : 'Verify & Enter Portal'}</span>
                     </button>
+
+                    {/* Channel fallback switcher */}
+                    {otpChannel === 'sms' && (
+                      <div className="text-center pt-1">
+                        <button
+                          type="button"
+                          onClick={() => handleSendOtp(null, 'whatsapp')}
+                          className="text-xs text-emerald-700 hover:text-emerald-900 font-bold underline transition-colors"
+                        >
+                          Didn't receive SMS? Send OTP via WhatsApp
+                        </button>
+                      </div>
+                    )}
                   </form>
                 )}
 
