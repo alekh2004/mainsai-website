@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
-import { Shield, PlusCircle, Image, FileText, X, CheckCircle, Upload, Send, UserCheck, UserX, Clock, MessageSquare } from 'lucide-react';
+import { Shield, PlusCircle, Image, FileText, X, CheckCircle, Upload, Send, UserCheck, UserX, Clock, MessageSquare, Download } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { db } from '../../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 export function AdminQuestionUpload({ isOpen, onClose }) {
   const { user, adminInbox, approveStudentAccess, rejectStudentAccess } = useAuth();
@@ -133,6 +135,52 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
     setMcqExplanationEn(''); setMcqExplanationHi('');
   };
 
+  const handleExportUsersCSV = async () => {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      let usersList = [];
+      snap.forEach(docSnap => {
+        usersList.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      if (usersList.length === 0 && adminInbox.length > 0) {
+        usersList = adminInbox;
+      }
+
+      if (usersList.length === 0) {
+        alert('No user records found in database yet.');
+        return;
+      }
+
+      const headers = ['UID', 'Name', 'Phone', 'Email', 'Gender', 'DOB', 'Target Exam', 'Role', 'Login Type', 'Created At'];
+      const rows = usersList.map(u => [
+        `"${u.uid || u.id || ''}"`,
+        `"${u.name || ''}"`,
+        `"${u.phone || ''}"`,
+        `"${u.email || ''}"`,
+        `"${u.gender || ''}"`,
+        `"${u.dob || ''}"`,
+        `"${u.targetExam || ''}"`,
+        `"${u.role || 'student'}"`,
+        `"${u.loginType || ''}"`,
+        `"${u.createdAt || ''}"`
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `et_academy_aspirants_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+    } catch (err) {
+      console.error('Export CSV Error:', err);
+      alert('Failed to export CSV: ' + (err.message || 'Check console'));
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-fadeIn overflow-y-auto">
       <div className="relative w-full max-w-3xl glass-card-clean rounded-3xl p-6 lg:p-8 border border-amber-500/40 shadow-2xl my-8 space-y-6">
@@ -195,11 +243,18 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
         {/* TAB 1: Real-Time Student Login Messages Inbox */}
         {adminTab === 'inbox' && (
           <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center justify-between text-xs font-bold text-gray-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-bold text-gray-300">
               <span className="flex items-center gap-1.5 text-amber-300">
-                <Send className="w-4 h-4" /> Real-Time Student Access Messages
+                <Send className="w-4 h-4" /> Real-Time Student Access Messages ({adminInbox.length})
               </span>
-              <span className="text-gray-400">Total Requests: {adminInbox.length}</span>
+              <button
+                type="button"
+                onClick={handleExportUsersCSV}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export All Aspirants (CSV)</span>
+              </button>
             </div>
 
             {adminInbox.length === 0 ? (

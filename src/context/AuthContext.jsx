@@ -3,8 +3,6 @@ import { auth, db } from '../firebase';
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
@@ -15,9 +13,12 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
   updateDoc,
   collection,
-  addDoc
+  addDoc,
+  query,
+  where
 } from 'firebase/firestore';
 
 const AuthContext = createContext();
@@ -204,149 +205,95 @@ export function AuthProvider({ children }) {
     return saveStudentProfile(result.user, { loginType: 'google', avatar: '🌐' });
   };
 
-  // ── PHONE: Setup reCAPTCHA ────────────────────────────────────────────
-  // Call this early — when user switches to the Phone view (useEffect in AuthModal).
-  // This renders the visible checkbox widget. The user checks it, THEN clicks Send.
-  // Only after the checkbox is solved does signInWithPhoneNumber succeed.
-  const setupRecaptcha = (containerId = 'recaptcha-container') => {
-    // Tear down any existing verifier first
-    if (window.recaptchaVerifier) {
-      try { window.recaptchaVerifier.clear(); } catch (_) {}
-      window.recaptchaVerifier = null;
-      window.recaptchaWidgetId = undefined;
-    }
-
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.warn(`reCAPTCHA container #${containerId} not in DOM yet — will retry`);
-      return null;
-    }
-    container.innerHTML = ''; // clear any stale iframe
-
-    const verifier = new RecaptchaVerifier(auth, container, {
-      size: 'normal', // visible checkbox — reliable on Indian carriers
-      theme: 'light',
-      callback: () => {
-        console.log('reCAPTCHA ✓ solved — user may now send OTP');
-        window.recaptchaSolved = true;
-      },
-      'expired-callback': () => {
-        console.warn('reCAPTCHA expired — needs re-solve');
-        window.recaptchaSolved = false;
-      },
-    });
-
-    verifier.render()
-      .then(id => { window.recaptchaWidgetId = id; })
-      .catch(e => console.warn('reCAPTCHA render error:', e));
-
-    window.recaptchaVerifier = verifier;
-    window.recaptchaSolved = false;
-    return verifier;
-  };
-
-  // ── PHONE: Send OTP ───────────────────────────────────────────────────
-  const sendPhoneOtp = async (phoneNumber, preferredChannel = 'auto') => {
-    // Session OTP path (no Firebase, no reCAPTCHA needed)
-    if (preferredChannel === 'whatsapp') {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      window.otpSession = {
-        phone: phoneNumber,
-        code,
-        channel: 'whatsapp',
-        expiresAt: Date.now() + 5 * 60 * 1000,
-      };
-      return { success: true, channel: 'whatsapp', code };
-    }
-
-    // Firebase SMS — reCAPTCHA must already be rendered & solved by the user
-    const appVerifier = window.recaptchaVerifier;
-    if (!appVerifier) {
-      throw Object.assign(
-        new Error('Security check not ready. Please wait for the reCAPTCHA to load, then try again.'),
-        { code: 'auth/recaptcha-not-ready' }
-      );
-    }
-
-    try {
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      window.confirmationResult = confirmationResult;
-      window.recaptchaSolved = false; // reset for next time
-      window.otpSession = {
-        phone: phoneNumber,
-        channel: 'firebase_sms',
-        expiresAt: Date.now() + 5 * 60 * 1000,
-      };
-      return { success: true, channel: 'firebase_sms', liveSms: true };
-    } catch (err) {
-      console.warn('Firebase SMS error:', err.code, err.message);
-      // Clean up so the reCAPTCHA can be re-initialized on retry
-      if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch (_) {}
-        window.recaptchaVerifier = null;
-      }
-
-      // Auto-fallback: generate a local session code shown in the UI
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      window.otpSession = {
-        phone: phoneNumber,
-        code,
-        channel: 'whatsapp',
-        fallbackFromSms: true,
-        smsErrorCode: err.code || 'sms_failure',
-        smsErrorMessage: err.message,
-        expiresAt: Date.now() + 5 * 60 * 1000,
-      };
-      return {
-        success: true,
-        channel: 'whatsapp',
-        fallbackFromSms: true,
-        code,
-        error: err,
-      };
-    }
-  };
-
-  // ── PHONE: Verify OTP ─────────────────────────────────────────────────
-  const verifyPhoneOtp = async (otp, rawPhone) => {
+  // ── PHONE: Check if number already has an account ────────────────────
+  // Returns { exists: bool, profile: object | null }
+  // Checks localStorage first, then Firestore (phone field query).
+  const checkPhone = async (rawPhone) => {
     const cleanPhone = rawPhone.replace(/\D/g, '');
-    const session = window.otpSession;
+    if (cleanPhone.length < 10) return { exists: false, profile: null };
+    const phoneKey = `phone_${cleanPhone}`;
 
-    // 1. WhatsApp OTP Verification (Strict code match, NO bypass)
-    if (session && session.channel === 'whatsapp') {
-      if (Date.now() > session.expiresAt) {
-        const error = new Error('OTP code has expired. Please request a new OTP.');
-        error.code = 'auth/code-expired';
-        throw error;
-      }
-      if (otp.trim() !== session.code) {
-        const error = new Error('Invalid OTP code. Please enter the exact 6-digit code received on WhatsApp.');
-        error.code = 'auth/invalid-verification-code';
-        throw error;
-      }
+    // 1. Local cache check
+    const students = getStudents();
+    const localProfile =
+      students[phoneKey] ||
+      Object.values(students).find(
+        s => s.phone && s.phone.replace(/\D/g, '') === cleanPhone
+      );
+    if (localProfile) return { exists: true, profile: localProfile };
 
-      const uid = `phone_${cleanPhone}`;
-      return saveStudentProfile({
+    // 2. Firestore check (support both +91 prefix and raw 10-digit number)
+    try {
+      const q1 = query(
+        collection(db, 'users'),
+        where('phone', '==', `+91${cleanPhone}`)
+      );
+      let snap = await getDocs(q1);
+      if (snap.empty) {
+        const q2 = query(
+          collection(db, 'users'),
+          where('phone', '==', cleanPhone)
+        );
+        snap = await getDocs(q2);
+      }
+      if (!snap.empty) {
+        const profile = snap.docs[0].data();
+        // Cache locally for speed next time
+        students[profile.uid] = profile;
+        students[phoneKey] = profile;
+        saveStudents(students);
+        return { exists: true, profile };
+      }
+    } catch (e) {
+      console.warn('Firestore phone lookup failed:', e);
+    }
+
+    return { exists: false, profile: null };
+  };
+
+  // ── PHONE: Direct login / registration (NO OTP, NO SMS) ───────────────
+  // New user  → creates account, saves profile, triggers CompleteProfileModal
+  // Existing user → loads saved profile, logs in immediately
+  const loginWithPhone = async (rawPhone) => {
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    const { exists, profile: existingProfile } = await checkPhone(cleanPhone);
+
+    if (exists && existingProfile) {
+      // ── Returning user: restore session ──────────────────────────────
+      const refreshed = {
+        ...existingProfile,
+        lastLoginAt: new Date().toISOString(),
+      };
+      const students = getStudents();
+      students[existingProfile.uid] = refreshed;
+      students[`phone_${cleanPhone}`] = refreshed;
+      saveStudents(students);
+      setUser(refreshed);
+      try {
+        await setDoc(doc(db, 'users', existingProfile.uid), refreshed, { merge: true });
+      } catch (e) {
+        console.warn('Firestore login refresh failed:', e);
+      }
+      return { isNew: false, profile: refreshed };
+    }
+
+    // ── New user: create minimal profile ─────────────────────────────
+    const uid = `phone_${cleanPhone}_${Date.now()}`;
+    const newProfile = await saveStudentProfile(
+      {
         uid,
+        displayName: '',
+        email: '',
         phoneNumber: `+91${cleanPhone}`,
-      }, {
+      },
+      {
         loginType: 'mobile',
         avatar: '📱',
         phone: `+91${cleanPhone}`,
-      });
-    }
-
-    // 2. Firebase SMS OTP Verification
-    if (window.confirmationResult) {
-      const result = await window.confirmationResult.confirm(otp);
-      return saveStudentProfile(result.user, {
-        loginType: 'mobile',
-        avatar: '📱',
-        phone: `+91${cleanPhone}`,
-      });
-    }
-
-    throw new Error('OTP session expired. Please request OTP again.');
+        uid,
+      }
+    );
+    return { isNew: true, profile: newProfile };
   };
 
   // ── EMAIL SIGNUP ──────────────────────────────────────────────────────
@@ -366,12 +313,6 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
-    try {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-        window.recaptchaVerifier = null;
-      }
-    } catch (e) {}
   };
 
   // ── ADMIN: Approve student ────────────────────────────────────────────
@@ -506,9 +447,8 @@ export function AuthProvider({ children }) {
       updateApiKey,
       loginWithGoogle,
       loginAsDemo,
-      setupRecaptcha,
-      sendPhoneOtp,
-      verifyPhoneOtp,
+      checkPhone,
+      loginWithPhone,
       updateProfileData,
       signupWithEmail,
       loginWithEmail,

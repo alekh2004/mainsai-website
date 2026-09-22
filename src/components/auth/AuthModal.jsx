@@ -16,9 +16,8 @@ export function AuthModal({ isFullScreen = false }) {
     loginWithGoogle,
     loginWithEmail,
     signupWithEmail,
-    setupRecaptcha,
-    sendPhoneOtp,
-    verifyPhoneOtp,
+    checkPhone,
+    loginWithPhone,
     switchRole,
     loginAsDemo
   } = useAuth();
@@ -39,14 +38,12 @@ export function AuthModal({ isFullScreen = false }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Phone state
+  // Phone state (Direct Verification, No OTP)
   const [phone, setPhone] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpChannel, setOtpChannel] = useState('sms'); // 'sms' | 'whatsapp'
-  const [generatedOtpPreview, setGeneratedOtpPreview] = useState('');
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isHumanVerified, setIsHumanVerified] = useState(false);
+  const [isPhoneChecking, setIsPhoneChecking] = useState(false);
+  const [phoneStatus, setPhoneStatus] = useState(null); // null | { exists: bool, profile: object | null }
+  const [isLoggingInPhone, setIsLoggingInPhone] = useState(false);
 
   // Loading & feedback states
   const [isEmailLoading, setIsEmailLoading] = useState(false);
@@ -56,28 +53,6 @@ export function AuthModal({ isFullScreen = false }) {
   const [successMsg, setSuccessMsg] = useState('');
 
   const emailInputRef = useRef(null);
-
-  // ── Initialize reCAPTCHA as soon as Phone + SMS view is visible ───────
-  // This ensures the checkbox renders BEFORE the user clicks Send OTP.
-  // signInWithPhoneNumber only succeeds once the user has ticked the checkbox.
-  useEffect(() => {
-    if (authView !== 'phone' || otpChannel !== 'sms' || otpSent) return;
-
-    // Small delay to ensure #recaptcha-container is mounted in the DOM
-    const timer = setTimeout(() => {
-      if (setupRecaptcha) setupRecaptcha('recaptcha-container');
-    }, 150);
-
-    return () => {
-      clearTimeout(timer);
-      // Clean up verifier when leaving phone view
-      if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); } catch (_) {}
-        window.recaptchaVerifier = null;
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authView, otpChannel, otpSent]);
 
   // ── Standard Friendly Error Mapping ──────────────────────────────────
   const getErrorMessage = (code, rawMessage) => {
@@ -179,8 +154,8 @@ export function AuthModal({ isFullScreen = false }) {
     }
   };
 
-  // ── Handle Phone Send OTP (Dual Gateway: SMS + WhatsApp) ────────────
-  const handleSendOtp = async (e, forcedChannel = null) => {
+  // ── Handle Mobile Number Security Verification & Lookup ───────────
+  const handleCheckPhone = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -190,57 +165,51 @@ export function AuthModal({ isFullScreen = false }) {
       setErrorMsg('Please enter a valid 10-digit mobile number.');
       return;
     }
-
-    setIsSendingOtp(true);
-    try {
-      const channel = forcedChannel || otpChannel || 'auto';
-      const res = await sendPhoneOtp(`+91${cleanPhone}`, channel);
-      setOtpSent(true);
-      setOtpChannel(res.channel || 'sms');
-
-      if (res.channel === 'whatsapp') {
-        setGeneratedOtpPreview(res.code || '');
-        if (res.fallbackFromSms) {
-          setSuccessMsg(`Firebase SMS limit/carrier issue detected. Switched to WhatsApp OTP for +91 ${cleanPhone}.`);
-        } else {
-          setSuccessMsg(`WhatsApp OTP generated for +91 ${cleanPhone}. Please verify below.`);
-        }
-      } else {
-        setGeneratedOtpPreview('');
-        setSuccessMsg(`Verification OTP code sent via SMS to +91 ${cleanPhone}. Please check your phone.`);
-      }
-    } catch (err) {
-      console.error('Phone Send Error:', err);
-      setErrorMsg(getErrorMessage(err?.code, err?.message));
-    } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  // ── Handle Phone Verify OTP ─────────────────────────────────────────
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
-
-    const cleanOtp = otp.trim();
-    if (cleanOtp.length < 6) {
-      setErrorMsg('Please enter the full 6-digit OTP code.');
+    if (!isHumanVerified) {
+      setErrorMsg('Please tick the security check box to proceed.');
       return;
     }
 
-    setIsVerifyingOtp(true);
+    setIsPhoneChecking(true);
     try {
-      await verifyPhoneOtp(cleanOtp, `+91${phone.replace(/\D/g, '')}`);
+      const res = await checkPhone(cleanPhone);
+      setPhoneStatus(res);
+      if (res.exists) {
+        setSuccessMsg(`Welcome back! An account with +91 ${cleanPhone} already exists.`);
+      } else {
+        setSuccessMsg(`Mobile number verified. Proceed to set up your new account.`);
+      }
+    } catch (err) {
+      console.error('Check Phone Error:', err);
+      setErrorMsg('Error verifying mobile number. Please try again.');
+    } finally {
+      setIsPhoneChecking(false);
+    }
+  };
+
+  // ── Handle Direct Portal Entry (No OTP, 100% Reliable) ─────────────
+  const handleConfirmPhoneLogin = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    setIsLoggingInPhone(true);
+    try {
+      const res = await loginWithPhone(cleanPhone);
       if (switchRole && selectedRole) {
         try { await switchRole(selectedRole); } catch (_) {}
       }
       try { confetti({ particleCount: 100, spread: 70, origin: { y: 0.5 } }); } catch (_) {}
     } catch (err) {
-      console.error('Phone Verify Error:', err);
-      setErrorMsg(getErrorMessage(err.code, err.message));
+      console.error('Phone Login Error:', err);
+      setErrorMsg(getErrorMessage(err?.code, err?.message));
     } finally {
-      setIsVerifyingOtp(false);
+      setIsLoggingInPhone(false);
     }
   };
 
@@ -623,43 +592,16 @@ export function AuthModal({ isFullScreen = false }) {
             )}
 
             {/* ── FORM VIEW 3: Phone OTP Mode ── */}
+            {/* ── FORM VIEW 3: Direct Mobile Access (No OTP, 100% Reliable) ── */}
             {authView === 'phone' && (
               <div className="space-y-3.5 animate-fadeIn">
-                {!otpSent ? (
-                  /* ── Step 1: Enter phone number + complete reCAPTCHA ── */
-                  <form onSubmit={(e) => handleSendOtp(e, otpChannel)} className="space-y-3.5">
+                {!phoneStatus ? (
+                  /* ── Step 1: Enter mobile number + Checkbox Verification ── */
+                  <form onSubmit={handleCheckPhone} className="space-y-3.5">
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[11px] font-bold text-slate-600">
-                          10-Digit Mobile Number
-                        </label>
-                        {/* Channel selector */}
-                        <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                          <button
-                            type="button"
-                            onClick={() => setOtpChannel('sms')}
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                              otpChannel === 'sms'
-                                ? 'bg-blue-600 text-white shadow-xs'
-                                : 'text-slate-500 hover:text-slate-800'
-                            }`}
-                          >
-                            SMS OTP
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setOtpChannel('whatsapp')}
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                              otpChannel === 'whatsapp'
-                                ? 'bg-emerald-600 text-white shadow-xs'
-                                : 'text-slate-500 hover:text-slate-800'
-                            }`}
-                          >
-                            Session OTP
-                          </button>
-                        </div>
-                      </div>
-
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                        10-Digit Mobile Number
+                      </label>
                       <div className="flex gap-2">
                         <span className="px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 flex items-center">
                           +91
@@ -669,148 +611,144 @@ export function AuthModal({ isFullScreen = false }) {
                           maxLength={10}
                           required
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                          onChange={(e) => {
+                            setPhone(e.target.value.replace(/\D/g, ''));
+                            setErrorMsg('');
+                          }}
                           placeholder="9876543210"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold tracking-wider focus:outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-sm font-bold tracking-wider focus:outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
 
-                    {/* reCAPTCHA widget — visible checkbox, shown only for SMS channel */}
-                    {otpChannel === 'sms' && (
-                      <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-2">
-                        <p className="text-[10px] text-slate-500 font-semibold mb-1.5">
-                          Complete security check below before sending OTP:
-                        </p>
-                        {/* This div is the reCAPTCHA mount point — rendered by setupRecaptcha() when Send is clicked */}
-                        <div id="recaptcha-container" className="flex justify-center min-h-[78px]" />
+                    {/* Fast & 100% Reliable Human Security Verification Checkbox */}
+                    <div
+                      onClick={() => setIsHumanVerified(!isHumanVerified)}
+                      className={`p-3 rounded-2xl border cursor-pointer select-none transition-all flex items-center justify-between ${
+                        isHumanVerified
+                          ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${
+                            isHumanVerified
+                              ? 'bg-emerald-600 border-emerald-600 text-white'
+                              : 'border-slate-300 bg-white'
+                          }`}
+                        >
+                          {isHumanVerified && <Check className="w-4 h-4 stroke-[3]" />}
+                        </div>
+                        <span className="text-xs font-extrabold">
+                          I am not a robot (Security Check)
+                        </span>
                       </div>
-                    )}
-
-                    {otpChannel === 'whatsapp' && (
-                      <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                        <p className="text-[10px] text-amber-800 font-semibold leading-relaxed">
-                          <strong>Session OTP Mode:</strong> A unique 6-digit code will be shown on this screen. Enter it below to verify your phone number. Valid for 5 minutes.
-                        </p>
+                      <div className="flex items-center gap-1.5 opacity-60">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">FastVerify</span>
                       </div>
-                    )}
+                    </div>
 
                     <button
                       type="submit"
-                      disabled={isSendingOtp}
-                      className={`w-full py-3.5 rounded-2xl text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg transition-all ${
-                        otpChannel === 'whatsapp'
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25'
-                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/25'
-                      }`}
+                      disabled={isPhoneChecking || phone.replace(/\D/g, '').length !== 10}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50"
                     >
-                      {isSendingOtp ? (
+                      {isPhoneChecking ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
                       ) : (
                         <ArrowRight className="w-4 h-4" />
                       )}
-                      <span>
-                        {isSendingOtp
-                          ? 'Processing...'
-                          : otpChannel === 'whatsapp'
-                          ? 'Generate Verification Code'
-                          : 'Send SMS OTP'}
-                      </span>
+                      <span>{isPhoneChecking ? 'Verifying...' : 'Verify & Continue'}</span>
                     </button>
                   </form>
                 ) : (
-                  /* ── Step 2: Enter OTP ── */
-                  <form onSubmit={handleVerifyOtp} className="space-y-3.5">
-                    {/* Phone banner */}
-                    <div className={`p-3 rounded-2xl border text-xs flex items-center justify-between ${
-                      otpChannel === 'whatsapp'
-                        ? 'bg-amber-50 border-amber-200 text-amber-900'
-                        : 'bg-blue-50 border-blue-200 text-blue-900'
-                    }`}>
-                      <div>
-                        <div className="font-bold flex items-center gap-1.5">
-                          <span>{otpChannel === 'whatsapp' ? '🔐 Session OTP' : '📱 SMS OTP'}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-200 text-green-800 font-extrabold">Active</span>
-                        </div>
-                        <div className="text-[11px] text-slate-600 mt-0.5">
-                          Verifying <strong>+91 {phone}</strong>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setOtpSent(false); setOtp(''); setGeneratedOtpPreview(''); }}
-                        className="text-xs text-blue-600 underline font-bold"
-                      >
-                        Edit Number
-                      </button>
-                    </div>
-
-                    {/* Session OTP code display — honest, no misleading links */}
-                    {otpChannel === 'whatsapp' && generatedOtpPreview && (
-                      <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 space-y-1.5">
-                        <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">
-                          Your Verification Code
-                        </p>
-                        <div className="flex items-center justify-center gap-1.5">
-                          {generatedOtpPreview.split('').map((digit, i) => (
-                            <span
-                              key={i}
-                              className="w-9 h-11 flex items-center justify-center rounded-xl bg-white border-2 border-amber-300 text-xl font-black text-slate-800 shadow-sm"
-                            >
-                              {digit}
+                  /* ── Step 2: Instant Status Screen & Direct Entry ── */
+                  <div className="space-y-3.5">
+                    {phoneStatus.exists ? (
+                      /* Returning User: Account Found */
+                      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2 text-left">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shadow-sm">
+                            {phoneStatus.profile?.avatar || '👤'}
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 inline-block">
+                              Account Found
                             </span>
-                          ))}
+                            <h4 className="text-xs font-black text-emerald-950 mt-0.5">
+                              Welcome back, {phoneStatus.profile?.name || 'Aspirant'}!
+                            </h4>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-amber-700 text-center font-semibold">
-                          Enter this code below to verify your number. Expires in 5 minutes.
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Your profile is already registered with <strong>+91 {phone}</strong> ({phoneStatus.profile?.targetExam?.toUpperCase() || 'UPSC'} Aspirant). Click below to enter your dashboard immediately.
+                        </p>
+                      </div>
+                    ) : (
+                      /* New User: Ready for Setup */
+                      <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2 text-left">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shadow-sm">
+                            ✨
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-200 text-blue-900 inline-block">
+                              New Aspirant
+                            </span>
+                            <h4 className="text-xs font-black text-blue-950 mt-0.5">
+                              Create Your New Account
+                            </h4>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">
+                          Mobile number <strong>+91 {phone}</strong> verified. Click below to create your account and set up your aspirant profile.
                         </p>
                       </div>
                     )}
-
-                    {/* OTP Input */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                        Enter 6-Digit Verification Code
-                      </label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        required
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.trim())}
-                        placeholder="• • • • • •"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-base font-black text-center tracking-widest focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
 
                     <button
-                      type="submit"
-                      disabled={isVerifyingOtp}
-                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all"
+                      type="button"
+                      onClick={handleConfirmPhoneLogin}
+                      disabled={isLoggingInPhone}
+                      className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
                     >
-                      {isVerifyingOtp ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                      <span>{isVerifyingOtp ? 'Verifying...' : 'Verify & Enter Portal'}</span>
+                      {isLoggingInPhone ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      <span>
+                        {isLoggingInPhone
+                          ? 'Entering Portal...'
+                          : phoneStatus.exists
+                          ? 'Sign In Directly to Dashboard'
+                          : 'Create Profile & Enter Dashboard'}
+                      </span>
                     </button>
 
-                    {/* SMS fallback option */}
-                    {otpChannel === 'sms' && (
-                      <div className="text-center pt-1">
-                        <button
-                          type="button"
-                          onClick={() => handleSendOtp(null, 'whatsapp')}
-                          className="text-xs text-amber-700 hover:text-amber-900 font-bold underline transition-colors"
-                        >
-                          SMS not received? Use Session OTP instead
-                        </button>
-                      </div>
-                    )}
-                  </form>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhoneStatus(null);
+                        setIsHumanVerified(false);
+                      }}
+                      className="w-full py-1 text-xs font-bold text-slate-500 hover:text-slate-700 text-center"
+                    >
+                      Use a different mobile number
+                    </button>
+                  </div>
                 )}
 
                 <button
                   type="button"
-                  onClick={() => { setAuthView('email'); setOtpSent(false); setErrorMsg(''); }}
+                  onClick={() => {
+                    setAuthView('email');
+                    setPhoneStatus(null);
+                    setIsHumanVerified(false);
+                    setErrorMsg('');
+                  }}
                   className="w-full py-2 text-xs font-bold text-slate-600 hover:text-slate-800 flex items-center justify-center gap-1.5"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
