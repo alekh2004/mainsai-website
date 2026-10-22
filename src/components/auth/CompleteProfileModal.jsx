@@ -187,7 +187,7 @@ export function CompleteProfileModal({ isOpen, isMandatory = false, onClose }) {
                     value={name}
                     onChange={(e) => { setName(e.target.value); setErrorMsg(''); }}
                     onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-                    placeholder="e.g. Alekh Kumar"
+                    placeholder="e.g. ALEKH RAJ"
                     className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm font-bold text-white placeholder:text-white/20 focus:outline-none transition-all"
                     style={{
                       background: 'rgba(255,255,255,0.05)',
