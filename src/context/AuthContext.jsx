@@ -184,10 +184,23 @@ export function AuthProvider({ children }) {
 
     const students = getStudents();
     students[user.uid] = updated;
-    if (updated.phone) {
-      students[`phone_${updated.phone.replace(/\D/g, '')}`] = updated;
+    // Also update phone key so cross-device lookup works
+    const cleanPhone = (updated.phone || '').replace(/\D/g, '');
+    if (cleanPhone.length === 10) {
+      students[`phone_${cleanPhone}`] = updated;
+    } else if (cleanPhone.length === 12 && cleanPhone.startsWith('91')) {
+      students[`phone_${cleanPhone.slice(2)}`] = updated;
     }
     saveStudents(students);
+
+    // Update admin inbox entry with real name
+    const inbox = getInbox().map(r =>
+      r.uid === user.uid
+        ? { ...r, name: updated.name || r.name, status: r.status }
+        : r
+    );
+    saveInbox(inbox);
+    setAdminInbox(inbox);
 
     try {
       await setDoc(doc(db, 'users', user.uid), updated, { merge: true });
@@ -207,40 +220,46 @@ export function AuthProvider({ children }) {
 
   // ── PHONE: Check if number already has an account ────────────────────
   // Returns { exists: bool, profile: object | null }
-  // Checks localStorage first, then Firestore (phone field query).
+  // Strategy: phone_XXXXXXXXXX is used as a STABLE UID for phone users.
+  // Checks localStorage first (fast), then Firestore (cross-device).
   const checkPhone = async (rawPhone) => {
     const cleanPhone = rawPhone.replace(/\D/g, '');
     if (cleanPhone.length < 10) return { exists: false, profile: null };
-    const phoneKey = `phone_${cleanPhone}`;
 
-    // 1. Local cache check
+    // Stable UID for phone users — never changes
+    const stableUid = `phone_${cleanPhone}`;
+
+    // 1. Local cache check (instant, works offline)
     const students = getStudents();
     const localProfile =
-      students[phoneKey] ||
+      students[stableUid] ||
       Object.values(students).find(
         s => s.phone && s.phone.replace(/\D/g, '') === cleanPhone
       );
     if (localProfile) return { exists: true, profile: localProfile };
 
-    // 2. Firestore check (support both +91 prefix and raw 10-digit number)
+    // 2. Firestore check (cross-device, authoritative source)
     try {
-      const q1 = query(
-        collection(db, 'users'),
-        where('phone', '==', `+91${cleanPhone}`)
-      );
+      // First try stable UID direct lookup (fastest)
+      const directDoc = await getDoc(doc(db, 'users', stableUid));
+      if (directDoc.exists()) {
+        const profile = directDoc.data();
+        students[stableUid] = profile;
+        saveStudents(students);
+        return { exists: true, profile };
+      }
+
+      // Fallback: query by phone field (handles old timestamp UIDs)
+      const q1 = query(collection(db, 'users'), where('phone', '==', `+91${cleanPhone}`));
       let snap = await getDocs(q1);
       if (snap.empty) {
-        const q2 = query(
-          collection(db, 'users'),
-          where('phone', '==', cleanPhone)
-        );
+        const q2 = query(collection(db, 'users'), where('phone', '==', cleanPhone));
         snap = await getDocs(q2);
       }
       if (!snap.empty) {
         const profile = snap.docs[0].data();
-        // Cache locally for speed next time
+        students[stableUid] = profile;
         students[profile.uid] = profile;
-        students[phoneKey] = profile;
         saveStudents(students);
         return { exists: true, profile };
       }
@@ -252,48 +271,93 @@ export function AuthProvider({ children }) {
   };
 
   // ── PHONE: Direct login / registration (NO OTP, NO SMS) ───────────────
-  // New user  → creates account, saves profile, triggers CompleteProfileModal
-  // Existing user → loads saved profile, logs in immediately
+  // New user  → saves minimal profile → triggers CompleteProfileModal (name/gender/dob/exam)
+  // Old user  → restores full profile → goes straight to dashboard with all data intact
   const loginWithPhone = async (rawPhone) => {
     const cleanPhone = rawPhone.replace(/\D/g, '');
+    const stableUid = `phone_${cleanPhone}`; // permanent, never changes
+
     const { exists, profile: existingProfile } = await checkPhone(cleanPhone);
 
     if (exists && existingProfile) {
-      // ── Returning user: restore session ──────────────────────────────
+      // ── Returning user: restore full saved session ────────────────────
       const refreshed = {
         ...existingProfile,
+        uid: existingProfile.uid || stableUid, // ensure uid is set
+        phone: existingProfile.phone || `+91${cleanPhone}`,
         lastLoginAt: new Date().toISOString(),
+        // Keep profileCompleted as-is — don't reset it
+        profileCompleted: existingProfile.profileCompleted,
       };
       const students = getStudents();
-      students[existingProfile.uid] = refreshed;
-      students[`phone_${cleanPhone}`] = refreshed;
+      students[stableUid] = refreshed;
+      students[refreshed.uid] = refreshed;
       saveStudents(students);
       setUser(refreshed);
       try {
-        await setDoc(doc(db, 'users', existingProfile.uid), refreshed, { merge: true });
+        await setDoc(doc(db, 'users', refreshed.uid), { lastLoginAt: refreshed.lastLoginAt }, { merge: true });
       } catch (e) {
         console.warn('Firestore login refresh failed:', e);
       }
       return { isNew: false, profile: refreshed };
     }
 
-    // ── New user: create minimal profile ─────────────────────────────
-    const uid = `phone_${cleanPhone}_${Date.now()}`;
-    const newProfile = await saveStudentProfile(
-      {
-        uid,
-        displayName: '',
+    // ── Brand-new user: create minimal profile with stable UID ──────────
+    // profileCompleted = false → triggers CompleteProfileModal automatically
+    const minimalProfile = {
+      uid: stableUid,
+      name: '',
+      email: '',
+      phone: `+91${cleanPhone}`,
+      phoneNumber: `+91${cleanPhone}`,
+      photoURL: '',
+      loginType: 'mobile',
+      avatar: '📱',
+      role: 'student',
+      plan: 'pro',
+      gender: '',
+      dob: '',
+      targetExam: 'upsc',
+      profileCompleted: false,   // ← this is what triggers the profile setup modal
+      evaluationsLeft: 9999,
+      teacherReviewsLeft: 5,
+      verificationStatus: 'approved',
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+    };
+
+    const students = getStudents();
+    students[stableUid] = minimalProfile;
+    saveStudents(students);
+    setUser(minimalProfile);
+
+    // Admin inbox notification (first-time registration)
+    const inbox = getInbox();
+    const alreadyInInbox = inbox.some(r => r.uid === stableUid);
+    if (!alreadyInInbox) {
+      const newReq = {
+        id: stableUid,
+        uid: stableUid,
+        name: 'New Phone Aspirant',
         email: '',
-        phoneNumber: `+91${cleanPhone}`,
-      },
-      {
-        loginType: 'mobile',
-        avatar: '📱',
         phone: `+91${cleanPhone}`,
-        uid,
-      }
-    );
-    return { isNew: true, profile: newProfile };
+        loginType: 'mobile',
+        requestedAt: new Date().toISOString(),
+        status: 'pending',
+      };
+      const updatedInbox = [newReq, ...inbox];
+      saveInbox(updatedInbox);
+      setAdminInbox(updatedInbox);
+    }
+
+    // Save to Firestore
+    try {
+      await setDoc(doc(db, 'users', stableUid), minimalProfile, { merge: true });
+    } catch (e) {
+      console.warn('Firestore new phone user save failed:', e);
+    }
+
+    return { isNew: true, profile: minimalProfile };
   };
 
   // ── EMAIL SIGNUP ──────────────────────────────────────────────────────
