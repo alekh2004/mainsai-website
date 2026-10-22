@@ -933,3 +933,59 @@ input[type="range"] {
   border-radius: 9999px;
   outline: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ACETERNITY & SKIPER UI VIRAL ANIMATION STYLES
+═══════════════════════════════════════════════════════════════ */
+
+/* Moving border beam animation */
+@keyframes movingBorder {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-moving-border {
+  background-size: 300% 300%;
+  animation: movingBorder 4s linear infinite;
+}
+
+/* Shimmering Text Gradient (Instagram / Linear style) */
+@keyframes textShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 1) 25%,
+    rgba(251, 191, 36, 1) 50%,
+    rgba(255, 255, 255, 1) 75%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textShimmer 4s linear infinite;
+}
+
+/* Aurora multi-color heading */
+.aurora-gradient-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 3D Perspective Preservation */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Smooth Scrolling Physics */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+

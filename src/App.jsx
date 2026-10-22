@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/common/Navbar';
 import { MobileNav } from './components/common/MobileNav';
 import { DashboardSidebar } from './components/common/DashboardSidebar';
+import { ScrollProgressBar } from './components/animations/ScrollProgressBar';
 
 import { AuthModal } from './components/auth/AuthModal';
 import { ApiKeyModal } from './components/common/ApiKeyModal';
@@ -37,6 +38,8 @@ function MainAppContent() {
   const { user, setShowPayModal: openPayModal } = useAuth();
   const { activeMode, language, adminQuestions, evaluations, examStage } = useApp();
   const isHi = language === 'hi';
+
+  const scrollContainerRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState('home');
   const [selectedPaper, setSelectedPaper] = useState(null);
@@ -144,7 +147,9 @@ function MainAppContent() {
           />
 
           {/* Content Area */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          <div ref={scrollContainerRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto smooth-scroll relative">
+            {/* Top Glowing Scroll Progress Bar */}
+            <ScrollProgressBar containerRef={scrollContainerRef} />
 
             {/* Main Content */}
             <main className={`flex-1 w-full py-6 pb-24 md:pb-12 space-y-6 mx-auto ${

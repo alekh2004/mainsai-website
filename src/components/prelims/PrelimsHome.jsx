@@ -4,6 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import {
   FileText, BookOpen, ChevronRight, Diamond, Lock
 } from 'lucide-react';
+import { AceternityCard } from '../animations/AceternityCard';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 export function PrelimsHome({ onSelectAction }) {
   const { activeExam, language } = useApp();
@@ -61,13 +64,14 @@ export function PrelimsHome({ onSelectAction }) {
   return (
     <div className="w-full space-y-6 animate-fadeIn max-w-4xl mx-auto pb-10">
 
-      {/* Hero Banner */}
+      {/* Hero Banner with Aceternity Aurora Lamp */}
       <div
-        className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8 flex flex-col justify-end"
+        className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8 flex flex-col justify-end group"
         style={{
           minHeight: '230px',
         }}
       >
+        <AuroraLamp intensity="medium" />
         <div
           className="absolute inset-0 bg-cover bg-center transition-all duration-700"
           style={{ backgroundImage: 'url(/prelims_hero.png)' }}
@@ -80,7 +84,7 @@ export function PrelimsHome({ onSelectAction }) {
           <span className="inline-block px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/50 text-xs font-extrabold uppercase tracking-wider backdrop-blur-md">
             {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE Prelims Zone' : '🏛️ UPSC Prelims 2026 Zone'}
           </span>
-          <h2 className="text-2xl md:text-3xl font-black m-0 leading-tight text-white drop-shadow-md">
+          <h2 className="text-2xl md:text-3xl font-black m-0 leading-tight text-white drop-shadow-md shimmer-text">
             {activeExam === 'bpsc' ? 'BPSC 72nd CCE Command' : 'UPSC Prelims 2026 Command'}
           </h2>
           <p className="text-xs md:text-sm text-slate-100 font-medium leading-relaxed m-0 drop-shadow">
@@ -90,59 +94,63 @@ export function PrelimsHome({ onSelectAction }) {
         </div>
       </div>
 
-      {/* Action Cards */}
+      {/* Action Cards with Skiper Stagger & Aceternity 3D Tilt */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {actionCards.map(card => {
+        {actionCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div
-              key={card.id}
-              onClick={() => onSelectAction(card.id)}
-              className={`relative overflow-hidden glass-card-clean glass-card-hover p-5 rounded-3xl border cursor-pointer transition-all group text-left ${
-                card.locked ? 'opacity-75' : ''
-              }`}
-              style={{ borderColor: card.locked ? 'rgba(245,158,11,0.3)' : 'var(--glass-border)' }}
-            >
-              {/* Gradient tint */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-50 pointer-events-none`} />
-
-              {card.locked && (
-                <div className="absolute top-3 right-3 z-10">
-                  <Lock className="w-4 h-4 text-amber-500" />
-                </div>
-              )}
-
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center ${card.iconBg}`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl border"
-                    style={{ background: `${card.accentColor}18`, color: card.accentColor, borderColor: `${card.accentColor}30` }}
-                  >
-                    {card.badge}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
-                    {card.title}
-                  </h3>
-                  <p className="text-[11px] font-medium mt-1.5 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                    {card.desc}
-                  </p>
-                </div>
-
+            <ScrollReveal key={card.id} direction="up" delay={i * 80}>
+              <AceternityCard
+                onClick={() => onSelectAction(card.id)}
+                spotlightColor={`${card.accentColor}25`}
+                className={`cursor-pointer group text-left ${card.locked ? 'opacity-75' : ''}`}
+              >
                 <div
-                  className="flex items-center text-xs font-black group-hover:translate-x-1 transition-transform"
-                  style={{ color: card.accentColor }}
+                  className="relative overflow-hidden glass-card-clean glass-card-hover p-5 rounded-3xl border transition-all h-full"
+                  style={{ borderColor: card.locked ? 'rgba(245,158,11,0.3)' : 'var(--glass-border)' }}
                 >
-                  <span>{card.cta}</span>
-                  <ChevronRight className="w-4 h-4 ml-0.5" />
+                  {/* Gradient tint */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-50 pointer-events-none`} />
+
+                  {card.locked && (
+                    <div className="absolute top-3 right-3 z-10">
+                      <Lock className="w-4 h-4 text-amber-500" />
+                    </div>
+                  )}
+
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center ${card.iconBg}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span
+                        className="text-[10px] font-extrabold px-2.5 py-1 rounded-xl border"
+                        style={{ background: `${card.accentColor}18`, color: card.accentColor, borderColor: `${card.accentColor}30` }}
+                      >
+                        {card.badge}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-black m-0" style={{ color: 'var(--text-primary)' }}>
+                        {card.title}
+                      </h3>
+                      <p className="text-[11px] font-medium mt-1.5 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        {card.desc}
+                      </p>
+                    </div>
+
+                    <div
+                      className="flex items-center text-xs font-black group-hover:translate-x-1 transition-transform"
+                      style={{ color: card.accentColor }}
+                    >
+                      <span>{card.cta}</span>
+                      <ChevronRight className="w-4 h-4 ml-0.5" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </AceternityCard>
+            </ScrollReveal>
           );
         })}
       </div>

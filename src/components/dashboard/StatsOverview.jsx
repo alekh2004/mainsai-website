@@ -6,6 +6,10 @@ import {
   Flame, Layers, BookOpen,
   Zap, Award, ArrowRight, Youtube, Bell, Star
 } from 'lucide-react';
+import { AnimatedNumber } from '../animations/AnimatedNumber';
+import { AceternityCard } from '../animations/AceternityCard';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 function tagBadge(tag) {
   const t = (tag || '').toLowerCase();
@@ -124,15 +128,12 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   const slide = HERO_SLIDES[slideIdx];
 
   return (
-    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000" style={{ minHeight: '260px' }}>
+    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group" style={{ minHeight: '260px' }}>
+      {/* Aceternity Aurora Lamp Glow */}
+      <AuroraLamp intensity="medium" />
+
       {/* Dynamic Responsive Image Background with aspect-ratio-aware object-position */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
-        {/*
-          We render TWO img elements controlled by CSS display:
-          - .hero-mobile-img  → visible only on mobile (<768px)
-          - .hero-desktop-img → visible only on desktop (≥768px)
-          Each gets the correct src AND correct object-position for its viewport.
-        */}
         {/* Mobile image */}
         <img
           key={`${slide.id}-mobile`}
@@ -195,18 +196,13 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
           </span>
         </div>
 
-        {/* Greeting & Aspirant Name (Coffee emoji removed) */}
+        {/* Greeting & Aspirant Name with Shimmer text */}
         <div>
           <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-1" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
             {greeting},
           </h2>
           <h2
-            className="text-3xl md:text-4xl font-black leading-tight mb-2"
-            style={{
-              background: 'linear-gradient(90deg, #fbbf24, #fb923c)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
+            className="text-3xl md:text-4xl font-black leading-tight mb-2 shimmer-text"
           >
             {user?.name?.split(' ')[0] || 'Alekh'}
           </h2>
@@ -221,25 +217,25 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
         <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
               style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}
             >
-              <Trophy className="w-3.5 h-3.5" />
-              <span>{totalCount} {isHi ? 'टेस्ट' : 'Tests'}</span>
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span><AnimatedNumber value={totalCount} /> {isHi ? 'टेस्ट' : 'Tests'}</span>
             </div>
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
               style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#4ade80' }}
             >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>{safeAvgPct}% {isHi ? 'औसत' : 'Avg'}</span>
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              <span><AnimatedNumber value={safeAvgPct} suffix="%" /> {isHi ? 'औसत' : 'Avg'}</span>
             </div>
             {totalCount > 0 && (
               <div
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
                 style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa' }}
               >
-                <Zap className="w-3.5 h-3.5" />
+                <Zap className="w-3.5 h-3.5 text-violet-400" />
                 <span>{percentile}</span>
               </div>
             )}
@@ -360,198 +356,227 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
 
 
       {/* ── 2. STUDY TOOLS ── */}
-      <div>
-        <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-          {isHi ? 'अध्ययन उपकरण' : 'Study Tools'}
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Flashcards */}
-          <div
-            onClick={() => onOpenFlashcards?.()}
-            className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 cursor-pointer group space-y-3"
-            style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.08))' }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md"
-                style={{ background: 'linear-gradient(135deg, #2563eb, #6366f1)', color: '#fff' }}>
-                <Layers className="w-5 h-5" />
+      <ScrollReveal direction="up" delay={80}>
+        <div>
+          <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+            <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+            <span>{isHi ? 'अध्ययन उपकरण' : 'AI Study Tools'}</span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Flashcards */}
+            <AceternityCard
+              onClick={() => onOpenFlashcards?.()}
+              spotlightColor="rgba(59, 130, 246, 0.2)"
+              className="cursor-pointer group"
+            >
+              <div
+                className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 space-y-3 h-full"
+                style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.08))' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md"
+                    style={{ background: 'linear-gradient(135deg, #2563eb, #6366f1)', color: '#fff' }}>
+                    <Layers className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> 3D Flip Cards
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-black m-0 group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                    {isHi ? 'फ्लैशकार्ड रिवीजन' : 'Flashcards Revision'}
+                  </h4>
+                  <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    {isHi ? 'टॉपिक चुनें → 5-20 3D कार्ड' : 'Select topic → 5-20 interactive 3D flip cards'}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+                  <span>{isHi ? 'खोलें' : 'Open Flashcards'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
-              <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 flex items-center gap-1">
-                <Zap className="w-3 h-3" /> 3D Flip Cards
-              </span>
-            </div>
-            <div>
-              <h4 className="text-sm font-black m-0 group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'फ्लैशकार्ड रिवीजन' : 'Flashcards Revision'}
-              </h4>
-              <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'टॉपिक चुनें → 5-20 3D कार्ड' : 'Select topic → 5-20 interactive 3D flip cards'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-              <span>{isHi ? 'खोलें' : 'Open Flashcards'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </div>
-          </div>
+            </AceternityCard>
 
-          {/* Mains Notes */}
-          <div
-            onClick={() => onOpenMainsNotes?.()}
-            className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 cursor-pointer group space-y-3"
-            style={{ background: 'linear-gradient(135deg, rgba(5,150,105,0.06), rgba(16,185,129,0.08))' }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md"
-                style={{ background: 'linear-gradient(135deg, #059669, #10b981)', color: '#fff' }}>
-                <BookOpen className="w-5 h-5" />
+            {/* Mains Notes */}
+            <AceternityCard
+              onClick={() => onOpenMainsNotes?.()}
+              spotlightColor="rgba(16, 185, 129, 0.2)"
+              className="cursor-pointer group"
+            >
+              <div
+                className="p-5 rounded-3xl glass-card-clean glass-card-hover border border-white/80 space-y-3 h-full"
+                style={{ background: 'linear-gradient(135deg, rgba(5,150,105,0.06), rgba(16,185,129,0.08))' }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-md"
+                    style={{ background: 'linear-gradient(135deg, #059669, #10b981)', color: '#fff' }}>
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
+                    <Award className="w-3 h-3" /> PDF Export
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-black m-0 group-hover:text-emerald-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                    {isHi ? 'मेन्स नोट्स + PYQ' : 'Mains Notes & PYQ'}
+                  </h4>
+                  <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    {isHi ? 'टॉपिक टाइप करें → नोट्स + PYQ + PDF' : 'Type topic → Notes + exact PYQs + PDF download'}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-xs font-bold text-emerald-600 group-hover:translate-x-1 transition-transform">
+                  <span>{isHi ? 'नोट्स बनाएं' : 'Generate Notes'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
-              <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 flex items-center gap-1">
-                <Award className="w-3 h-3" /> PDF Export
-              </span>
-            </div>
-            <div>
-              <h4 className="text-sm font-black m-0 group-hover:text-emerald-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'मेन्स नोट्स + PYQ' : 'Mains Notes & PYQ'}
-              </h4>
-              <p className="text-xs font-medium mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'टॉपिक टाइप करें → नोट्स + PYQ + PDF' : 'Type topic → Notes + exact PYQs + PDF download'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-xs font-bold text-emerald-600 group-hover:translate-x-1 transition-transform">
-              <span>{isHi ? 'नोट्स बनाएं' : 'Generate Notes'}</span>
-              <ArrowRight className="w-4 h-4" />
-            </div>
+            </AceternityCard>
           </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* ── 3. QUICK SHORTCUTS ── */}
-      <div>
-        <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3" style={{ color: 'var(--text-secondary)' }}>
-          {isHi ? 'शॉर्टकट्स' : 'Quick Shortcuts'}
-        </h4>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Smart Test */}
-          <button
-            onClick={() => onQuickAction?.('ai_test')}
-            className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 text-left space-y-2 group"
-          >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgb(var(--accent)/0.15)', color: 'rgb(var(--accent))' }}>
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-extrabold group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'स्मार्ट प्रश्न टेस्ट' : 'Smart Question Test'}
+      <ScrollReveal direction="up" delay={160}>
+        <div>
+          <h4 className="text-xs font-extrabold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span>{isHi ? 'शॉर्टकट्स' : 'Quick Shortcuts'}</span>
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Smart Test */}
+            <AceternityCard
+              onClick={() => onQuickAction?.('ai_test')}
+              spotlightColor="rgba(59, 130, 246, 0.18)"
+              className="cursor-pointer group"
+            >
+              <div className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 text-left space-y-2 h-full">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: 'rgb(var(--accent)/0.15)', color: 'rgb(var(--accent))' }}>
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-extrabold group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                    {isHi ? 'स्मार्ट प्रश्न टेस्ट' : 'Smart Question Test'}
+                  </div>
+                  <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    {isHi ? 'प्रश्न चुनें और उत्तर जमा करें' : 'Pick a question & submit answer'}
+                  </div>
+                </div>
               </div>
-              <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                {isHi ? 'प्रश्न चुनें और उत्तर जमा करें' : 'Pick a question & submit answer'}
-              </div>
-            </div>
-          </button>
+            </AceternityCard>
 
-          {/* Teacher / Student action */}
-          {user?.role === 'teacher' || user?.role === 'admin' ? (
-            <button
-              onClick={() => onQuickAction?.('teacher')}
-              className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-purple-500/30 text-left space-y-2 group bg-purple-500/5"
-            >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-500/20 text-purple-600">
-                <Flame className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-extrabold group-hover:text-purple-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                  {isHi ? 'शिक्षक चेकिंग पोर्टल' : 'Faculty Checking Portal'}
+            {/* Teacher / Student action */}
+            {user?.role === 'teacher' || user?.role === 'admin' ? (
+              <AceternityCard
+                onClick={() => onQuickAction?.('teacher')}
+                spotlightColor="rgba(168, 85, 247, 0.22)"
+                className="cursor-pointer group"
+              >
+                <div className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-purple-500/30 text-left space-y-2 bg-purple-500/5 h-full">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-500/20 text-purple-600">
+                    <Flame className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-extrabold group-hover:text-purple-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                      {isHi ? 'शिक्षक चेकिंग पोर्टल' : 'Faculty Checking Portal'}
+                    </div>
+                    <div className="text-[10px] font-medium text-purple-600">
+                      {isHi ? 'छात्रों की कॉपियां जांचें' : 'Grade pending student copies'}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[10px] font-medium text-purple-600">
-                  {isHi ? 'छात्रों की कॉपियां जांचें' : 'Grade pending student copies'}
+              </AceternityCard>
+            ) : (
+              <AceternityCard
+                onClick={() => onQuickAction?.('teacher')}
+                spotlightColor="rgba(168, 85, 247, 0.18)"
+                className="cursor-pointer group"
+              >
+                <div className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 text-left space-y-2 h-full">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-500/15 text-purple-600">
+                    <Flame className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-extrabold group-hover:text-purple-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                      {isHi ? 'शिक्षक मूल्यांकन अनुरोध' : 'Request Teacher Check'}
+                    </div>
+                    <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                      {isHi ? 'कॉपी अपलोड कर शिक्षक को भेजें' : 'Upload copy for faculty review'}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ) : (
-            <button
-              onClick={() => onQuickAction?.('teacher')}
-              className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 text-left space-y-2 group"
-            >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-500/15 text-purple-600">
-                <Flame className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-extrabold group-hover:text-purple-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                  {isHi ? 'शिक्षक मूल्यांकन अनुरोध' : 'Request Teacher Check'}
-                </div>
-                <div className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                  {isHi ? 'कॉपी अपलोड कर शिक्षक को भेजें' : 'Upload copy for faculty review'}
-                </div>
-              </div>
-            </button>
-          )}
+              </AceternityCard>
+            )}
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* ── 4. RECENT EVALUATIONS ── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-xs font-extrabold uppercase tracking-wider m-0" style={{ color: 'var(--text-secondary)' }}>
-            {isHi ? 'हाल के मूल्यांकन' : 'Recent Evaluations'}
-          </h4>
-          <button
-            onClick={() => onQuickAction?.('history')}
-            className="text-xs font-bold underline hover:opacity-80"
-            style={{ color: 'rgb(var(--accent))' }}
-          >
-            {isHi ? 'सभी देखें' : 'View All'}
-          </button>
+      <ScrollReveal direction="up" delay={220}>
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider m-0" style={{ color: 'var(--text-secondary)' }}>
+              {isHi ? 'हाल के मूल्यांकन' : 'Recent Evaluations'}
+            </h4>
+            <button
+              onClick={() => onQuickAction?.('history')}
+              className="text-xs font-bold underline hover:opacity-80"
+              style={{ color: 'rgb(var(--accent))' }}
+            >
+              {isHi ? 'सभी देखें' : 'View All'}
+            </button>
+          </div>
+          {recentList.length === 0 ? (
+            <div className="p-6 text-center rounded-3xl glass-card-clean border border-dashed border-white/40">
+              <p className="text-xs font-medium m-0" style={{ color: 'var(--text-secondary)' }}>
+                {isHi ? 'अभी तक कोई मूल्यांकन नहीं। पहला उत्तर अपलोड करें!' : 'No evaluations yet. Upload your first answer sheet!'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentList.map((item, idx) => (
+                <div
+                  key={item.id || item.queueId || `eval-${idx}`}
+                  onClick={() => onViewEvaluation?.(item)}
+                  className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 flex items-center justify-between gap-3 cursor-pointer group transition-transform duration-200 hover:-translate-y-0.5"
+                >
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg"
+                        style={{ background: 'rgb(var(--accent)/0.12)', color: 'rgb(var(--accent))' }}
+                      >
+                        {item.paper || 'GS'}
+                      </span>
+                      <span className="text-[10px] opacity-60 font-mono" style={{ color: 'var(--text-secondary)' }}>
+                        {formatDateSafe(item.createdAt)}
+                      </span>
+                    </div>
+                    <h5 className="text-xs font-extrabold m-0 truncate group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
+                      {item.questionTitle || item.paper}
+                    </h5>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right">
+                      <span className="text-sm font-black" style={{ color: 'rgb(var(--accent))' }}>
+                        {item.score != null ? item.score : '-'} <span className="text-[10px] opacity-60">/ {item.maxMarks}</span>
+                      </span>
+                      <span className={`block text-[9px] font-extrabold uppercase px-2 py-0.5 rounded ${tagBadge(item.tag)}`}>
+                        {item.tag || 'Checked'}
+                      </span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        {recentList.length === 0 ? (
-          <div className="p-6 text-center rounded-3xl glass-card-clean border border-dashed border-white/40">
-            <p className="text-xs font-medium m-0" style={{ color: 'var(--text-secondary)' }}>
-              {isHi ? 'अभी तक कोई मूल्यांकन नहीं। पहला उत्तर अपलोड करें!' : 'No evaluations yet. Upload your first answer sheet!'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {recentList.map((item, idx) => (
-              <div
-                key={item.id || item.queueId || `eval-${idx}`}
-                onClick={() => onViewEvaluation?.(item)}
-                className="p-4 rounded-2xl glass-card-clean glass-card-hover border border-white/60 flex items-center justify-between gap-3 cursor-pointer group"
-              >
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg"
-                      style={{ background: 'rgb(var(--accent)/0.12)', color: 'rgb(var(--accent))' }}
-                    >
-                      {item.paper || 'GS'}
-                    </span>
-                    <span className="text-[10px] opacity-60 font-mono" style={{ color: 'var(--text-secondary)' }}>
-                      {formatDateSafe(item.createdAt)}
-                    </span>
-                  </div>
-                  <h5 className="text-xs font-extrabold m-0 truncate group-hover:text-blue-600 transition-colors" style={{ color: 'var(--text-primary)' }}>
-                    {item.questionTitle || item.paper}
-                  </h5>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="text-right">
-                    <span className="text-sm font-black" style={{ color: 'rgb(var(--accent))' }}>
-                      {item.score != null ? item.score : '-'} <span className="text-[10px] opacity-60">/ {item.maxMarks}</span>
-                    </span>
-                    <span className={`block text-[9px] font-extrabold uppercase px-2 py-0.5 rounded ${tagBadge(item.tag)}`}>
-                      {item.tag || 'Checked'}
-                    </span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      </ScrollReveal>
 
       {/* ── 5. YOUTUBE + UPCOMING ── */}
-      <AnnouncementsWidget isHi={isHi} />
+      <ScrollReveal direction="up" delay={280}>
+        <AnnouncementsWidget isHi={isHi} />
+      </ScrollReveal>
 
     </div>
   );
