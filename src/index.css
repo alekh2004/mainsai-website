@@ -1010,20 +1010,32 @@ input[type="range"] {
   100% { transform: translateY(-100vh) translateX(40px) scale(0.5); opacity: 0; }
 }
 
-/* Magnetic button hover */
-@keyframes magneticPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
-  50%       { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+/* Smooth Page Transitions (No cut-to-cut jerky rendering) */
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+.page-transition {
+  animation: pageSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Subtle magnetic button interaction without harsh neon pulse */
 .magnetic-btn {
-  animation: magneticPulse 2.5s ease-in-out infinite;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 .magnetic-btn:hover {
-  transform: scale(1.04) translateY(-2px);
+  transform: translateY(-1.5px) scale(1.015);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.18);
 }
 .magnetic-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.985);
 }
 
 /* Sticky card stack effect */

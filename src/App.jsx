@@ -59,6 +59,13 @@ function MainAppContent() {
   const [selectedAttemptQuestion, setSelectedAttemptQuestion] = useState(null);
   const [activeEvaluationResult, setActiveEvaluationResult] = useState(null);
 
+  // Smooth scroll to top when switching tabs
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]);
+
   // Detect if user logged in via Phone / OAuth but has incomplete name/dob/gender
   const isProfileIncomplete = Boolean(
     user && (
@@ -158,79 +165,81 @@ function MainAppContent() {
                 : 'px-4 lg:px-8 max-w-5xl'
             }`}>
 
-              {activeTab === 'prelims' && (
-                <div className="animate-fadeIn">
-                  <PrelimsHub
-                    onTestStart={() => setIsTestActive(true)}
-                    onTestEnd={() => setIsTestActive(false)}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'home' && (
-                <div className="animate-fadeIn">
-                  <StatsOverview
-                    onQuickAction={handleQuickActionFromHome}
-                    onViewEvaluation={(evalItem) => setActiveEvaluationResult(evalItem)}
-                    onOpenFlashcards={() => setShowFlashcardsModal(true)}
-                    onOpenMainsNotes={() => setShowMainsNotesModal(true)}
-                  />
-                </div>
-              )}
-
-              {activeTab === 'evaluate' && (
-                <div className="space-y-5 animate-fadeIn">
-                  {examStage === 'prelims' ? (
+              <div key={activeTab} className="page-transition w-full">
+                {activeTab === 'prelims' && (
+                  <div>
                     <PrelimsHub
                       onTestStart={() => setIsTestActive(true)}
                       onTestEnd={() => setIsTestActive(false)}
                     />
-                  ) : !selectedPaper ? (
-                    <>
-                      <ExamSelector />
-                      <PaperSelector onSelectPaper={setSelectedPaper} />
-                    </>
-                  ) : (
-                    <div className="space-y-5">
-                      <button
-                        onClick={() => setSelectedPaper(null)}
-                        className="glass-card-clean px-3.5 py-2 rounded-xl border border-white/40 text-xs font-bold flex items-center gap-1.5 transition-all hover:border-white/70"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
-                        {isHi ? 'पेपर चयन पर वापस' : 'Back to Paper Selection'}
-                      </button>
-                      <ModeSelector />
-                      {activeMode === 'ai_gen'
-                        ? <AiQuestionGenerator onAttemptQuestion={setSelectedAttemptQuestion} onGoBack={() => setSelectedPaper(null)} />
-                        : <ManualQuestionBank onAttemptQuestion={setSelectedAttemptQuestion} onOpenAdmin={() => setShowAdminModal(true)} onGoBack={() => setSelectedPaper(null)} />
-                      }
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
 
-              {activeTab === 'history' && (
-                <div className="animate-fadeIn">
-                  <ImprovementBook onGoBack={handleResetToHome} />
-                </div>
-              )}
+                {activeTab === 'home' && (
+                  <div>
+                    <StatsOverview
+                      onQuickAction={handleQuickActionFromHome}
+                      onViewEvaluation={(evalItem) => setActiveEvaluationResult(evalItem)}
+                      onOpenFlashcards={() => setShowFlashcardsModal(true)}
+                      onOpenMainsNotes={() => setShowMainsNotesModal(true)}
+                    />
+                  </div>
+                )}
 
-              {activeTab === 'insights' && (
-                <div className="animate-fadeIn">
-                  <InsightsView />
-                </div>
-              )}
+                {activeTab === 'evaluate' && (
+                  <div className="space-y-5">
+                    {examStage === 'prelims' ? (
+                      <PrelimsHub
+                        onTestStart={() => setIsTestActive(true)}
+                        onTestEnd={() => setIsTestActive(false)}
+                      />
+                    ) : !selectedPaper ? (
+                      <>
+                        <ExamSelector />
+                        <PaperSelector onSelectPaper={setSelectedPaper} />
+                      </>
+                    ) : (
+                      <div className="space-y-5">
+                        <button
+                          onClick={() => setSelectedPaper(null)}
+                          className="glass-card-clean px-3.5 py-2 rounded-xl border border-white/40 text-xs font-bold flex items-center gap-1.5 transition-all hover:border-white/70"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          <ArrowLeft className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
+                          {isHi ? 'पेपर चयन पर वापस' : 'Back to Paper Selection'}
+                        </button>
+                        <ModeSelector />
+                        {activeMode === 'ai_gen'
+                          ? <AiQuestionGenerator onAttemptQuestion={setSelectedAttemptQuestion} onGoBack={() => setSelectedPaper(null)} />
+                          : <ManualQuestionBank onAttemptQuestion={setSelectedAttemptQuestion} onOpenAdmin={() => setShowAdminModal(true)} onGoBack={() => setSelectedPaper(null)} />
+                        }
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {activeTab === 'profile' && (
-                <div className="animate-fadeIn">
-                  <ProfileView
-                    onOpenSubscription={() => openPayModal(true)}
-                    onOpenSettings={() => setShowApiKeyModal(true)}
-                    onOpenEditProfile={() => setShowEditProfileModal(true)}
-                  />
-                </div>
-              )}
+                {activeTab === 'history' && (
+                  <div>
+                    <ImprovementBook onGoBack={handleResetToHome} />
+                  </div>
+                )}
+
+                {activeTab === 'insights' && (
+                  <div>
+                    <InsightsView />
+                  </div>
+                )}
+
+                {activeTab === 'profile' && (
+                  <div>
+                    <ProfileView
+                      onOpenSubscription={() => openPayModal(true)}
+                      onOpenSettings={() => setShowApiKeyModal(true)}
+                      onOpenEditProfile={() => setShowEditProfileModal(true)}
+                    />
+                  </div>
+                )}
+              </div>
 
             </main>
 

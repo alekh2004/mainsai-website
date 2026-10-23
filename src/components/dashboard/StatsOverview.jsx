@@ -41,23 +41,6 @@ function getTimeGreeting(isHi) {
   return isHi ? 'शुभरात्रि' : 'Good Night';
 }
 
-// ── Static background slides ─────────────────────────────────────────────
-// Slide 1: parliament_cartoon_hero (landscape/desktop art) — ALWAYS FIRST (12 sec)
-// Slides 2+: gender-personalized boy/girl images
-const BG_SLIDES = [
-  {
-    id: 'parliament_cartoon_hero',
-    title: 'ET Academy Parliament Hero',
-    tagHi: '🏛️ संसद भवन — सपनों की नींव',
-    tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
-    desktopBg: '/parliament_cartoon_hero_desktop.jpg',
-    mobileBg: '/parliament_cartoon_hero_desktop.jpg', // landscape only — cropped nicely on mobile via object-position
-    useKenBurns: true,
-    mobileObjectPosition: 'center 30%',  // show upper half on mobile (boy's face + building)
-    desktopObjectPosition: 'center center',
-  },
-];
-
 // ── Detect gender from user profile ──────────────────────────────────────
 function detectGender(user) {
   if (!user) return 'male';
@@ -83,49 +66,60 @@ function detectGender(user) {
 function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
   const gender = detectGender(user);
 
-  // Gender-specific slides: shown AFTER parliament_cartoon_hero
-  const genderSlides = gender === 'female'
-    ? [
-        {
-          id: 'girl_hero',
-          title: 'ET Academy Girl Aspirant',
-          tagHi: '🌟 हर लड़की IAS बन सकती है',
-          tagEn: '🌟 Every Girl Can Become an IAS Officer',
-          desktopBg: '/hero_girl_desktop.jpg',         // landscape — desktop
-          mobileBg: '/hero_girl_mobile.jpg',           // portrait — mobile
-          useKenBurns: true,
-          mobileObjectPosition: 'center center',
-          desktopObjectPosition: 'center center',
-        }
-      ]
-    : [
-        {
-          id: 'boy_hero',
-          title: 'ET Academy Boy Aspirant',
-          tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
-          tagEn: '🎓 Dream Big. Work Hard. Succeed.',
-          desktopBg: '/hero_boy_mobile.jpg',           // portrait — use object-position on desktop
-          mobileBg: '/hero_boy_mobile.jpg',            // portrait — correct on mobile
-          useKenBurns: true,
-          mobileObjectPosition: 'center center',
-          desktopObjectPosition: 'center 20%',        // show top portion (face) on desktop
-        }
-      ];
+  const parliamentSlide = {
+    id: 'parliament_cartoon_hero',
+    title: 'ET Academy Parliament Hero',
+    tagHi: '🏛️ संसद भवन — सपनों की नींव',
+    tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+    desktopBg: '/parliament_cartoon_hero_desktop.jpg',
+    mobileBg: '/parliament_cartoon_hero_desktop.jpg',
+    useKenBurns: true,
+    mobileObjectPosition: 'center 30%',
+    desktopObjectPosition: 'center center',
+  };
 
-  const HERO_SLIDES = [...BG_SLIDES, ...genderSlides];
+  const girlSlide = {
+    id: 'girl_hero',
+    title: 'ET Academy Girl Aspirant',
+    tagHi: '🌟 हर लड़की IAS बन सकती है',
+    tagEn: '🌟 Every Girl Can Become an IAS Officer',
+    desktopBg: '/hero_girl_desktop.jpg',
+    mobileBg: '/hero_girl_mobile.jpg',
+    useKenBurns: true,
+    mobileObjectPosition: 'center center',
+    desktopObjectPosition: 'center center',
+  };
+
+  const boySlide = {
+    id: 'boy_hero',
+    title: 'ET Academy Boy Aspirant',
+    tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
+    tagEn: '🎓 Dream Big. Work Hard. Succeed.',
+    desktopBg: '/hero_boy_mobile.jpg',
+    mobileBg: '/hero_boy_mobile.jpg',
+    useKenBurns: true,
+    mobileObjectPosition: 'center center',
+    desktopObjectPosition: 'center 20%',
+  };
+
+  // For Male: Parliament Hero Boy (landscape) is strictly FIRST (index 0).
+  // For Female: Girl Hero Aspirant is FIRST (index 0), followed by Parliament Hero.
+  const HERO_SLIDES = gender === 'female'
+    ? [girlSlide, parliamentSlide]
+    : [parliamentSlide, boySlide];
 
   const [slideIdx, setSlideIdx] = useState(0);
 
   useEffect(() => {
-    // Gender slide stays 12 seconds; others stay 5 seconds
-    const slideDuration = slideIdx === 0 ? 12000 : 5000;
+    // Primary slide stays 12 seconds; secondary slide stays 6 seconds
+    const slideDuration = slideIdx === 0 ? 12000 : 6000;
     const timer = setTimeout(() => {
       setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
     }, slideDuration);
     return () => clearTimeout(timer);
-  }, [slideIdx]);
+  }, [slideIdx, HERO_SLIDES.length]);
 
-  const slide = HERO_SLIDES[slideIdx];
+  const slide = HERO_SLIDES[slideIdx] || HERO_SLIDES[0];
 
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group" style={{ minHeight: '260px' }}>
@@ -249,7 +243,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
               onClick={() => setSlideIdx(idx)}
               className={`h-2 rounded-full transition-all duration-300 ${
                 idx === slideIdx
-                  ? 'w-6 ' + (idx === 0 ? 'bg-pink-400' : 'bg-amber-400')
+                  ? 'w-6 ' + (gender === 'female' && idx === 0 ? 'bg-pink-400' : 'bg-amber-400')
                   : 'w-2 bg-white/40 hover:bg-white/70'
               }`}
               title={s.title}

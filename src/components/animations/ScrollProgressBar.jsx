@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
 /**
- * Neon Glowing Scroll Progress Bar — works on BOTH mobile and desktop.
- * Tracks window scroll (document.documentElement) for mobile compatibility.
+ * Sleek, Elegant Scroll Progress Bar
+ * - Subtle, clean accent bar on top (2px)
+ * - Tracks document scroll for phones and scroll containers for desktop
  */
 export function ScrollProgressBar({ containerRef = null }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const updateProgress = () => {
-      // Try container ref first (desktop), fallback to window (mobile)
       let current, total;
       const el = containerRef?.current;
       if (el && el.scrollHeight > el.clientHeight) {
@@ -24,7 +24,6 @@ export function ScrollProgressBar({ containerRef = null }) {
       setProgress(pct);
     };
 
-    // Listen on both container and window
     const el = containerRef?.current;
     if (el) el.addEventListener('scroll', updateProgress, { passive: true });
     window.addEventListener('scroll', updateProgress, { passive: true });
@@ -35,17 +34,19 @@ export function ScrollProgressBar({ containerRef = null }) {
     };
   }, [containerRef]);
 
+  if (progress <= 0) return null;
+
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[9999] h-[3px] pointer-events-none"
-      style={{ background: 'rgba(0,0,0,0.08)' }}
+      className="fixed top-0 left-0 right-0 z-[9999] h-[2px] pointer-events-none"
+      style={{ background: 'transparent' }}
     >
       <div
         style={{
           height: '100%',
           width: `${progress}%`,
-          background: 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)',
-          boxShadow: '0 0 12px rgba(139, 92, 246, 0.8), 0 0 24px rgba(99, 102, 241, 0.4)',
+          background: 'linear-gradient(90deg, rgb(var(--accent)), #6366f1)',
+          boxShadow: '0 1px 6px rgba(99, 102, 241, 0.35)',
           transition: 'width 0.1s linear',
         }}
       />
