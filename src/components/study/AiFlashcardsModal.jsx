@@ -6,6 +6,9 @@ import {
   Sparkles, X, ChevronLeft, ChevronRight, RotateCw, Shuffle,
   CheckCircle2, BookOpen, Layers, ArrowLeft, RefreshCw, Award, Tag, Zap, AlertTriangle
 } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AnimatedNumber } from '../animations/AnimatedNumber';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 const SUGGESTED_TOPICS = [
   'Polity & Constitutional Articles',
@@ -148,7 +151,8 @@ export function AiFlashcardsModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xl animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-2xl glass-card-clean rounded-3xl p-6 lg:p-8 border border-white/80 shadow-2xl my-8 space-y-6">
+      <div className="relative w-full max-w-2xl glass-card-clean rounded-3xl p-6 lg:p-8 border border-white/80 shadow-2xl my-8 space-y-6 overflow-hidden">
+        <AuroraLamp intensity="low" />
 
         {/* Modal Top Bar with Back and Close */}
         <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--glass-border)' }}>

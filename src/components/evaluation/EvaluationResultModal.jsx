@@ -19,6 +19,9 @@ import {
   ZoomIn, ZoomOut, FileText, Bot, Send, ChevronDown, ChevronUp,
   Award, ShieldCheck, Sparkles, MessageSquare
 } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AnimatedNumber } from '../animations/AnimatedNumber';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 function scoreColor(pct) {
   if (pct >= 75) return { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', ring: '#10b981' };
@@ -242,61 +245,64 @@ export function EvaluationResultModal({ isOpen, result, onClose, onRequestTeache
         {/* Scrollable Content */}
         <div className="overflow-y-auto custom-scroll p-5 sm:p-6 space-y-6 flex-1">
           {/* ① PROMINENT SCORE CARD */}
-          <div className={`p-5 rounded-3xl border ${col.bg} transition-all`}>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest opacity-80" style={{ color: 'var(--text-secondary)' }}>
-                  {isHi ? 'प्राप्तांक स्कोर' : 'Marks Awarded'}
-                </span>
-                <div className={`text-4xl sm:text-5xl font-black ${col.text}`}>
-                  {totalScore} <span className="text-xl font-bold opacity-60">/ {maxMarks}</span>
-                </div>
-                <div className={`text-sm font-extrabold ${col.text}`}>
-                  {percentage}% • {result.tag || (percentage >= 70 ? 'Excellent' : percentage >= 55 ? 'Good' : percentage >= 40 ? 'Average' : 'Needs Work')}
-                </div>
-              </div>
-
-              {/* Circular score meter */}
-              <div className="relative w-20 h-20 shrink-0">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    strokeWidth="4"
-                    stroke="currentColor"
-                    className="opacity-15"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    strokeDasharray={`${percentage},100`}
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    stroke={col.ring}
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className={`absolute inset-0 flex items-center justify-center text-sm font-black ${col.text}`}>
-                  {percentage}%
-                </div>
-              </div>
-            </div>
-
-            {/* Score Breakdown Pills */}
-            {result.scoreBreakdown && (
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t" style={{ borderColor: 'var(--glass-border)' }}>
-                {Object.entries(result.scoreBreakdown).map(([k, v]) => (
-                  <div
-                    key={k}
-                    className="px-3 py-1.5 rounded-xl border text-xs font-bold capitalize flex items-center gap-1.5"
-                    style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }}
-                  >
-                    <span className="opacity-70">{k}:</span>
-                    <span className={`font-black ${col.text}`}>{v}</span>
+          <ScrollReveal direction="zoom" delay={0} distance={30}>
+            <div className={`p-5 rounded-3xl border ${col.bg} transition-all relative overflow-hidden`}>
+              <AuroraLamp intensity="low" />
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
+                <div className="text-center sm:text-left space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest opacity-80" style={{ color: 'var(--text-secondary)' }}>
+                    {isHi ? 'प्राप्तांक स्कोर' : 'Marks Awarded'}
+                  </span>
+                  <div className={`text-4xl sm:text-5xl font-black ${col.text}`}>
+                    <AnimatedNumber value={totalScore} duration={1200} /> <span className="text-xl font-bold opacity-60">/ {maxMarks}</span>
                   </div>
-                ))}
+                  <div className={`text-sm font-extrabold ${col.text}`}>
+                    <AnimatedNumber value={percentage} suffix="%" duration={1400} /> • {result.tag || (percentage >= 70 ? 'Excellent' : percentage >= 55 ? 'Good' : percentage >= 40 ? 'Average' : 'Needs Work')}
+                  </div>
+                </div>
+
+                {/* Circular score meter */}
+                <div className="relative w-20 h-20 shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      strokeWidth="4"
+                      stroke="currentColor"
+                      className="opacity-15"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      strokeDasharray={`${percentage},100`}
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      stroke={col.ring}
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className={`absolute inset-0 flex items-center justify-center text-sm font-black ${col.text}`}>
+                    {percentage}%
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Score Breakdown Pills */}
+              {result.scoreBreakdown && (
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t relative z-10" style={{ borderColor: 'var(--glass-border)' }}>
+                  {Object.entries(result.scoreBreakdown).map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="px-3 py-1.5 rounded-xl border text-xs font-bold capitalize flex items-center gap-1.5"
+                      style={{ background: 'var(--card-bg)', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }}
+                    >
+                      <span className="opacity-70">{k}:</span>
+                      <span className={`font-black ${col.text}`}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollReveal>
 
           {/* ② QUESTION TEXT */}
           {result.questionText && (

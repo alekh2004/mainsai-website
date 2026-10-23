@@ -6,6 +6,8 @@ import {
   CheckCircle2, XCircle, Minus, ArrowLeft, Play,
   TrendingUp, Search, BookOpen, Sparkles, Layers
 } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AnimatedNumber } from '../animations/AnimatedNumber';
 
 // ── localStorage key ──
 const IB_KEY = 'improvement_book_v2';
@@ -445,25 +447,29 @@ export function ImprovementBook({ onGoBack }) {
 
       {/* Overall Stats */}
       {totalQs > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { count: totalQs,      label: isHi ? 'कुल प्रश्न' : 'Total Saved', color: 'rgb(var(--accent))',  bg: 'var(--card-bg)', border: 'rgba(var(--accent),0.3)' },
-            { count: totalCorrect, label: isHi ? 'सही'       : 'Correct',      color: '#16a34a',               bg: 'var(--card-bg)', border: 'rgba(22,163,74,0.35)' },
-            { count: totalWrong,   label: isHi ? 'गलत'       : 'Wrong',        color: '#dc2626',               bg: 'var(--card-bg)', border: 'rgba(220,38,38,0.35)' },
-          ].map((s, i) => (
-            <div key={i}
-              className="rounded-2xl border p-4 text-center"
-              style={{
-                background: s.bg,
-                borderColor: s.border,
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-              }}
-            >
-              <div className="text-2xl font-black" style={{ color: s.color }}>{s.count}</div>
-              <div className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <ScrollReveal direction="up" delay={0} distance={20}>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { count: totalQs,      label: isHi ? 'कुल प्रश्न' : 'Total Saved', color: 'rgb(var(--accent))',  bg: 'var(--card-bg)', border: 'rgba(var(--accent),0.3)' },
+              { count: totalCorrect, label: isHi ? 'सही'       : 'Correct',      color: '#16a34a',               bg: 'var(--card-bg)', border: 'rgba(22,163,74,0.35)' },
+              { count: totalWrong,   label: isHi ? 'गलत'       : 'Wrong',        color: '#dc2626',               bg: 'var(--card-bg)', border: 'rgba(220,38,38,0.35)' },
+            ].map((s, i) => (
+              <div key={i}
+                className="rounded-2xl border p-4 text-center"
+                style={{
+                  background: s.bg,
+                  borderColor: s.border,
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                }}
+              >
+                <div className="text-2xl font-black" style={{ color: s.color }}>
+                  <AnimatedNumber value={s.count} duration={1200} />
+                </div>
+                <div className="text-[11px] font-bold" style={{ color: 'var(--text-secondary)' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </ScrollReveal>
       )}
 
       {/* Subject Cards */}
@@ -489,50 +495,52 @@ export function ImprovementBook({ onGoBack }) {
           {subjectData.map((s, i) => {
             const clr = getSubjectColor(i);
             return (
-              <div key={s.subject}
-                onClick={() => { setSelectedSubject(s.subject); setView('questions'); setFilter('all'); setSearch(''); }}
-                className="rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg group relative overflow-hidden"
-                style={{
-                  background: 'var(--card-bg)',
-                  borderColor: `${clr}0.35)`,
-                  boxShadow: `0 2px 16px ${clr}0.10)`,
-                }}
-              >
-                {/* Left accent strip */}
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl" style={{ background: `${clr}0.85)` }} />
-                <div className="p-4 pl-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-extrabold m-0" style={{ color: 'var(--text-primary)' }}>{s.subject}</h3>
-                    <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-0.5 transition-transform" style={{ color: 'var(--text-secondary)' }} />
+              <ScrollReveal key={s.subject} direction="up" delay={i * 60} distance={30}>
+                <div
+                  onClick={() => { setSelectedSubject(s.subject); setView('questions'); setFilter('all'); setSearch(''); }}
+                  className="rounded-2xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg group relative overflow-hidden h-full"
+                  style={{
+                    background: 'var(--card-bg)',
+                    borderColor: `${clr}0.35)`,
+                    boxShadow: `0 2px 16px ${clr}0.10)`,
+                  }}
+                >
+                  {/* Left accent strip */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl" style={{ background: `${clr}0.85)` }} />
+                  <div className="p-4 pl-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-extrabold m-0" style={{ color: 'var(--text-primary)' }}>{s.subject}</h3>
+                      <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-0.5 transition-transform" style={{ color: 'var(--text-secondary)' }} />
+                    </div>
+                    {/* Accuracy progress bar */}
+                    <div className="w-full h-1.5 rounded-full mb-3" style={{ background: 'var(--glass-border)' }}>
+                      <div className="h-1.5 rounded-full transition-all" style={{ width: `${s.accuracy}%`, background: `${clr}0.85)` }} />
+                    </div>
+                    {/* Stats row */}
+                    <div className="grid grid-cols-4 gap-2 text-[10px] font-extrabold">
+                      {[
+                        { count: s.total,          label: isHi ? 'कुल'      : 'Total',    color: `${clr}0.9)` },
+                        { count: s.correct,         label: isHi ? 'सही'      : 'Correct',  color: '#16a34a' },
+                        { count: s.wrong,           label: isHi ? 'गलत'      : 'Wrong',    color: '#dc2626' },
+                        { count: s.accuracy + '%',  label: isHi ? 'सटीकता'  : 'Accuracy', color: `${clr}0.9)` },
+                      ].map((stat, si) => (
+                        <div key={si} className="text-center">
+                          <div className="text-base font-black" style={{ color: stat.color }}>{stat.count}</div>
+                          <div style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); startPractice(s.questions); }}
+                      className="mt-3 w-full py-1.5 rounded-xl text-[10px] font-extrabold flex items-center justify-center gap-1 border transition-all hover:opacity-90"
+                      style={{ borderColor: `${clr}0.4)`, color: `${clr}0.9)`, background: `${clr}0.08)` }}
+                    >
+                      <Play className="w-3 h-3" />
+                      {isHi ? 'इन सभी का प्रैक्टिस करें' : 'Practice All Questions'}
+                    </button>
                   </div>
-                  {/* Accuracy progress bar */}
-                  <div className="w-full h-1.5 rounded-full mb-3" style={{ background: 'var(--glass-border)' }}>
-                    <div className="h-1.5 rounded-full transition-all" style={{ width: `${s.accuracy}%`, background: `${clr}0.85)` }} />
-                  </div>
-                  {/* Stats row */}
-                  <div className="grid grid-cols-4 gap-2 text-[10px] font-extrabold">
-                    {[
-                      { count: s.total,          label: isHi ? 'कुल'      : 'Total',    color: `${clr}0.9)` },
-                      { count: s.correct,         label: isHi ? 'सही'      : 'Correct',  color: '#16a34a' },
-                      { count: s.wrong,           label: isHi ? 'गलत'      : 'Wrong',    color: '#dc2626' },
-                      { count: s.accuracy + '%',  label: isHi ? 'सटीकता'  : 'Accuracy', color: `${clr}0.9)` },
-                    ].map((stat, si) => (
-                      <div key={si} className="text-center">
-                        <div className="text-base font-black" style={{ color: stat.color }}>{stat.count}</div>
-                        <div style={{ color: 'var(--text-secondary)' }}>{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); startPractice(s.questions); }}
-                    className="mt-3 w-full py-1.5 rounded-xl text-[10px] font-extrabold flex items-center justify-center gap-1 border transition-all hover:opacity-90"
-                    style={{ borderColor: `${clr}0.4)`, color: `${clr}0.9)`, background: `${clr}0.08)` }}
-                  >
-                    <Play className="w-3 h-3" />
-                    {isHi ? 'इन सभी का प्रैक्टिस करें' : 'Practice All Questions'}
-                  </button>
                 </div>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>

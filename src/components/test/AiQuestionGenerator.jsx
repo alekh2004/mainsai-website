@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { generateFullMainsTestPaper, generateInstantAiModelAnswer } from '../../services/geminiService';
 import { Sparkles, Sliders, Play, Clock, Award, FileText, ArrowLeft, ArrowRight, RefreshCw, CheckCircle2, Zap } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 export function AiQuestionGenerator({ onAttemptQuestion, onGoBack }) {
   const { apiKey } = useAuth();
@@ -139,11 +141,13 @@ export function AiQuestionGenerator({ onAttemptQuestion, onGoBack }) {
   const activeQuestion = testPaper?.questions[activeQuestionIndex];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeInUp">
       
       {/* Controls Card */}
-      <div className="glass-card-clean rounded-3xl p-6 lg:p-7 border shadow-xl" style={{ borderColor: 'var(--glass-border)' }}>
-        <div className="flex items-center justify-between mb-5 pb-3 border-b" style={{ borderColor: 'var(--glass-border)' }}>
+      <ScrollReveal direction="up" delay={0} distance={30}>
+        <div className="glass-card-clean rounded-3xl p-6 lg:p-7 border shadow-xl relative overflow-hidden" style={{ borderColor: 'var(--glass-border)' }}>
+          <AuroraLamp intensity="low" />
+          <div className="flex items-center justify-between mb-5 pb-3 border-b relative z-10" style={{ borderColor: 'var(--glass-border)' }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold"
               style={{ background: 'rgb(var(--accent)/0.15)', color: 'rgb(var(--accent))' }}>
@@ -299,7 +303,7 @@ export function AiQuestionGenerator({ onAttemptQuestion, onGoBack }) {
         <button
           onClick={handleGenerateTestPaper}
           disabled={isGenerating}
-          className="w-full py-3.5 rounded-2xl btn-primary-clean font-extrabold text-sm shadow-xl flex items-center justify-center gap-2 hover:scale-[1.005] transition-all disabled:opacity-50"
+          className="w-full py-3.5 rounded-2xl btn-primary-clean font-extrabold text-sm shadow-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 magnetic-btn"
         >
           {isGenerating ? (
             <>
@@ -314,6 +318,7 @@ export function AiQuestionGenerator({ onAttemptQuestion, onGoBack }) {
           )}
         </button>
       </div>
+      </ScrollReveal>
 
       {/* Generated Test Paper View */}
       {testPaper && activeQuestion && (

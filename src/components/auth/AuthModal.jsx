@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AnimatedParliamentBackground } from './AnimatedParliamentBackground';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AuroraLamp } from '../animations/AuroraLamp';
+import { FloatingParticles } from '../animations/FloatingParticles';
 
 export function AuthModal({ isFullScreen = false }) {
   const {
@@ -349,7 +352,9 @@ export function AuthModal({ isFullScreen = false }) {
 
         {/* ── RIGHT COLUMN: Login Card — shows FIRST on mobile, SECOND on desktop ── */}
         <div className="lg:col-span-6 xl:col-span-5 w-full flex justify-center lg:justify-end order-1 lg:order-2">
-          <div className="relative w-full max-w-[460px] bg-white/80 hover:bg-white/85 transition-all duration-300 backdrop-blur-2xl rounded-[2.2rem] p-6 sm:p-8 border border-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.30),0_0_0_1px_rgba(255,255,255,0.7)_inset] space-y-5">
+          <ScrollReveal direction="zoom" delay={0} duration={600} className="w-full max-w-[460px]">
+            <div className="relative w-full bg-white/85 hover:bg-white/90 transition-all duration-300 backdrop-blur-2xl rounded-[2.2rem] p-6 sm:p-8 border border-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.30),0_0_0_1px_rgba(255,255,255,0.7)_inset] space-y-5 overflow-hidden">
+              <AuroraLamp intensity="low" />
 
             {/* Card Header: Title + Switch Link */}
             <div className="flex items-start justify-between gap-2">
@@ -825,6 +830,7 @@ export function AuthModal({ isFullScreen = false }) {
             </div>
 
           </div>
+        </ScrollReveal>
         </div>
 
       </main>

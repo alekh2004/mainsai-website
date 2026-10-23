@@ -45,9 +45,10 @@ export function MobileNav({ activeTab, setActiveTab }) {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t"
         style={{
           background: 'var(--card-bg)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderColor: 'var(--glass-border)',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
         }}
       >
         <div className="max-w-md mx-auto flex items-center justify-around px-2 py-1.5">
@@ -58,15 +59,25 @@ export function MobileNav({ activeTab, setActiveTab }) {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all"
+                className="relative flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-2xl transition-all duration-300"
                 style={{
                   color: isActive ? `rgb(var(--accent))` : 'var(--text-muted)',
                   fontWeight: isActive ? 800 : 600,
-                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                  transform: isActive ? 'scale(1.12) translateY(-2px)' : 'scale(1)',
+                  background: isActive ? 'rgb(var(--accent)/0.10)' : 'transparent',
                 }}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} />
                 <span className="text-[9px]">{t.label}</span>
+                {isActive && (
+                  <span
+                    className="absolute -bottom-1 w-1.5 h-1.5 rounded-full"
+                    style={{
+                      background: 'rgb(var(--accent))',
+                      boxShadow: '0 0 8px rgb(var(--accent))',
+                    }}
+                  />
+                )}
               </button>
             );
           })}
@@ -74,7 +85,7 @@ export function MobileNav({ activeTab, setActiveTab }) {
           {/* Settings gear */}
           <button
             onClick={() => setShowSettings(true)}
-            className="flex flex-col items-center gap-0.5 py-1 px-2 rounded-xl transition-all"
+            className="flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-2xl transition-all duration-300"
             style={{ color: showSettings ? `rgb(var(--accent))` : 'var(--text-muted)' }}
           >
             <Settings2 className="w-5 h-5" />

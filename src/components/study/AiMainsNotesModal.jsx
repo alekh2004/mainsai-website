@@ -7,6 +7,8 @@ import {
   ArrowLeft, ChevronDown, ChevronUp, Layers, Target, FileText,
   RefreshCw, Zap, Award, AlertTriangle, HelpCircle
 } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 import { exportNoteToColorPdf } from './pdfExportHelper';
 
@@ -147,7 +149,8 @@ export function AiMainsNotesModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xl animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-3xl glass-card-clean rounded-3xl border border-white/80 shadow-2xl my-4 flex flex-col" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+      <div className="relative w-full max-w-3xl glass-card-clean rounded-3xl border border-white/80 shadow-2xl my-4 flex flex-col overflow-hidden" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+        <AuroraLamp intensity="low" />
 
         {/* Scrollable inner content */}
         <div className="overflow-y-auto custom-scroll flex-1 p-5 sm:p-7 space-y-5">

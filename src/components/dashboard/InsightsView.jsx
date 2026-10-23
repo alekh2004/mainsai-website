@@ -5,6 +5,9 @@ import {
   X, Sparkles, Zap, ArrowUpRight, ArrowDownRight, BookOpen, FileText,
   Trophy, Brain, Crosshair, Percent
 } from 'lucide-react';
+import { ScrollReveal } from '../animations/ScrollReveal';
+import { AnimatedNumber } from '../animations/AnimatedNumber';
+import { AuroraLamp } from '../animations/AuroraLamp';
 
 /* ─────────────────────────────────────────────
    Shared helpers
@@ -123,7 +126,7 @@ function PrelimsInsightsPanel({ data, evaluations, isHi }) {
   const prelimsEvals = evaluations.filter(e => e.evaluationType === 'prelims_test' && e.score != null);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeInUp">
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -161,13 +164,17 @@ function PrelimsInsightsPanel({ data, evaluations, isHi }) {
             icon: <AlertTriangle className="w-4 h-4 text-rose-500" />
           },
         ].map((kpi, i) => (
-          <div key={i} className={`p-4 rounded-3xl glass-card-clean border space-y-2 ${kpi.bg}`}>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{kpi.label}</span>
-              {kpi.icon}
+          <ScrollReveal key={i} direction="up" delay={i * 80} distance={30}>
+            <div className={`p-4 rounded-3xl glass-card-clean border space-y-2 ${kpi.bg}`}>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{kpi.label}</span>
+                {kpi.icon}
+              </div>
+              <div className={`text-3xl font-black ${kpi.color}`}>
+                <AnimatedNumber value={kpi.value} suffix={kpi.unit} duration={1200} />
+              </div>
             </div>
-            <div className={`text-3xl font-black ${kpi.color}`}>{kpi.value}{kpi.unit}</div>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
 
@@ -396,41 +403,57 @@ function MainsInsightsPanel({ data, evaluations, isHi }) {
   const mainsEvals = (evaluations || []).filter(e => e.evaluationType !== 'prelims_test' && e.score != null);
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeInUp">
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'औसत स्कोर' : 'Avg Score'}</span>
-            {going_up ? <ArrowUpRight className="w-4 h-4 text-emerald-500" /> : <ArrowDownRight className="w-4 h-4 text-rose-500" />}
+        <ScrollReveal direction="up" delay={0} distance={30}>
+          <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 h-full">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'औसत स्कोर' : 'Avg Score'}</span>
+              {going_up ? <ArrowUpRight className="w-4 h-4 text-emerald-500" /> : <ArrowDownRight className="w-4 h-4 text-rose-500" />}
+            </div>
+            <div className="text-3xl font-black" style={{ color: 'rgb(var(--accent))' }}>
+              <AnimatedNumber value={avgPct} suffix="%" duration={1200} />
+            </div>
+            <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+              {avgPct >= 70 ? 'Mains ready' : 'Needs improvement'}
+            </div>
           </div>
-          <div className="text-3xl font-black" style={{ color: 'rgb(var(--accent))' }}>{avgPct}%</div>
-          <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {avgPct >= 70 ? 'Mains ready' : 'Needs improvement'}
+        </ScrollReveal>
+        <ScrollReveal direction="up" delay={80} distance={30}>
+          <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 h-full">
+            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'कुल टेस्ट' : 'Total Tests'}</span>
+            <div className="text-3xl font-black text-emerald-500">
+              <AnimatedNumber value={totalTests} duration={1200} />
+            </div>
+            <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'मूल्यांकित' : 'Evaluated'}</div>
           </div>
-        </div>
-        <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5">
-          <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'कुल टेस्ट' : 'Total Tests'}</span>
-          <div className="text-3xl font-black text-emerald-500">{totalTests}</div>
-          <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'मूल्यांकित' : 'Evaluated'}</div>
-        </div>
-        <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 cursor-pointer" onClick={() => { setSelectedEval(best); setDetailTab('overview'); }}>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सर्वश्रेष्ठ' : 'Best Test'}</span>
-            <Award className="w-4 h-4 text-amber-500" />
+        </ScrollReveal>
+        <ScrollReveal direction="up" delay={160} distance={30}>
+          <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 cursor-pointer h-full" onClick={() => { setSelectedEval(best); setDetailTab('overview'); }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सर्वश्रेष्ठ' : 'Best Test'}</span>
+              <Award className="w-4 h-4 text-amber-500" />
+            </div>
+            <div className="text-3xl font-black text-amber-500">
+              <AnimatedNumber value={best.percentage || Math.round(best.score / best.maxMarks * 100)} suffix="%" duration={1400} />
+            </div>
+            <div className="text-[11px] font-bold truncate" style={{ color: 'var(--text-secondary)' }}>{best.questionTitle}</div>
           </div>
-          <div className="text-3xl font-black text-amber-500">{best.percentage || Math.round(best.score / best.maxMarks * 100)}%</div>
-          <div className="text-[11px] font-bold truncate" style={{ color: 'var(--text-secondary)' }}>{best.questionTitle}</div>
-        </div>
-        <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 cursor-pointer" onClick={() => { setSelectedEval(weakest); setDetailTab('overview'); }}>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सुधार चाहिए' : 'Needs Work'}</span>
-            <AlertTriangle className="w-4 h-4 text-rose-500" />
+        </ScrollReveal>
+        <ScrollReveal direction="up" delay={240} distance={30}>
+          <div className="p-4 rounded-3xl glass-card-clean border border-white/20 space-y-1.5 cursor-pointer h-full" onClick={() => { setSelectedEval(weakest); setDetailTab('overview'); }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>{isHi ? 'सुधार चाहिए' : 'Needs Work'}</span>
+              <AlertTriangle className="w-4 h-4 text-rose-500" />
+            </div>
+            <div className="text-3xl font-black text-rose-500">
+              <AnimatedNumber value={weakest.percentage || Math.round(weakest.score / weakest.maxMarks * 100)} suffix="%" duration={1400} />
+            </div>
+            <div className="text-[11px] font-bold truncate" style={{ color: 'var(--text-secondary)' }}>{weakest.questionTitle}</div>
           </div>
-          <div className="text-3xl font-black text-rose-500">{weakest.percentage || Math.round(weakest.score / weakest.maxMarks * 100)}%</div>
-          <div className="text-[11px] font-bold truncate" style={{ color: 'var(--text-secondary)' }}>{weakest.questionTitle}</div>
-        </div>
+        </ScrollReveal>
       </div>
 
       {/* Score Trend */}
@@ -658,24 +681,27 @@ export function InsightsView() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6 animate-fadeIn">
+    <div className="w-full max-w-5xl mx-auto space-y-6 animate-fadeInUp relative pb-12">
+      <AuroraLamp intensity="low" />
 
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl glass-card-clean border border-white/30 flex items-center justify-center">
-          <BarChart3 className="w-5 h-5" style={{ color: 'rgb(var(--accent))' }} />
+      <ScrollReveal direction="down" delay={0} distance={20}>
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl glass-card-clean border border-white/30 flex items-center justify-center shadow-lg">
+            <BarChart3 className="w-6 h-6" style={{ color: 'rgb(var(--accent))' }} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black m-0 tracking-tight aurora-gradient-text">
+              {isHi ? 'प्रदर्शन विश्लेषण' : 'Performance Insights'}
+            </h2>
+            <p className="text-xs font-semibold m-0" style={{ color: 'var(--text-secondary)' }}>
+              {data.totalTests} {isHi ? 'कुल टेस्ट' : 'total tests'} •
+              {data.prelimsCount > 0 && ` ${data.prelimsCount} Prelims`}
+              {data.mainsCount > 0 && ` · ${data.mainsCount} Mains`}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-xl font-extrabold m-0 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            {isHi ? 'प्रदर्शन विश्लेषण' : 'Performance Insights'}
-          </h2>
-          <p className="text-xs font-medium m-0" style={{ color: 'var(--text-secondary)' }}>
-            {data.totalTests} {isHi ? 'कुल टेस्ट' : 'total tests'} •
-            {data.prelimsCount > 0 && ` ${data.prelimsCount} Prelims`}
-            {data.mainsCount > 0 && ` · ${data.mainsCount} Mains`}
-          </p>
-        </div>
-      </div>
+      </ScrollReveal>
 
       {/* ── Tab Switcher ── */}
       <div className="flex gap-2 p-1.5 rounded-2xl" style={{ background: 'rgba(0,0,0,0.07)' }}>

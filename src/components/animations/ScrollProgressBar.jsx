@@ -1,46 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /**
- * Skiper UI & Aceternity inspired dynamic glowing Scroll Progress Bar.
- * Tracks the scroll depth of the main content container and renders a neon gradient beam.
+ * Neon Glowing Scroll Progress Bar — works on BOTH mobile and desktop.
+ * Tracks window scroll (document.documentElement) for mobile compatibility.
  */
-export function ScrollProgressBar({ containerRef }) {
-  const [scrollProgress, setScrollProgress] = useState(0);
+export function ScrollProgressBar({ containerRef = null }) {
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const target = containerRef?.current || window;
-
-    const handleScroll = () => {
-      let progress = 0;
-      if (containerRef?.current) {
-        const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-        const total = scrollHeight - clientHeight;
-        progress = total > 0 ? (scrollTop / total) * 100 : 0;
+    const updateProgress = () => {
+      // Try container ref first (desktop), fallback to window (mobile)
+      let current, total;
+      const el = containerRef?.current;
+      if (el && el.scrollHeight > el.clientHeight) {
+        current = el.scrollTop;
+        total = el.scrollHeight - el.clientHeight;
       } else {
-        const { scrollY, innerHeight } = window;
-        const total = document.documentElement.scrollHeight - innerHeight;
-        progress = total > 0 ? (scrollY / total) * 100 : 0;
+        const doc = document.documentElement;
+        current = doc.scrollTop || document.body.scrollTop;
+        total = doc.scrollHeight - doc.clientHeight;
       }
-      setScrollProgress(Math.min(100, Math.max(0, progress)));
+      const pct = total > 0 ? Math.min((current / total) * 100, 100) : 0;
+      setProgress(pct);
     };
 
-    target.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => target.removeEventListener('scroll', handleScroll);
+    // Listen on both container and window
+    const el = containerRef?.current;
+    if (el) el.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('scroll', updateProgress, { passive: true });
+
+    return () => {
+      if (el) el.removeEventListener('scroll', updateProgress);
+      window.removeEventListener('scroll', updateProgress);
+    };
   }, [containerRef]);
 
   return (
-    <div className="sticky top-0 left-0 right-0 z-40 h-[3px] w-full overflow-hidden pointer-events-none">
-      {/* Background track (subtle) */}
-      <div className="absolute inset-0 bg-white/[0.04]" />
-      
-      {/* Active Glowing Beam */}
+    <div
+      className="fixed top-0 left-0 right-0 z-[9999] h-[3px] pointer-events-none"
+      style={{ background: 'rgba(0,0,0,0.08)' }}
+    >
       <div
-        className="h-full transition-all duration-150 ease-out"
         style={{
-          width: `${scrollProgress}%`,
-          background: 'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #f59e0b 100%)',
-          boxShadow: '0 0 12px rgba(139, 92, 246, 0.7), 0 0 24px rgba(59, 130, 246, 0.4)',
+          height: '100%',
+          width: `${progress}%`,
+          background: 'linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899)',
+          boxShadow: '0 0 12px rgba(139, 92, 246, 0.8), 0 0 24px rgba(99, 102, 241, 0.4)',
+          transition: 'width 0.1s linear',
         }}
       />
     </div>

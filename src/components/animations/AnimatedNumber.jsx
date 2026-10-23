@@ -1,67 +1,72 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * Animaster Lab & Skiper UI inspired Live Animated Number Counter.
- * Counts up smoothly using an exponential ease-out curve when entering viewport.
+ * Animated Counter — count-up with easing + optional suffix/prefix.
+ * Uses IntersectionObserver so it only starts when visible (on scroll).
  */
-export function AnimatedNumber({ value = 0, duration = 1200, suffix = '', prefix = '' }) {
-  const [displayValue, setDisplayValue] = useState(0);
-  const elementRef = useRef(null);
-  const hasAnimated = useRef(false);
+export function AnimatedNumber({
+  value,
+  duration = 1800,
+  suffix = '',
+  prefix = '',
+  decimals = 0,
+  className = '',
+  style = {},
+  once = true,
+}) {
+  const [display, setDisplay] = useState(0);
+  const [hasRun, setHasRun] = useState(false);
+  const ref = useRef(null);
+  const rafRef = useRef(null);
 
-  const targetNumber = Number(value) || 0;
+  const runAnimation = () => {
+    const target = Number(value) || 0;
+    const start = performance.now();
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          animateCount();
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [targetNumber]);
-
-  const animateCount = () => {
-    const startTime = performance.now();
-    const startVal = 0;
-    const endVal = targetNumber;
-
-    if (endVal === 0) {
-      setDisplayValue(0);
-      return;
-    }
-
-    const step = (currentTime) => {
-      const elapsed = currentTime - startTime;
+    const tick = (now) => {
+      const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Ease-out expo curve for ultra-smooth buttery finish
-      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const current = Math.round(startVal + (endVal - startVal) * easeProgress);
-
-      setDisplayValue(current);
-
+      // Expo ease out
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = eased * target;
+      setDisplay(current);
       if (progress < 1) {
-        requestAnimationFrame(step);
+        rafRef.current = requestAnimationFrame(tick);
       } else {
-        setDisplayValue(endVal);
+        setDisplay(target);
       }
     };
 
-    requestAnimationFrame(step);
+    rafRef.current = requestAnimationFrame(tick);
   };
 
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && (!once || !hasRun)) {
+          setHasRun(true);
+          runAnimation();
+          if (once) observer.unobserve(el);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [value, duration, once]);
+
+  const formatted = display.toFixed(decimals);
+
   return (
-    <span ref={elementRef} className="tabular-nums font-black inline-block">
-      {prefix}{displayValue}{suffix}
+    <span ref={ref} className={`tabular-nums ${className}`} style={style}>
+      {prefix}{formatted}{suffix}
     </span>
   );
 }

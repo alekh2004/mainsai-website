@@ -7,6 +7,7 @@ import {
 import { AceternityCard } from '../animations/AceternityCard';
 import { ScrollReveal } from '../animations/ScrollReveal';
 import { AuroraLamp } from '../animations/AuroraLamp';
+import { FloatingParticles } from '../animations/FloatingParticles';
 
 export function PrelimsHome({ onSelectAction }) {
   const { activeExam, language } = useApp();
@@ -72,6 +73,7 @@ export function PrelimsHome({ onSelectAction }) {
         }}
       >
         <AuroraLamp intensity="medium" />
+        <FloatingParticles count={12} />
         <div
           className="absolute inset-0 bg-cover bg-center transition-all duration-700"
           style={{ backgroundImage: 'url(/prelims_hero.png)' }}

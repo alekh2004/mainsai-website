@@ -989,3 +989,125 @@ input[type="range"] {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── NEW VIRAL ANIMATION KEYFRAMES (Skiper UI / Aceternity / Animaster Lab) ── */
+
+/* Aurora rotation for AuroraLamp */
+@keyframes auroraRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes auroraPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.08); }
+}
+
+/* Floating Particles (ambient Instagram aesthetic) */
+@keyframes particleFloat {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(-100vh) translateX(40px) scale(0.5); opacity: 0; }
+}
+
+/* Magnetic button hover */
+@keyframes magneticPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+  50%       { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+}
+.magnetic-btn {
+  animation: magneticPulse 2.5s ease-in-out infinite;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.magnetic-btn:hover {
+  transform: scale(1.04) translateY(-2px);
+}
+.magnetic-btn:active {
+  transform: scale(0.97);
+}
+
+/* Sticky card stack effect */
+@keyframes cardStackIn {
+  from { transform: translateY(30px) scale(0.94); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.card-stack-item {
+  animation: cardStackIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Gradient border pulse for section headers */
+@keyframes gradientBorderPulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+.gradient-border-pulse {
+  position: relative;
+}
+.gradient-border-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: gradientBorderPulse 3s ease-in-out infinite;
+}
+
+/* Student float animation for hero */
+@keyframes studentFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-8px) scale(1.01); }
+}
+
+/* Shimmer sweep effect */
+@keyframes shimmerSweep {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.shimmer-sweep {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  background-size: 400px 100%;
+  animation: shimmerSweep 2s linear infinite;
+}
+
+/* Neon glow pulse for CTAs */
+@keyframes neonGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(99,102,241,0.5), 0 0 20px rgba(99,102,241,0.2); }
+  50%       { box-shadow: 0 0 16px rgba(139,92,246,0.8), 0 0 40px rgba(99,102,241,0.4); }
+}
+.neon-glow {
+  animation: neonGlow 2.5s ease-in-out infinite;
+}
+
+/* Fade-in-up for page entrance */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Bounce in for icons and badges */
+@keyframes bounceIn {
+  0%   { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.1) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-bounceIn {
+  animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Slide in from bottom */
+@keyframes slideInBottom {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.animate-slideInBottom {
+  animation: slideInBottom 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+
