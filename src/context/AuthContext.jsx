@@ -84,7 +84,23 @@ export function AuthProvider({ children }) {
           }
         }
       } else {
-        setUser(null);
+        // If no Firebase Auth user (e.g. Phone login with stable UID), restore local session
+        const currentUid = localStorage.getItem('mainsai_current_uid');
+        const students = getStudents();
+        if (currentUid && students[currentUid]) {
+          const profile = students[currentUid];
+          setUser(profile);
+          // Auto-sync full profile to Cloud Firestore now that rules are unlocked
+          try {
+            setDoc(doc(db, 'users', currentUid), profile, { merge: true }).catch(err => {
+              console.warn('Silent Firestore sync phone profile:', err);
+            });
+          } catch (e) {
+            // ignore
+          }
+        } else {
+          setUser(null);
+        }
       }
       setAuthLoading(false);
     });
@@ -293,9 +309,10 @@ export function AuthProvider({ children }) {
       students[stableUid] = refreshed;
       students[refreshed.uid] = refreshed;
       saveStudents(students);
+      localStorage.setItem('mainsai_current_uid', refreshed.uid);
       setUser(refreshed);
       try {
-        await setDoc(doc(db, 'users', refreshed.uid), { lastLoginAt: refreshed.lastLoginAt }, { merge: true });
+        await setDoc(doc(db, 'users', refreshed.uid), refreshed, { merge: true });
       } catch (e) {
         console.warn('Firestore login refresh failed:', e);
       }
@@ -329,6 +346,7 @@ export function AuthProvider({ children }) {
     const students = getStudents();
     students[stableUid] = minimalProfile;
     saveStudents(students);
+    localStorage.setItem('mainsai_current_uid', stableUid);
     setUser(minimalProfile);
 
     // Admin inbox notification (first-time registration)
@@ -375,6 +393,7 @@ export function AuthProvider({ children }) {
 
   // ── LOGOUT ────────────────────────────────────────────────────────────
   const logout = async () => {
+    localStorage.removeItem('mainsai_current_uid');
     await signOut(auth);
     setUser(null);
   };
