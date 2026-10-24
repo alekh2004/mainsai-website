@@ -1204,4 +1204,75 @@ input[type="range"] {
   animation: slideInBottom 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Aspirant 3D Alive Animated Avatar Keyframes ── */
+@keyframes avatarFloatAlive {
+  0%, 100% {
+    transform: translateY(0px) scale(1) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) scale(1.03) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05) rotate(1deg);
+  }
+  75% {
+    transform: translateY(-4px) scale(1.02) rotate(-0.5deg);
+  }
+}
+
+@keyframes waveHandAlive {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(18deg) scale(1.1);
+  }
+  40% {
+    transform: rotate(-12deg) scale(1.15);
+  }
+  60% {
+    transform: rotate(20deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(-6deg) scale(1.05);
+  }
+}
+
+@keyframes auraSpinSlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes lightShimmerSweep {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+  }
+  45%, 100% {
+    transform: translateX(250%) skewX(-25deg);
+  }
+}
+
+.animate-avatar-float {
+  animation: avatarFloatAlive 4.5s ease-in-out infinite;
+}
+
+.animate-wave-hand {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: waveHandAlive 2.2s ease-in-out infinite;
+}
+
+.animate-aura-spin {
+  animation: auraSpinSlow 12s linear infinite;
+}
+
+.animate-light-shimmer {
+  animation: lightShimmerSweep 4.5s ease-in-out infinite;
+}
+
+
 
