@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Users collection: Aspirant profile, active plan, evaluations left
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // 2. Subscriptions collection: Purchase transactions, plan tier, UTR reference
+    match /subscriptions/{subId} {
+      allow read, write: if true;
+    }
+
+    // 3. Faculty Curated Mains Questions Bank
+    match /questions/{questionId} {
+      allow read, write: if true;
+    }
+
+    // 4. Prelims MCQ Question Bank
+    match /prelims_questions/{questionId} {
+      allow read, write: if true;
+    }
+
+    // 5. Registration Requests & Admin Inbox
+    match /inbox/{reqId} {
+      allow read, write: if true;
+    }
+
+    // 6. Evaluated Answers & Evaluation History
+    match /evaluations/{evalId} {
+      allow read, write: if true;
+    }
+
+    // Catch-all fallback for other collections
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

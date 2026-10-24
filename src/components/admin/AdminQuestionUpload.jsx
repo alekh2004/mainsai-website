@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
-import { Shield, PlusCircle, Image, FileText, X, CheckCircle, Upload, Send, UserCheck, UserX, Clock, MessageSquare, Download } from 'lucide-react';
+import { Shield, PlusCircle, Image, FileText, X, CheckCircle, Upload, Send, UserCheck, UserX, Clock, MessageSquare, Download, CreditCard, Users, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../firebase';
 import { collection, getDocs } from 'firebase/firestore';
@@ -10,7 +10,10 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
   const { user, adminInbox, approveStudentAccess, rejectStudentAccess } = useAuth();
   const { activeExam, addFacultyQuestion, addTeacherPrelimsMCQ } = useApp();
 
-  const [adminTab, setAdminTab] = useState('inbox'); // 'inbox' | 'upload' | 'prelims'
+  const [adminTab, setAdminTab] = useState('inbox'); // 'inbox' | 'subscriptions' | 'upload' | 'prelims'
+  const [usersList, setUsersList] = useState([]);
+  const [subscriptionsList, setSubscriptionsList] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
 
   // Mains Question Upload Form State
   const [title, setTitle] = useState('');
@@ -135,32 +138,80 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
     setMcqExplanationEn(''); setMcqExplanationHi('');
   };
 
-  const handleExportUsersCSV = async () => {
+  const fetchUserData = async () => {
+    setLoadingData(true);
     try {
-      const snap = await getDocs(collection(db, 'users'));
-      let usersList = [];
-      snap.forEach(docSnap => {
-        usersList.push({ id: docSnap.id, ...docSnap.data() });
+      const uSnap = await getDocs(collection(db, 'users'));
+      let uList = [];
+      uSnap.forEach(docSnap => {
+        uList.push({ id: docSnap.id, ...docSnap.data() });
       });
 
-      if (usersList.length === 0 && adminInbox.length > 0) {
-        usersList = adminInbox;
+      // Merge with local storage cache to guarantee 100% visibility even if offline or fallback
+      const localStudents = JSON.parse(localStorage.getItem('mainsai_students') || '{}');
+      Object.entries(localStudents).forEach(([k, v]) => {
+        if (!uList.some(u => u.uid === v.uid || u.id === v.uid || (u.phone && v.phone && u.phone.replace(/\D/g, '') === v.phone.replace(/\D/g, '')))) {
+          uList.push({ id: k, ...v });
+        }
+      });
+      setUsersList(uList);
+
+      // Fetch Subscriptions Ledger
+      const sSnap = await getDocs(collection(db, 'subscriptions'));
+      let sList = [];
+      sSnap.forEach(docSnap => {
+        sList.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setSubscriptionsList(sList);
+    } catch (err) {
+      console.warn('Admin fetch data fallback:', err);
+      const localStudents = JSON.parse(localStorage.getItem('mainsai_students') || '{}');
+      setUsersList(Object.values(localStudents));
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUserData();
+    }
+  }, [isOpen]);
+
+  const handleExportUsersCSV = async () => {
+    try {
+      let exportList = usersList;
+      if (exportList.length === 0) {
+        const snap = await getDocs(collection(db, 'users'));
+        snap.forEach(docSnap => {
+          exportList.push({ id: docSnap.id, ...docSnap.data() });
+        });
       }
 
-      if (usersList.length === 0) {
+      if (exportList.length === 0 && adminInbox.length > 0) {
+        exportList = adminInbox;
+      }
+
+      if (exportList.length === 0) {
+        const localStudents = JSON.parse(localStorage.getItem('mainsai_students') || '{}');
+        exportList = Object.values(localStudents);
+      }
+
+      if (exportList.length === 0) {
         alert('No user records found in database yet.');
         return;
       }
 
-      const headers = ['UID', 'Name', 'Phone', 'Email', 'Gender', 'DOB', 'Target Exam', 'Role', 'Login Type', 'Created At'];
-      const rows = usersList.map(u => [
+      const headers = ['UID', 'Name', 'Phone', 'Email', 'Active Plan', 'Gender', 'DOB', 'Target Exam', 'Role', 'Login Type', 'Created At'];
+      const rows = exportList.map(u => [
         `"${u.uid || u.id || ''}"`,
-        `"${u.name || ''}"`,
+        `"${u.name || 'Aspirant'}"`,
         `"${u.phone || ''}"`,
         `"${u.email || ''}"`,
+        `"${(u.plan || 'Free').toUpperCase()}"`,
         `"${u.gender || ''}"`,
         `"${u.dob || ''}"`,
-        `"${u.targetExam || ''}"`,
+        `"${(u.targetExam || 'UPSC').toUpperCase()}"`,
         `"${u.role || 'student'}"`,
         `"${u.loginType || ''}"`,
         `"${u.createdAt || ''}"`
@@ -170,7 +221,7 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `et_academy_aspirants_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `mainsai_aspirants_and_subscriptions_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -205,7 +256,7 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
         </div>
 
         {/* Admin Section Tabs */}
-        <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-950 rounded-2xl border border-white/15">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-950 rounded-2xl border border-white/15">
           <button
             type="button"
             onClick={() => setAdminTab('inbox')}
@@ -215,6 +266,20 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span>Requests ({adminInbox.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAdminTab('subscriptions');
+              fetchUserData();
+            }}
+            className={`py-2 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+              adminTab === 'subscriptions' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Aspirants & Plans</span>
           </button>
 
           <button
@@ -332,7 +397,146 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* TAB 2: Upload Question & Model Solution */}
+        {/* TAB 2: Aspirants Directory & Subscription Orders */}
+        {adminTab === 'subscriptions' && (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Top Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/10">
+              <div>
+                <h4 className="text-sm font-extrabold text-white flex items-center gap-2 m-0">
+                  <CreditCard className="w-4 h-4 text-amber-400" />
+                  <span>Aspirants & Subscription Ledger</span>
+                </h4>
+                <p className="text-[11px] text-gray-400 m-0">
+                  Live synced with Cloud Firestore + Local Cache
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchUserData}
+                  disabled={loadingData}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-200 border border-white/10 text-xs font-bold transition-all"
+                  title="Reload from Firestore"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingData ? 'animate-spin text-amber-400' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportUsersCSV}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition-all shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="p-3 rounded-2xl bg-slate-900/80 border border-white/10">
+                <span className="text-[10px] uppercase font-bold text-gray-400">Total Aspirants</span>
+                <div className="text-lg font-black text-white mt-0.5">{usersList.length}</div>
+              </div>
+              <div className="p-3 rounded-2xl bg-amber-950/30 border border-amber-500/30">
+                <span className="text-[10px] uppercase font-bold text-amber-300">Active Paid Plans</span>
+                <div className="text-lg font-black text-amber-400 mt-0.5">
+                  {usersList.filter(u => u.plan === 'pro' || u.plan === 'ultimate').length}
+                </div>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-950/30 border border-emerald-500/30">
+                <span className="text-[10px] uppercase font-bold text-emerald-300">Orders Logged</span>
+                <div className="text-lg font-black text-emerald-400 mt-0.5">{subscriptionsList.length}</div>
+              </div>
+            </div>
+
+            {/* Aspirants Table / Cards */}
+            <div className="space-y-2">
+              <div className="text-xs font-extrabold text-gray-300 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Registered Students ({usersList.length})</span>
+              </div>
+
+              {usersList.length === 0 ? (
+                <div className="text-center py-8 bg-slate-950/70 rounded-2xl border border-white/10 text-xs text-gray-400">
+                  {loadingData ? 'Fetching latest records from Cloud Firestore...' : 'No aspirants registered yet.'}
+                </div>
+              ) : (
+                <div className="max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  {usersList.map((usr, idx) => (
+                    <div
+                      key={usr.id || usr.uid || idx}
+                      className="p-3 rounded-xl bg-slate-900/60 border border-white/10 hover:border-white/20 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-lg">{usr.avatar || '👨‍🎓'}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white truncate">{usr.name || 'Aspirant Student'}</span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-white/10 text-gray-300">
+                              {usr.targetExam || 'UPSC'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-gray-400 font-mono truncate">
+                            {usr.phone || usr.email || usr.uid || 'No contact'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          usr.plan === 'ultimate'
+                            ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-sm'
+                            : usr.plan === 'pro'
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                            : 'bg-white/10 text-gray-400'
+                        }`}>
+                          {usr.plan ? `${usr.plan} Plan` : 'Free Trial'}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {usr.createdAt ? new Date(usr.createdAt).toLocaleDateString() : ''}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Subscriptions Ledger if any */}
+            {subscriptionsList.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <div className="text-xs font-extrabold text-amber-300 flex items-center gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Recent Payment Transactions ({subscriptionsList.length})</span>
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                  {subscriptionsList.map((sub, idx) => (
+                    <div
+                      key={sub.id || idx}
+                      className="p-2.5 rounded-xl bg-amber-950/20 border border-amber-500/30 flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <div className="font-bold text-white">{sub.userName || sub.userPhone || 'Subscriber'}</div>
+                        <div className="text-[10px] text-gray-400">
+                          Plan: <span className="text-amber-300 font-bold uppercase">{sub.plan}</span> • ₹{sub.amount} via {sub.paymentMethod || 'UPI'}
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-gray-400 text-right">
+                        <div>{sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : ''}</div>
+                        <span className="text-emerald-400 font-bold uppercase text-[9px]">Verified</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: Upload Question & Model Solution */}
         {adminTab === 'upload' && (
           <form onSubmit={handleQuestionSubmit} className="space-y-4 animate-fadeIn">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
