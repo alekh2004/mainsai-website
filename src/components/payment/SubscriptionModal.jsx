@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Crown, Check, Zap, Sparkles, X, ShieldCheck, QrCode, CreditCard, CheckCircle } from 'lucide-react';
+import { useApp } from '../../context/AppContext';
+import { Crown, Check, Zap, Sparkles, X, ArrowLeft, ShieldCheck, QrCode, CreditCard, CheckCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export function SubscriptionModal() {
   const { user, upgradePlan, showPayModal, setShowPayModal } = useAuth();
+  const { language } = useApp();
+  const isHi = language === 'hi';
   
   const [selectedPlan, setSelectedPlan] = useState('pro'); // 'free' | 'pro' | 'ultimate'
   const [paymentMethod, setPaymentMethod] = useState('upi'); // 'upi' | 'card' | 'qr'
   const [isProcessing, setIsProcessing] = useState(false);
   const [paySuccess, setPaySuccess] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!showPayModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setShowPayModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showPayModal, setShowPayModal]);
 
   if (!showPayModal) return null;
 
@@ -36,16 +49,32 @@ export function SubscriptionModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-6 lg:p-8 border border-amber-500/40 shadow-2xl my-8 space-y-6">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto"
+      onClick={(e) => { if (e.target === e.currentTarget) setShowPayModal(false); }}
+    >
+      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-5 sm:p-7 lg:p-8 border border-amber-500/40 shadow-2xl my-6 space-y-6">
         
-        {/* Close Button */}
-        <button
-          onClick={() => setShowPayModal(false)}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Top Header Bar with prominent Back & Close buttons */}
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <button
+            type="button"
+            onClick={() => setShowPayModal(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition-all group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span>{isHi ? 'वापस जाएं (Back)' : 'Back to App'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowPayModal(false)}
+            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all"
+            title={isHi ? 'बंद करें (Close)' : 'Close'}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Modal Header */}
         <div className="text-center space-y-2 max-w-lg mx-auto">
@@ -267,6 +296,18 @@ export function SubscriptionModal() {
             </div>
           </div>
         )}
+
+        {/* Bottom Back Button */}
+        <div className="pt-2 flex items-center justify-center border-t border-white/10">
+          <button
+            type="button"
+            onClick={() => setShowPayModal(false)}
+            className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/20 text-xs font-extrabold text-slate-300 hover:text-white transition-all flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{isHi ? 'डैशबोर्ड पर वापस जाएं (Back to Dashboard)' : 'Back to Dashboard'}</span>
+          </button>
+        </div>
 
       </div>
     </div>

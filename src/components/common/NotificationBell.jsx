@@ -9,15 +9,22 @@ export function NotificationBell({ onOpenQuestion, onOpenEvaluation }) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -53,44 +60,64 @@ export function NotificationBell({ onOpenQuestion, onOpenEvaluation }) {
 
       {/* Dropdown Panel */}
       {open && (
-        <div
-          className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-3xl border shadow-2xl overflow-hidden z-50 animate-fadeIn flex flex-col"
-          style={{
-            maxHeight: '480px',
-            background: 'var(--card-bg)',
-            backdropFilter: 'blur(20px)',
-            borderColor: 'var(--glass-border)',
-            color: 'var(--text-primary)'
-          }}
-        >
-          {/* Header */}
+        <>
+          {/* Mobile backdrop to easily dismiss */}
           <div
-            className="flex items-center justify-between px-4 py-3 border-b shrink-0"
-            style={{ borderColor: 'var(--glass-border)', background: 'var(--nav-bg)' }}
-          >
-            <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-blue-500" />
-              <span className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
-                {isHi ? 'सूचनाएं एवं अलर्ट' : 'Notifications & Alerts'}
-              </span>
-              {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold">
-                  {unreadCount} {isHi ? 'नए' : 'new'}
-                </span>
-              )}
-            </div>
+            className="sm:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-xs"
+            onClick={() => setOpen(false)}
+          />
 
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={markAllNotificationsRead}
-                className="text-[10px] font-bold hover:underline flex items-center gap-1"
-                style={{ color: 'rgb(var(--accent))' }}
-              >
-                <Check className="w-3 h-3" /> {isHi ? 'सभी पढ़ें' : 'Mark all read'}
-              </button>
-            )}
-          </div>
+          <div
+            className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 rounded-3xl border shadow-2xl overflow-hidden z-50 animate-fadeIn flex flex-col"
+            style={{
+              maxHeight: 'calc(100vh - 90px)',
+              background: 'var(--card-bg)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              borderColor: 'var(--glass-border)',
+              color: 'var(--text-primary)'
+            }}
+          >
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border-b shrink-0"
+              style={{ borderColor: 'var(--glass-border)', background: 'var(--nav-bg)' }}
+            >
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
+                <span className="text-xs font-black uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>
+                  {isHi ? 'सूचनाएं एवं अलर्ट' : 'Notifications & Alerts'}
+                </span>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={{ background: 'rgb(var(--accent)/0.18)', color: 'rgb(var(--accent))' }}>
+                    {unreadCount} {isHi ? 'नए' : 'new'}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllNotificationsRead}
+                    className="text-[10px] font-bold hover:underline flex items-center gap-1"
+                    style={{ color: 'rgb(var(--accent))' }}
+                  >
+                    <Check className="w-3 h-3" /> {isHi ? 'सभी पढ़ें' : 'Mark all read'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="p-1 rounded-lg hover:bg-white/10 transition-colors"
+                  style={{ color: 'var(--text-secondary)' }}
+                  title={isHi ? 'बंद करें' : 'Close'}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
           {/* Notifications List */}
           <div className="overflow-y-auto custom-scroll divide-y flex-1" style={{ borderColor: 'var(--glass-border)' }}>
@@ -143,7 +170,8 @@ export function NotificationBell({ onOpenQuestion, onOpenEvaluation }) {
             )}
           </div>
         </div>
-      )}
-    </div>
-  );
+      </>
+    )}
+  </div>
+);
 }
