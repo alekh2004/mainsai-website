@@ -56,7 +56,7 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
             {/* Name */}
             <div className="space-y-1">
               <h3
-                className="text-2xl font-black m-0 leading-tight shimmer-text"
+                className="text-2xl font-black m-0 leading-tight profile-name-glow"
               >
                 {user?.name || (isHi ? 'अभ्यर्थी' : 'Aspirant')}
               </h3>
@@ -119,7 +119,7 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-blue-500" />
+              <User className="w-4 h-4" style={{ color: 'rgb(var(--accent))' }} />
               <h4 className="text-xs font-black uppercase tracking-wider m-0" style={{ color: 'var(--text-primary)' }}>
                 {isHi ? 'अभ्यर्थी विवरण (Personal Info)' : 'Aspirant Details'}
               </h4>
@@ -127,7 +127,8 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
             {onOpenEditProfile && (
               <button
                 onClick={onOpenEditProfile}
-                className="text-xs font-black text-blue-500 hover:text-blue-400 transition-colors"
+                className="text-xs font-black transition-opacity hover:opacity-80"
+                style={{ color: 'rgb(var(--accent))' }}
               >
                 {isHi ? 'बदलें (Edit)' : 'Edit Profile'}
               </button>

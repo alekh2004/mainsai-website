@@ -10,9 +10,19 @@ import { AuroraLamp } from '../animations/AuroraLamp';
 import { FloatingParticles } from '../animations/FloatingParticles';
 
 export function PrelimsHome({ onSelectAction }) {
-  const { activeExam, language } = useApp();
+  const { activeExam, language, accentColor } = useApp();
   const { user } = useAuth();
   const isHi = language === 'hi';
+
+  const ACCENT_HEXES = {
+    cyan: '#0891b2',
+    blue: '#2563eb',
+    emerald: '#059669',
+    violet: '#7c3aed',
+    rose: '#e11d48',
+    amber: '#b45309',
+  };
+  const themeAccentHex = ACCENT_HEXES[accentColor] || '#2563eb';
 
   const isPro = user?.plan === 'pro' || user?.plan === 'ultimate';
   const isTeacher = user?.role === 'teacher' || user?.role === 'admin';
@@ -21,8 +31,7 @@ export function PrelimsHome({ onSelectAction }) {
     {
       id: 'tests',
       icon: FileText,
-      iconBg: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
-      accentColor: '#3b82f6',
+      accentColor: themeAccentHex,
       gradient: 'from-blue-600/10 to-blue-400/5',
       title: isHi ? 'फुल एवं विषयवार टेस्ट' : 'Full & Subject Tests',
       desc: isHi
@@ -67,9 +76,10 @@ export function PrelimsHome({ onSelectAction }) {
 
       {/* Hero Banner with Aceternity Aurora Lamp */}
       <div
-        className="relative rounded-3xl overflow-hidden shadow-2xl border border-blue-500/30 p-6 md:p-8 flex flex-col justify-end group"
+        className="relative rounded-3xl overflow-hidden shadow-2xl p-6 md:p-8 flex flex-col justify-end group border"
         style={{
           minHeight: '230px',
+          borderColor: 'rgb(var(--accent)/0.35)',
         }}
       >
         <AuroraLamp intensity="medium" />
@@ -83,7 +93,13 @@ export function PrelimsHome({ onSelectAction }) {
           style={{ background: 'linear-gradient(to right, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.45) 55%, rgba(4,7,18,0.1) 100%)' }}
         />
         <div className="relative z-10 space-y-3 max-w-lg">
-          <span className="inline-block px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/50 text-xs font-extrabold uppercase tracking-wider backdrop-blur-md">
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider backdrop-blur-md text-white"
+            style={{
+              background: 'rgb(var(--accent)/0.25)',
+              border: '1px solid rgb(var(--accent)/0.45)',
+            }}
+          >
             {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE Prelims Zone' : '🏛️ UPSC Prelims 2026 Zone'}
           </span>
           <h2 className="text-2xl md:text-3xl font-black m-0 leading-tight text-white drop-shadow-md shimmer-text">
@@ -122,7 +138,14 @@ export function PrelimsHome({ onSelectAction }) {
 
                   <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center ${card.iconBg}`}>
+                      <div
+                        className="w-11 h-11 rounded-2xl border flex items-center justify-center"
+                        style={{
+                          background: `${card.accentColor}18`,
+                          color: card.accentColor,
+                          borderColor: `${card.accentColor}35`,
+                        }}
+                      >
                         <Icon className="w-5 h-5" />
                       </div>
                       <span

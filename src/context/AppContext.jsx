@@ -84,16 +84,62 @@ export function AppProvider({ children }) {
 
     // Map accent color to RGB and Hex for instant application across mobile & desktop
     const ACCENT_MAP = {
-      cyan:    { rgb: '8 145 178',   hex: '#0891b2' },
-      blue:    { rgb: '37 99 235',   hex: '#2563eb' },
-      emerald: { rgb: '5 150 105',   hex: '#059669' },
-      violet:  { rgb: '124 58 237', hex: '#7c3aed' },
-      rose:    { rgb: '225 29 72',   hex: '#e11d48' },
-      amber:   { rgb: '180 83 9',    hex: '#b45309' },
+      cyan: {
+        rgb: '8 145 178',
+        rgb2: '14 165 233',
+        rgb3: '56 189 248',
+        hex: '#0891b2',
+        hex2: '#0ea5e9',
+        hex3: '#38bdf8'
+      },
+      blue: {
+        rgb: '37 99 235',
+        rgb2: '99 102 241',
+        rgb3: '14 165 233',
+        hex: '#2563eb',
+        hex2: '#6366f1',
+        hex3: '#0ea5e9'
+      },
+      emerald: {
+        rgb: '5 150 105',
+        rgb2: '16 185 129',
+        rgb3: '52 211 153',
+        hex: '#059669',
+        hex2: '#10b981',
+        hex3: '#34d399'
+      },
+      violet: {
+        rgb: '124 58 237',
+        rgb2: '139 92 246',
+        rgb3: '167 139 250',
+        hex: '#7c3aed',
+        hex2: '#8b5cf6',
+        hex3: '#a78bfa'
+      },
+      rose: {
+        rgb: '225 29 72',
+        rgb2: '244 63 94',
+        rgb3: '251 113 133',
+        hex: '#e11d48',
+        hex2: '#f43f5e',
+        hex3: '#fb7185'
+      },
+      amber: {
+        rgb: '180 83 9',
+        rgb2: '217 119 6',
+        rgb3: '245 158 11',
+        hex: '#b45309',
+        hex2: '#d97706',
+        hex3: '#f59e0b'
+      },
     };
     const accInfo = ACCENT_MAP[accentColor] || ACCENT_MAP.cyan;
     root.style.setProperty('--accent', accInfo.rgb);
+    root.style.setProperty('--accent2', accInfo.rgb2);
+    root.style.setProperty('--accent3', accInfo.rgb3);
     root.style.setProperty('--accent-hex', accInfo.hex);
+    root.style.setProperty('--accent2-hex', accInfo.hex2);
+    root.style.setProperty('--accent3-hex', accInfo.hex3);
 
     // 2. Directly wire glass intensity (0-100) to CSS variables
     const isDark = theme === 'dark';

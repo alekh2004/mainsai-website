@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Home, Target, Sparkles, BookMarked, User, Settings2, X, Sun, Moon, Layers } from 'lucide-react';
+import {
+  Home, Target, Sparkles, BookMarked, User, Settings2, X, Sun, Moon,
+  Layers, Globe2, Waves, Grid, Check
+} from 'lucide-react';
 
 const THEMES = [
   { id: 'light',  label: 'Light',  icon: '☀️' },
@@ -9,16 +12,26 @@ const THEMES = [
 ];
 
 const ACCENTS = [
+  { id: 'cyan',    hex: '#0891b2', label: 'Cyan' },
   { id: 'blue',    hex: '#2563eb', label: 'Blue' },
   { id: 'emerald', hex: '#059669', label: 'Green' },
   { id: 'violet',  hex: '#7c3aed', label: 'Purple' },
   { id: 'rose',    hex: '#e11d48', label: 'Rose' },
   { id: 'amber',   hex: '#b45309', label: 'Amber' },
-  { id: 'cyan',    hex: '#0891b2', label: 'Cyan' },
+];
+
+const BG_STYLES = [
+  { id: 'world-map', label: 'World Map', icon: Globe2   },
+  { id: 'universe',  label: 'Universe',  icon: Sparkles },
+  { id: 'aurora',    label: 'Aurora',    icon: Waves    },
+  { id: 'minimal',   label: 'Minimal',   icon: Grid     }
 ];
 
 export function MobileNav({ activeTab, setActiveTab }) {
-  const { language, theme, setTheme, accentColor, setAccentColor, glassIntensity, setGlassIntensity } = useApp();
+  const {
+    language, theme, setTheme, accentColor, setAccentColor,
+    bgStyle, setBgStyle, glassIntensity, setGlassIntensity
+  } = useApp();
   const [showSettings, setShowSettings] = useState(false);
 
   const isHi = language === 'hi';
@@ -139,6 +152,29 @@ export function MobileNav({ activeTab, setActiveTab }) {
             </div>
 
             <div className="px-5 pb-6 space-y-5">
+
+              {/* Background */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
+                  🌌 Background
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {BG_STYLES.map(({ id, label, icon: Icon }) => (
+                    <button
+                      key={id}
+                      onClick={() => setBgStyle(id)}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all"
+                      style={bgStyle === id
+                        ? { color: currentAccentHex, borderColor: currentAccentHex, background: `${currentAccentHex}22` }
+                        : { color: 'var(--text-secondary)', borderColor: 'var(--glass-border)' }}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="text-[11px] font-extrabold truncate">{label}</span>
+                      {bgStyle === id && <Check className="w-3.5 h-3.5 ml-auto" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Theme */}
               <div className="space-y-2">

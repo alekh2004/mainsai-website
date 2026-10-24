@@ -124,7 +124,11 @@ html, body {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 15% 15%, rgb(var(--accent)/0.18) 0%, transparent 55%),
+    radial-gradient(circle at 85% 80%, rgb(var(--accent2)/0.15) 0%, transparent 55%);
+  transition: background-color 0.4s ease;
 }
 
 /* Star field layer */
@@ -155,17 +159,38 @@ html, body {
 /* ── Mobile & Touch Hardware Optimization (Eliminates GPU crashes, whiteout, and tap lag) ── */
 @media (max-width: 1024px), (pointer: coarse), (hover: none) {
   /* 1. Mobile ambient background glow dynamically driven by accent color */
+  .neon-universe,
+  .neon-worldmap-bg,
+  .aurora-theme,
   .app-root {
     background-image:
-      radial-gradient(circle at 10% 10%, rgb(var(--accent)/0.22) 0%, transparent 55%),
-      radial-gradient(circle at 90% 75%, rgb(var(--accent2)/0.18) 0%, transparent 55%) !important;
+      radial-gradient(circle at 15% 12%, rgb(var(--accent)/0.25) 0%, transparent 60%),
+      radial-gradient(circle at 85% 78%, rgb(var(--accent2)/0.20) 0%, transparent 60%) !important;
   }
 
   .neon-orb {
     display: block !important;
     animation: none !important;
-    filter: blur(30px) !important;
-    opacity: 0.55 !important;
+    filter: blur(40px) !important;
+    opacity: 0.65 !important;
+  }
+  .neon-orb-1 {
+    width: 280px !important;
+    height: 280px !important;
+    top: -40px !important;
+    left: -40px !important;
+  }
+  .neon-orb-2 {
+    width: 260px !important;
+    height: 260px !important;
+    top: 35% !important;
+    right: -40px !important;
+  }
+  .neon-orb-3 {
+    width: 250px !important;
+    height: 250px !important;
+    bottom: 50px !important;
+    left: 10% !important;
   }
 
   /* 2. Disable SVG feGaussianBlur and continuous vector animations */
@@ -202,10 +227,31 @@ html, body {
     opacity: 0.25 !important;
   }
 
+  /* Aurora Waves on Mobile: Visible, smooth, hardware-accelerated */
   .aurora-wave {
-    animation: none !important;
-    filter: none !important;
-    display: none !important;
+    display: block !important;
+    filter: blur(35px) !important;
+    opacity: 0.45 !important;
+    animation: waveMotion 16s ease-in-out infinite alternate !important;
+    will-change: transform !important;
+  }
+  .aurora-wave-1 {
+    width: 160% !important;
+    height: 48% !important;
+    top: -5% !important;
+    left: -30% !important;
+  }
+  .aurora-wave-2 {
+    width: 150% !important;
+    height: 48% !important;
+    bottom: 5% !important;
+    right: -25% !important;
+  }
+  .aurora-wave-3 {
+    width: 120% !important;
+    height: 38% !important;
+    top: 28% !important;
+    left: -10% !important;
   }
 
   .india-continent-glow {
@@ -324,7 +370,11 @@ html, body {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 15% 15%, rgb(var(--accent)/0.18) 0%, transparent 55%),
+    radial-gradient(circle at 85% 80%, rgb(var(--accent2)/0.15) 0%, transparent 55%);
+  transition: background-color 0.4s ease;
 }
 
 .worldmap-svg-wrap {
@@ -446,7 +496,11 @@ html, body {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 15% 15%, rgb(var(--accent)/0.22) 0%, transparent 60%),
+    radial-gradient(circle at 85% 80%, rgb(var(--accent2)/0.18) 0%, transparent 60%);
+  transition: background-color 0.4s ease;
 }
 
 .aurora-wave {
@@ -969,6 +1023,34 @@ input[type="range"] {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: textShimmer 4s linear infinite;
+}
+
+/* Profile Aspirant Name — Sharp, readable on both white and dark cards with golden ambient glow */
+.profile-name-glow {
+  color: var(--text-primary) !important;
+  text-shadow:
+    0 0 14px rgba(245, 158, 11, 0.65),
+    0 0 28px rgba(245, 158, 11, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  animation: goldPulseGlow 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes goldPulseGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 12px rgba(245, 158, 11, 0.55),
+      0 0 22px rgba(245, 158, 11, 0.30),
+      0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(245, 158, 11, 0.90),
+      0 0 36px rgba(245, 158, 11, 0.55),
+      0 1px 3px rgba(0, 0, 0, 0.18);
+  }
 }
 
 /* Aurora multi-color heading */
