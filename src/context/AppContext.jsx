@@ -426,6 +426,7 @@ export function AppProvider({ children }) {
       id: `eval-${Date.now()}`,
       userId: user?.uid || null,
       userEmail: user?.email || null,
+      userName: user?.name || null,
       createdAt: new Date().toISOString(),
       ...evalObj
     };
@@ -435,11 +436,31 @@ export function AppProvider({ children }) {
     if (user?.uid) {
       try {
         const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = newEval;
-        setDoc(doc(db, 'evaluations', newEval.id), {
+        const payload = {
           ...cloudData,
           hasUploadedFile: !!uploadedFileBase64,
           syncedAt: new Date().toISOString()
-        }).catch(err => console.warn('Firestore evaluation upload fallback:', err));
+        };
+
+        // 1. Root evaluations collection
+        setDoc(doc(db, 'evaluations', newEval.id), payload).catch(err =>
+          console.warn('Firestore evaluation upload fallback:', err)
+        );
+
+        // 2. User subcollection (shows up directly in user document in Firestore console Column 3!)
+        setDoc(doc(db, 'users', user.uid, 'evaluations', newEval.id), payload).catch(err =>
+          console.warn('Firestore user evaluation subcollection fallback:', err)
+        );
+
+        // 3. Update summary metrics directly on the user document
+        const currentCount = (user?.totalEvaluationsCount || 0) + 1;
+        setDoc(doc(db, 'users', user.uid), {
+          totalEvaluationsCount: currentCount,
+          lastQuestionTitle: evalObj.questionTitle || evalObj.title || 'Mains Evaluation',
+          lastEvaluationAt: new Date().toISOString()
+        }, { merge: true }).catch(err =>
+          console.warn('Firestore user metric update fallback:', err)
+        );
       } catch (e) {
         console.warn('Firestore evaluation upload error:', e);
       }

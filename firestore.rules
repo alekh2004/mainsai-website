@@ -2,9 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Users collection: Aspirant profile, active plan, evaluations left
+    // 1. Users collection: Aspirant profile, active plan, evaluations left & subcollections
     match /users/{userId} {
       allow read, write: if true;
+      match /{subcollection=**} {
+        allow read, write: if true;
+      }
     }
 
     // 2. Subscriptions collection: Purchase transactions, plan tier, UTR reference

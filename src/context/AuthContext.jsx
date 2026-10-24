@@ -124,6 +124,12 @@ export function AuthProvider({ children }) {
 
     const isNameInvalid = (n) => !n || n.trim() === '' || n.startsWith('Candidate') || n === 'Aspirant Student';
     const resolvedName = extra.name || (isNameInvalid(firebaseUser.displayName) ? '' : firebaseUser.displayName) || (isNameInvalid(existing?.name) ? '' : existing?.name) || '';
+    const resolvedGender = extra.gender || existing?.gender || '';
+    const resolvedAvatar = (extra.avatar && extra.avatar !== '🌐') 
+      ? extra.avatar 
+      : (existing?.avatar && existing?.avatar !== '🌐') 
+      ? existing.avatar 
+      : (resolvedGender === 'female' ? '👩‍🎓' : '👨‍🎓');
 
     const profile = {
       uid: firebaseUser.uid,
@@ -132,13 +138,18 @@ export function AuthProvider({ children }) {
       phone: firebaseUser.phoneNumber || extra.phone || existing?.phone || '',
       photoURL: firebaseUser.photoURL || existing?.photoURL || '',
       loginType: extra.loginType || existing?.loginType || 'email',
-      avatar: extra.avatar || existing?.avatar || (extra.gender === 'female' || existing?.gender === 'female' ? '👩‍🎓' : '👨‍🎓'),
+      avatar: resolvedAvatar,
       role: existing?.role || 'student',
       plan: existing?.plan || 'pro',
-      gender: extra.gender || existing?.gender || '',
+      planStatus: existing?.planStatus || 'active',
+      planStartedAt: existing?.planStartedAt || new Date().toISOString(),
+      planExpiresAt: existing?.planExpiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      totalEvaluationsCount: existing?.totalEvaluationsCount || 0,
+      lastQuestionTitle: existing?.lastQuestionTitle || '',
+      gender: resolvedGender,
       dob: extra.dob || existing?.dob || '',
       targetExam: extra.targetExam || existing?.targetExam || 'upsc',
-      profileCompleted: Boolean(resolvedName && (extra.dob || existing?.dob) && (extra.gender || existing?.gender)),
+      profileCompleted: Boolean(resolvedName && (extra.dob || existing?.dob) && (resolvedGender)),
       evaluationsLeft: existing?.evaluationsLeft ?? 9999,
       teacherReviewsLeft: existing?.teacherReviewsLeft ?? 5,
       verificationStatus: 'approved',
@@ -231,7 +242,7 @@ export function AuthProvider({ children }) {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(auth, provider);
-    return saveStudentProfile(result.user, { loginType: 'google', avatar: '🌐' });
+    return saveStudentProfile(result.user, { loginType: 'google' });
   };
 
   // ── PHONE: Check if number already has an account ────────────────────
@@ -329,9 +340,13 @@ export function AuthProvider({ children }) {
       phoneNumber: `+91${cleanPhone}`,
       photoURL: '',
       loginType: 'mobile',
-      avatar: '📱',
+      avatar: '👨‍🎓',
       role: 'student',
       plan: 'pro',
+      planStatus: 'active',
+      planStartedAt: new Date().toISOString(),
+      planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      totalEvaluationsCount: 0,
       gender: '',
       dob: '',
       targetExam: 'upsc',

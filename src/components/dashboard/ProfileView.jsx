@@ -7,6 +7,48 @@ import { AnimatedNumber } from '../animations/AnimatedNumber';
 import { AuroraLamp } from '../animations/AuroraLamp';
 import { AceternityCard } from '../animations/AceternityCard';
 
+function AnimatedAspirantAvatar({ user }) {
+  const isFemale = user?.gender === 'female' || (user?.name && /priya|pooja|neha|sneha|anjali|swati|deepika|divya|nisha|radha/i.test(user.name));
+  const characterImg = isFemale ? '/hero_girl_mobile.jpg' : '/hero_boy_mobile.jpg';
+
+  return (
+    <div className="relative group shrink-0">
+      {/* Outer animated halo ring */}
+      <div className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-amber-400 via-cyan-400 to-indigo-500 opacity-80 blur-md animate-pulse" />
+      
+      {/* Rotating conic accent border */}
+      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-500 via-teal-400 to-indigo-600 shadow-2xl">
+        <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center relative border-2 border-white/20">
+          <img
+            src={characterImg}
+            alt={isFemale ? 'Female Aspirant' : 'Male Aspirant'}
+            className="w-full h-full object-cover object-top transform transition-transform duration-500 group-hover:scale-110"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              if (e.currentTarget.nextElementSibling) {
+                e.currentTarget.nextElementSibling.style.display = 'flex';
+              }
+            }}
+          />
+          <div className="hidden w-full h-full items-center justify-center text-4xl">
+            {isFemale ? '👩‍🎓' : '👨‍🎓'}
+          </div>
+          {/* Subtle floating glow overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Floating Crown / Badge */}
+      <div
+        className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 border-2 border-slate-950 flex items-center justify-center shadow-lg text-slate-950 font-bold text-xs animate-bounce"
+        style={{ animationDuration: '3s' }}
+      >
+        {isFemale ? '🌸' : '👑'}
+      </div>
+    </div>
+  );
+}
+
 export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProfile }) {
   const { user, logout } = useAuth();
   const { evaluations = [], getInsightsData, language } = useApp();
@@ -39,19 +81,10 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
           </div>
 
           {/* Avatar + Name — overlapping the strip */}
-          <div className="px-6 pb-6 -mt-12 flex flex-col items-center text-center space-y-3 relative z-10">
+          <div className="px-6 pb-6 -mt-14 flex flex-col items-center text-center space-y-3 relative z-10">
 
-            {/* Avatar circle with glow */}
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-4xl border-4 shadow-2xl shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, #06b6d4, #6366f1)',
-                borderColor: 'var(--glass-border)',
-                boxShadow: '0 8px 32px rgba(6,182,212,0.35)',
-              }}
-            >
-              {user?.avatar || (user?.gender === 'female' ? '👩‍🎓' : '👨‍🎓')}
-            </div>
+            {/* Dynamic Animated Avatar with Glowing Halo */}
+            <AnimatedAspirantAvatar user={user} />
 
             {/* Name */}
             <div className="space-y-1">
