@@ -47,8 +47,6 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
   const [mcqExplanationEn, setMcqExplanationEn] = useState('');
   const [mcqExplanationHi, setMcqExplanationHi] = useState('');
 
-  if (!isOpen) return null;
-
   const handleQuestionImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -231,6 +229,8 @@ export function AdminQuestionUpload({ isOpen, onClose }) {
       alert('Failed to export CSV: ' + (err.message || 'Check console'));
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-fadeIn overflow-y-auto">

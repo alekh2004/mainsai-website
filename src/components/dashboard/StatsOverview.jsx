@@ -203,24 +203,24 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
 
       {/* Dynamic Responsive Image Background with aspect-ratio-aware object-position */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
-        {/* Mobile image: rendered on mobile (<768px) with native portrait aspect ratio */}
+        {/* Mobile image: rendered strictly on mobile (<768px) with native portrait aspect ratio */}
         <img
           key={`${slide.id}-mobile`}
           src={slide.mobileBg}
           alt={slide.title}
-          className="hero-mobile-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          className="hero-mobile-img block md:hidden w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
             objectPosition: slide.mobileObjectPosition || 'center 15%',
             animation: 'kenBurnsSlow 20s ease-in-out infinite alternate',
             willChange: 'transform',
           }}
         />
-        {/* Desktop image: rendered on desktop (≥768px) with native 16:9 widescreen ratio */}
+        {/* Desktop image: rendered strictly on desktop (≥768px) with native 16:9 widescreen ratio */}
         <img
           key={`${slide.id}-desktop`}
           src={slide.desktopBg}
           alt={slide.title}
-          className="hero-desktop-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          className="hero-desktop-img hidden md:block w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
             objectPosition: slide.desktopObjectPosition || 'center center',
             animation: 'kenBurnsHero 24s ease-in-out infinite alternate',
