@@ -822,27 +822,35 @@ input[type="range"]::-moz-range-thumb {
   100% { transform: scale(1.00) translate(0%, 0%); }
 }
 
-/* ── Responsive Hero Image: device-correct aspect ratio without pixelation ── */
+/* ── Responsive Hero Image: sleek compact banner without screen-hogging ── */
 .hero-carousel-container {
   width: 100%;
-  aspect-ratio: 4 / 5;
-  min-height: 420px;
-  max-height: 560px;
+  aspect-ratio: 16 / 11;
+  min-height: 220px;
+  max-height: 260px;
 }
 
 @media (min-width: 640px) {
   .hero-carousel-container {
-    aspect-ratio: 16 / 10;
-    min-height: 360px;
-    max-height: 500px;
+    aspect-ratio: 2 / 1;
+    min-height: 240px;
+    max-height: 280px;
   }
 }
 
 @media (min-width: 768px) {
   .hero-carousel-container {
-    aspect-ratio: 16 / 9;
-    min-height: 440px;
-    max-height: 540px;
+    aspect-ratio: 21 / 9;
+    min-height: 260px;
+    max-height: 300px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-carousel-container {
+    aspect-ratio: 2.35 / 1;
+    min-height: 265px;
+    max-height: 305px;
   }
 }
 

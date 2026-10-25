@@ -79,7 +79,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       desktopBg: '/hero_girl_parliament_desktop.jpg',
       mobileBg: '/hero_girl_desk_mobile.jpg',
       mobileObjectPosition: 'center 15%',
-      desktopObjectPosition: 'center center',
+      desktopObjectPosition: 'center 35%',
     },
     {
       id: 'female_qutub',
@@ -144,7 +144,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       desktopBg: '/parliament_cartoon_hero_desktop.jpg',
       mobileBg: '/hero_boy_desk_mobile.jpg',
       mobileObjectPosition: 'center 15%',
-      desktopObjectPosition: 'center center',
+      desktopObjectPosition: 'center 35%',
     },
     {
       id: 'male_indiagate_desk',
@@ -269,18 +269,18 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
         </>
       )}
 
-      {/* Content Overlay */}
-      <div className="relative z-10 p-5 sm:p-6 md:p-8 flex flex-col justify-between h-full min-h-[380px] sm:min-h-[340px] md:min-h-[440px]">
+      {/* Content Overlay — Sleek compact height without pushing dashboard content down */}
+      <div className="relative z-10 p-4 sm:p-5 md:p-6 flex flex-col justify-between h-full min-h-[220px] sm:min-h-[240px] md:min-h-[265px]">
         {/* Top Badges */}
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span
-            className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-md shadow-sm"
+            className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-sm"
             style={{ background: 'rgba(251,191,36,0.22)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.45)' }}
           >
             {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE AI' : '🏛️ UPSC 2026 AI'}
           </span>
           <span
-            className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full backdrop-blur-md text-white/90 shadow-sm"
+            className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full backdrop-blur-md text-white/90 shadow-sm"
             style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)' }}
           >
             {isHi ? slide.tagHi : slide.tagEn}
@@ -289,31 +289,31 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
 
         {/* Greeting & Aspirant Name with Shimmer text */}
         <div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight mb-0.5" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
+          <h2 className="text-sm sm:text-base md:text-lg font-bold text-white leading-tight mb-0.5" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
             {greeting},
           </h2>
           <h2
-            className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-2 shimmer-text"
+            className="text-xl sm:text-2xl md:text-3xl font-black leading-tight mb-1 shimmer-text"
           >
             {user?.name?.split(' ')[0] || 'Alekh'}
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-white/90 max-w-xs sm:max-w-sm md:max-w-md leading-relaxed" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.9)' }}>
+          <p className="text-[11px] sm:text-xs md:text-sm font-medium text-white/90 max-w-xs sm:max-w-md line-clamp-2 leading-relaxed" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.9)' }}>
             {isHi ? (slide.quoteHi || 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।') : (slide.quoteEn || 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.')}
           </p>
         </div>
 
         {/* Stat Pills & Carousel Indicator Dots */}
-        <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2.5 mt-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold shadow-sm backdrop-blur-md"
               style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}
             >
               <Trophy className="w-3.5 h-3.5 text-amber-400" />
               <span><AnimatedNumber value={totalCount} /> {isHi ? 'टेस्ट' : 'Tests'}</span>
             </div>
             <div
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold shadow-sm backdrop-blur-md"
               style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', color: '#4ade80' }}
             >
               <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
@@ -321,7 +321,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
             </div>
             {totalCount > 0 && (
               <div
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm backdrop-blur-md"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-extrabold shadow-sm backdrop-blur-md"
                 style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa' }}
               >
                 <Zap className="w-3.5 h-3.5 text-violet-400" />
@@ -331,15 +331,15 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
           </div>
 
           {/* Carousel Slide Indicators */}
-          <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
+          <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
             {HERO_SLIDES.map((s, idx) => (
               <button
                 key={s.id}
                 onClick={() => setSlideIdx(idx)}
-                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 cursor-pointer ${
                   idx === slideIdx
-                    ? 'w-6 ' + (gender === 'female' ? 'bg-pink-400' : 'bg-amber-400')
-                    : 'w-2 bg-white/40 hover:bg-white/70'
+                    ? 'w-5 sm:w-6 ' + (gender === 'female' ? 'bg-pink-400' : 'bg-amber-400')
+                    : 'w-1.5 sm:w-2 bg-white/40 hover:bg-white/70'
                 }`}
                 title={s.title}
                 aria-label={`Go to slide ${idx + 1}`}
