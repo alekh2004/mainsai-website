@@ -66,21 +66,8 @@ function detectGender(user) {
 function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
   const gender = detectGender(user);
 
-  // Dedicated Female Slides (Mobile portrait + Desktop 16:9)
-  // Parliament Cartoon Hero is FIRST (Index 0) as requested by user
+  // Dedicated Female Slides (Mobile portrait + Desktop 16:9 — ONLY Female Aspirants)
   const femaleSlides = [
-    {
-      id: 'female_parliament',
-      title: 'Parliament Hero Aspirant',
-      tagHi: '🏛️ संसद भवन — सपनों की नींव',
-      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
-      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
-      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
-      desktopBg: '/parliament_cartoon_hero_desktop.jpg',
-      mobileBg: '/parliament_cartoon_hero_desktop.jpg',
-      mobileObjectPosition: '30% center',
-      desktopObjectPosition: 'center center',
-    },
     {
       id: 'female_qutub',
       title: 'Qutub Minar IAS Aspirant',
@@ -132,7 +119,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   ];
 
   // Dedicated Male Slides (Mobile portrait + Desktop 16:9)
-  // Parliament Cartoon Hero is FIRST (Index 0) as requested by user
+  // Parliament Cartoon Hero is FIRST (#1 PRIMARY) on Desktop!
   const maleSlides = [
     {
       id: 'male_parliament',
@@ -142,8 +129,8 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
       quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
       desktopBg: '/parliament_cartoon_hero_desktop.jpg',
-      mobileBg: '/parliament_cartoon_hero_desktop.jpg',
-      mobileObjectPosition: '30% center',
+      mobileBg: '/hero_boy_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
       desktopObjectPosition: 'center center',
     },
     {
@@ -203,24 +190,24 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
 
       {/* Dynamic Responsive Image Background with aspect-ratio-aware object-position */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
-        {/* Mobile image: rendered strictly on mobile (<768px) with native portrait aspect ratio */}
+        {/* Mobile image: rendered on mobile (<768px) with native portrait aspect ratio */}
         <img
           key={`${slide.id}-mobile`}
           src={slide.mobileBg}
           alt={slide.title}
-          className="hero-mobile-img block md:hidden w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          className="hero-mobile-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
             objectPosition: slide.mobileObjectPosition || 'center 15%',
             animation: 'kenBurnsSlow 20s ease-in-out infinite alternate',
             willChange: 'transform',
           }}
         />
-        {/* Desktop image: rendered strictly on desktop (≥768px) with native 16:9 widescreen ratio */}
+        {/* Desktop image: rendered on desktop (≥768px) with native 16:9 widescreen ratio */}
         <img
           key={`${slide.id}-desktop`}
           src={slide.desktopBg}
           alt={slide.title}
-          className="hero-desktop-img hidden md:block w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
+          className="hero-desktop-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
             objectPosition: slide.desktopObjectPosition || 'center center',
             animation: 'kenBurnsHero 24s ease-in-out infinite alternate',
@@ -424,7 +411,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
   const insights = getInsightsData();
   const realEvals = Array.isArray(evaluations) ? evaluations : [];
   const recentList = realEvals.slice(0, 3);
-  const totalCount = Math.max(realEvals.length, Number(user?.totalEvaluationsCount) || 0);
+  const totalCount = realEvals.length;
   const rawAvgPct = insights?.avgPct ?? 0;
   const safeAvgPct = Math.max(0, Math.min(100, Math.round(Number(rawAvgPct) || 0)));
   const percentile = totalCount === 0 ? '-'

@@ -1,8 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
-import { sanitizeForFirestore, syncImprovementBookWithCloud } from '../utils/firestoreSync';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import {
+  sanitizeForFirestore,
+  syncImprovementBookWithCloud,
+  loadUserEvaluationsFromCloud,
+  saveUserEvaluationsToCloud
+} from '../utils/firestoreSync';
 
 const AppContext = createContext();
 
@@ -373,59 +378,20 @@ export function AppProvider({ children }) {
 
       (async () => {
         try {
+          // Load from cloud (reads users/{uid}.savedEvaluations + collections)
+          const cloudEvals = await loadUserEvaluationsFromCloud(currentUid);
+
           const map = new Map();
-
-          // Seed with local evaluations
-          localEvals.forEach(e => {
-            if (e?.id) map.set(e.id, { ...e, userId: e.userId || currentUid });
+          // Seed with cloud evaluations
+          cloudEvals.forEach(e => {
+            if (e?.id) map.set(e.id, e);
           });
-
-          // Source 1: Check master document users/{uid} (ALWAYS authorized & bypasses rule blocks!)
-          let userCloudCount = 0;
-          try {
-            const userSnap = await getDoc(doc(db, 'users', currentUid));
-            if (userSnap.exists()) {
-              const uData = userSnap.data();
-              userCloudCount = Number(uData.totalEvaluationsCount) || 0;
-              const savedList = Array.isArray(uData.savedEvaluations) ? uData.savedEvaluations : [];
-              savedList.forEach(item => {
-                if (item?.id) map.set(item.id, { ...(map.get(item.id) || {}), ...item });
-              });
+          // Merge local evaluations
+          localEvals.forEach(e => {
+            if (e?.id) {
+              map.set(e.id, { ...(map.get(e.id) || {}), ...e, userId: currentUid });
             }
-          } catch (e) {
-            console.warn('User document evaluations fetch:', e);
-          }
-
-          // Source 2: Root 'evaluations' collection (if permitted)
-          let rootIds = new Set();
-          try {
-            const qRoot = query(
-              collection(db, 'evaluations'),
-              where('userId', '==', currentUid)
-            );
-            const snapRoot = await getDocs(qRoot);
-            snapRoot.forEach(d => {
-              rootIds.add(d.id);
-              const cloudItem = { id: d.id, ...d.data() };
-              map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
-            });
-          } catch (e) {
-            // ignore rule block
-          }
-
-          // Source 3: User subcollection 'users/{uid}/evaluations' (if permitted)
-          let subIds = new Set();
-          try {
-            const qSub = query(collection(db, 'users', currentUid, 'evaluations'));
-            const snapSub = await getDocs(qSub);
-            snapSub.forEach(d => {
-              subIds.add(d.id);
-              const cloudItem = { id: d.id, ...d.data() };
-              map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
-            });
-          } catch (e) {
-            // ignore rule block
-          }
+          });
 
           const merged = Array.from(map.values()).sort(
             (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
@@ -439,39 +405,8 @@ export function AppProvider({ children }) {
             } catch (_) {}
           }
 
-          // Always persist the cleanMerged evaluations list and count to users/{uid} doc
-          const effectiveCount = Math.max(cleanMerged.length, userCloudCount);
-          try {
-            await setDoc(doc(db, 'users', currentUid), {
-              totalEvaluationsCount: effectiveCount,
-              savedEvaluations: sanitizeForFirestore(cleanMerged.slice(0, 50)),
-              lastEvaluationAt: cleanMerged[0]?.createdAt || new Date().toISOString()
-            }, { merge: true });
-          } catch (_) {}
-
-          // Also upload to root/subcollection if permitted
-          for (const ev of cleanMerged) {
-            const isMissingRoot = !rootIds.has(ev.id);
-            const isMissingSub = !subIds.has(ev.id);
-
-            if (isMissingRoot || isMissingSub) {
-              try {
-                const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = ev;
-                const payload = sanitizeForFirestore({
-                  ...cloudData,
-                  userId: currentUid,
-                  hasUploadedFile: !!uploadedFileBase64,
-                  syncedAt: new Date().toISOString()
-                });
-                if (isMissingRoot) {
-                  setDoc(doc(db, 'evaluations', ev.id), payload, { merge: true }).catch(() => {});
-                }
-                if (isMissingSub) {
-                  setDoc(doc(db, 'users', currentUid, 'evaluations', ev.id), payload, { merge: true }).catch(() => {});
-                }
-              } catch (_) {}
-            }
-          }
+          // 3. Save the complete unified evaluations to users/{uid}.savedEvaluations (100% permission guaranteed)
+          await saveUserEvaluationsToCloud(currentUid, cleanMerged);
 
         } catch (cloudErr) {
           console.warn('Firestore evaluations sync fallback:', cloudErr);
@@ -523,19 +458,21 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString(),
       ...evalObj
     };
-    setEvaluations(prev => {
-      const updated = purgeExpiredUploads([newEval, ...prev]);
-      const currentUid = user?.uid || null;
-      if (currentUid) {
-        try {
-          localStorage.setItem(getEvaluationStorageKey(currentUid), JSON.stringify(updated));
-        } catch (_) {}
-      }
-      return updated;
-    });
+    const updated = purgeExpiredUploads([newEval, ...evaluations]);
+    setEvaluations(updated);
 
-    // Sync to Cloud Firestore (strip big raw binary/base64 to stay well below Firestore's 1MB document limit)
-    if (user?.uid) {
+    const currentUid = user?.uid || null;
+    if (currentUid) {
+      try {
+        localStorage.setItem(getEvaluationStorageKey(currentUid), JSON.stringify(updated));
+      } catch (_) {}
+
+      // 1. Save directly to users/{uid}.savedEvaluations (100% permission guaranteed!)
+      saveUserEvaluationsToCloud(currentUid, updated).catch(err =>
+        console.warn('Firestore saveUserEvaluationsToCloud fallback:', err)
+      );
+
+      // 2. Also attempt root collection and subcollection in background
       try {
         const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = newEval;
         const payload = sanitizeForFirestore({
@@ -544,26 +481,8 @@ export function AppProvider({ children }) {
           syncedAt: new Date().toISOString()
         });
 
-        // 1. Root evaluations collection
-        setDoc(doc(db, 'evaluations', newEval.id), payload).catch(err =>
-          console.warn('Firestore evaluation upload fallback:', err)
-        );
-
-        // 2. User subcollection (shows up directly in user document in Firestore console Column 3!)
-        setDoc(doc(db, 'users', user.uid, 'evaluations', newEval.id), payload).catch(err =>
-          console.warn('Firestore user evaluation subcollection fallback:', err)
-        );
-
-        // 3. Update summary metrics and evaluations list directly on the user document (always accessible)
-        const currentCount = Math.max((user?.totalEvaluationsCount || 0) + 1, evaluations.length + 1);
-        setDoc(doc(db, 'users', user.uid), {
-          totalEvaluationsCount: currentCount,
-          savedEvaluations: sanitizeForFirestore([newEval, ...evaluations].slice(0, 50)),
-          lastQuestionTitle: evalObj.questionTitle || evalObj.title || 'Mains Evaluation',
-          lastEvaluationAt: new Date().toISOString()
-        }, { merge: true }).catch(err =>
-          console.warn('Firestore user metric update fallback:', err)
-        );
+        setDoc(doc(db, 'evaluations', newEval.id), payload).catch(() => {});
+        setDoc(doc(db, 'users', user.uid, 'evaluations', newEval.id), payload).catch(() => {});
       } catch (e) {
         console.warn('Firestore evaluation upload error:', e);
       }

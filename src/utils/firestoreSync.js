@@ -1,6 +1,6 @@
 import { db, auth } from '../firebase';
 import {
-  doc, setDoc, getDoc, getDocs, collection
+  doc, setDoc, getDoc, getDocs, collection, query, where
 } from 'firebase/firestore';
 
 /**
@@ -76,24 +76,28 @@ export function mergeImprovementBooks(bookA, bookB) {
 
 /**
  * Load all Improvement Book questions from Firestore for a user.
- * Reads from both users/{uid} document (guaranteed permission) and subcollections.
+ * Reads directly from users/{uid}.improvementBook (always has full read permissions)
+ * as well as subcollections.
  */
 export async function loadImprovementBookFromFirestore(uid) {
   if (!uid) return { prelims: {}, mains: {} };
   let cloudBook = { prelims: {}, mains: {} };
 
-  // 1. Primary: Read from user's main document (always authorized)
+  // 1. Primary: Read directly from user document (100% permission guaranteed)
   try {
     const userDocRef = doc(db, 'users', uid);
     const userSnap = await getDoc(userDocRef);
-    if (userSnap.exists() && userSnap.data()?.improvementBook) {
-      cloudBook = userSnap.data().improvementBook;
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      if (data.improvementBook && typeof data.improvementBook === 'object') {
+        cloudBook = mergeImprovementBooks(cloudBook, data.improvementBook);
+      }
     }
   } catch (err) {
     console.warn('Error reading improvementBook from user document:', err);
   }
 
-  // 2. Secondary: Check subcollection users/{uid}/improvement_book (if rules permit)
+  // 2. Secondary: Read from subcollection if permitted
   try {
     const colRef = collection(db, 'users', uid, 'improvement_book');
     const snap = await getDocs(colRef);
@@ -104,38 +108,38 @@ export async function loadImprovementBookFromFirestore(uid) {
       const questions = Array.isArray(data.questions) ? data.questions : [];
 
       if (subject && (section === 'prelims' || section === 'mains')) {
-        if (!cloudBook[section]) cloudBook[section] = {};
         if (!cloudBook[section][subject]) cloudBook[section][subject] = [];
-        const map = new Map();
-        cloudBook[section][subject].forEach(q => { if (q?.id) map.set(q.id, q); });
-        questions.forEach(q => { if (q?.id) map.set(q.id, q); });
-        cloudBook[section][subject] = Array.from(map.values());
+        cloudBook[section][subject] = questions;
       }
     });
-  } catch (err) {
-    // subcollection fallback
+  } catch (_) {
+    // Subcollection might be restricted by rules; user doc is primary
   }
 
   return cloudBook;
 }
 
 /**
- * Save a single subject's questions to Firestore.
+ * Save a single subject's questions to Firestore user document.
  */
 export async function saveSubjectToFirestore(uid, section, subject, questions) {
   if (!uid || !section || !subject) return;
   try {
-    const safeDocId = `${section}__${encodeURIComponent(subject.trim())}`;
-    const docRef = doc(db, 'users', uid, 'improvement_book', safeDocId);
-    await setDoc(docRef, sanitizeForFirestore({
-      section,
-      subject,
-      questions,
-      count: questions.length,
-      updatedAt: new Date().toISOString()
-    }), { merge: true });
+    const userDocRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userDocRef);
+    let existingBook = { prelims: {}, mains: {} };
+    if (userSnap.exists() && userSnap.data()?.improvementBook) {
+      existingBook = userSnap.data().improvementBook;
+    }
+    if (!existingBook[section]) existingBook[section] = {};
+    existingBook[section][subject] = questions;
+
+    await setDoc(userDocRef, {
+      improvementBook: sanitizeForFirestore(existingBook),
+      lastUpdated: new Date().toISOString()
+    }, { merge: true });
   } catch (err) {
-    // subcollection fallback
+    console.warn(`Error saving subject ${subject} to Firestore:`, err);
   }
 }
 
@@ -144,10 +148,10 @@ const IB_KEY = 'improvement_book_v2';
 /**
  * Full bi-directional sync:
  * 1. Reads local localStorage ('improvement_book_v2')
- * 2. Fetches cloud data from Firestore (users/{uid})
+ * 2. Fetches cloud data from Firestore (users/{uid}.improvementBook)
  * 3. Merges without duplicate questions
  * 4. Saves merged data to localStorage
- * 5. Saves merged data to users/{uid} document (guaranteed permission) and subcollection
+ * 5. Uploads merged book back to users/{uid}.improvementBook in Firestore
  */
 export async function syncImprovementBookWithCloud(uid) {
   const currentUid = uid || auth?.currentUser?.uid;
@@ -170,7 +174,7 @@ export async function syncImprovementBookWithCloud(uid) {
   // 2. Fetch cloud
   const cloudBook = await loadImprovementBookFromFirestore(currentUid);
 
-  // 3. Merge
+  // 3. Merge both sources
   const mergedBook = mergeImprovementBooks(localBook, cloudBook);
 
   // 4. Save merged into localStorage
@@ -180,31 +184,88 @@ export async function syncImprovementBookWithCloud(uid) {
     console.warn('Error saving merged ImprovementBook to localStorage:', e);
   }
 
-  // 5. Always persist merged book to doc(db, 'users', currentUid)
+  // 5. Persist merged book to Firestore directly on user doc (100% permission guaranteed)
   try {
-    await setDoc(doc(db, 'users', currentUid), {
-      improvementBook: sanitizeForFirestore(mergedBook),
-      improvementBookSummary: {
-        totalPrelims: Object.values(mergedBook.prelims || {}).reduce((s, a) => s + (a?.length || 0), 0),
-        totalMains: Object.values(mergedBook.mains || {}).reduce((s, a) => s + (a?.length || 0), 0),
-        updatedAt: new Date().toISOString()
-      }
+    const cleanPayload = sanitizeForFirestore(mergedBook);
+    const userDocRef = doc(db, 'users', currentUid);
+    await setDoc(userDocRef, {
+      improvementBook: cleanPayload,
+      lastUpdated: new Date().toISOString()
     }, { merge: true });
   } catch (e) {
     console.warn('Error saving improvementBook to user doc:', e);
   }
 
-  // 6. Also update subcollection if accessible
+  return mergedBook;
+}
+
+/**
+ * Load all user evaluations from Firestore (Primary: users/{uid}.savedEvaluations)
+ */
+export async function loadUserEvaluationsFromCloud(uid) {
+  if (!uid) return [];
+  const map = new Map();
+
+  // 1. Primary: users/{uid}.savedEvaluations array (full permission guaranteed)
   try {
-    for (const section of ['prelims', 'mains']) {
-      const sectionData = mergedBook[section] || {};
-      for (const [subject, qs] of Object.entries(sectionData)) {
-        await saveSubjectToFirestore(currentUid, section, subject, qs);
+    const userDocRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      if (Array.isArray(data.savedEvaluations)) {
+        data.savedEvaluations.forEach(e => {
+          if (e?.id) map.set(e.id, e);
+        });
       }
     }
-  } catch (e) {
-    // subcollection fallback
+  } catch (err) {
+    console.warn('Error reading savedEvaluations from user doc:', err);
   }
 
-  return mergedBook;
+  // 2. Secondary: Root 'evaluations' collection (if permitted)
+  try {
+    const qRoot = query(
+      collection(db, 'evaluations'),
+      where('userId', '==', uid)
+    );
+    const snapRoot = await getDocs(qRoot);
+    snapRoot.forEach(d => {
+      const cloudItem = { id: d.id, ...d.data() };
+      map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
+    });
+  } catch (_) {}
+
+  // 3. Tertiary: Subcollection 'users/{uid}/evaluations' (if permitted)
+  try {
+    const qSub = query(collection(db, 'users', uid, 'evaluations'));
+    const snapSub = await getDocs(qSub);
+    snapSub.forEach(d => {
+      const cloudItem = { id: d.id, ...d.data() };
+      map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
+    });
+  } catch (_) {}
+
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+  );
+}
+
+/**
+ * Persist user evaluations to Firestore.
+ * Always saves directly to users/{uid}.savedEvaluations and updates totalEvaluationsCount.
+ */
+export async function saveUserEvaluationsToCloud(uid, evaluationsList) {
+  if (!uid || !Array.isArray(evaluationsList)) return;
+  try {
+    // Keep last 100 tests in user doc to stay well within 1MB doc limit
+    const cleanList = sanitizeForFirestore(evaluationsList.slice(0, 100));
+    const userDocRef = doc(db, 'users', uid);
+    await setDoc(userDocRef, {
+      savedEvaluations: cleanList,
+      totalEvaluationsCount: evaluationsList.length,
+      lastEvaluationAt: evaluationsList[0]?.createdAt || new Date().toISOString()
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Error saving evaluations to user document:', err);
+  }
 }

@@ -14,7 +14,7 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
 
   const isHi = language === 'hi';
   const insights = getInsightsData();
-  const totalCount = Math.max(evaluations.length, Number(user?.totalEvaluationsCount) || 0);
+  const totalCount = evaluations.length;
   const rawAvgPct = Math.round(Number(insights?.avgPct) || 0);
   const rawBestPct = insights?.best
     ? Math.round(insights.best.percentage || (insights.best.score / insights.best.maxMarks) * 100)
