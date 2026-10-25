@@ -280,22 +280,6 @@ export function ProfileAvatar3D({ user }) {
           }}
         />
       </div>
-
-      {/* Clean, Luxury Pill Badge: 3D SPATIAL */}
-      <div
-        className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full border border-white/15 text-[9px] font-black tracking-widest uppercase shadow-md flex items-center gap-1.5 backdrop-blur-md"
-        style={{
-          background: 'rgba(15, 23, 42, 0.9)',
-          color: isFemale ? '#f472b6' : '#38bdf8',
-        }}
-        title="Interactive 3D Depth Spatial Avatar: Move cursor to rotate in 3D"
-      >
-        <span
-          className="w-1.5 h-1.5 rounded-full animate-ping"
-          style={{ backgroundColor: isFemale ? '#f472b6' : '#38bdf8' }}
-        />
-        <span>3D SPATIAL</span>
-      </div>
     </div>
   );
 }
