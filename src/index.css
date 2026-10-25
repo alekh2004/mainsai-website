@@ -805,34 +805,55 @@ input[type="range"]::-moz-range-thumb {
 ════════════════════════════════════════════════ */
 @keyframes kenBurnsSlow {
   0% {
-    transform: scale(1.0) translate(0%, 0%);
+    transform: scale(1.00) translate(0%, 0%);
   }
   50% {
-    transform: scale(1.06) translate(-1.2%, -0.8%);
+    transform: scale(1.02) translate(0.4%, -0.2%);
   }
   100% {
-    transform: scale(1.0) translate(0%, 0%);
+    transform: scale(1.00) translate(0%, 0%);
   }
 }
 
-/* Enhanced smooth cinematic Ken-Burns for Gender Hero Slide — 120fps cubic-bezier */
+/* Enhanced smooth cinematic Ken-Burns for Gender Hero Slide — zero edge cropping */
 @keyframes kenBurnsHero {
-  0%   { transform: scale(1.00) translate(0%, 0%);     }
-  20%  { transform: scale(1.05) translate(-0.8%, -0.5%); }
-  50%  { transform: scale(1.08) translate(-1.5%, -1.0%); }
-  80%  { transform: scale(1.04) translate(0.5%, -0.8%);  }
-  100% { transform: scale(1.00) translate(0%, 0%);     }
+  0%   { transform: scale(1.00) translate(0%, 0%); }
+  50%  { transform: scale(1.025) translate(-0.5%, -0.3%); }
+  100% { transform: scale(1.00) translate(0%, 0%); }
 }
 
 /* ── Responsive Hero Image: device-correct aspect ratio without pixelation ── */
-/* Mobile (<768px): show portrait src, hide landscape desktop image           */
-.hero-desktop-img { display: none; }
-.hero-mobile-img  { display: block; }
+.hero-carousel-container {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  min-height: 420px;
+  max-height: 560px;
+}
+
+@media (min-width: 640px) {
+  .hero-carousel-container {
+    aspect-ratio: 16 / 10;
+    min-height: 360px;
+    max-height: 500px;
+  }
+}
 
 @media (min-width: 768px) {
-  /* Desktop (≥768px): show landscape src, hide portrait mobile image         */
-  .hero-desktop-img { display: block; }
-  .hero-mobile-img  { display: none; }
+  .hero-carousel-container {
+    aspect-ratio: 16 / 9;
+    min-height: 440px;
+    max-height: 540px;
+  }
+}
+
+/* Mobile (<768px): show portrait src, hide landscape desktop image */
+.hero-desktop-img { display: none !important; }
+.hero-mobile-img  { display: block !important; }
+
+@media (min-width: 768px) {
+  /* Desktop (≥768px): show landscape src, hide portrait mobile image */
+  .hero-desktop-img { display: block !important; }
+  .hero-mobile-img  { display: none !important; }
 }
 
 @keyframes sunBeamPulse {

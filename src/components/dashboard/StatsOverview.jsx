@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import {
-  Sparkles, Trophy, TrendingUp, ChevronRight,
+  Sparkles, Trophy, TrendingUp, ChevronLeft, ChevronRight,
   Flame, Layers, BookOpen,
   Zap, Award, ArrowRight, Youtube, Bell, Star
 } from 'lucide-react';
@@ -66,125 +66,220 @@ function detectGender(user) {
 function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct, percentile }) {
   const gender = detectGender(user);
 
-  const parliamentSlide = {
-    id: 'parliament_cartoon_hero',
-    title: 'ET Academy Parliament Hero',
-    tagHi: '🏛️ संसद भवन — सपनों की नींव',
-    tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
-    desktopBg: '/parliament_cartoon_hero_desktop.jpg',
-    mobileBg: '/parliament_cartoon_hero_desktop.jpg',
-    useKenBurns: true,
-    mobileObjectPosition: 'center 30%',
-    desktopObjectPosition: 'center center',
-  };
+  // Dedicated Female Slides (Mobile portrait + Desktop 16:9)
+  const femaleSlides = [
+    {
+      id: 'female_qutub',
+      title: 'Qutub Minar IAS Aspirant',
+      tagHi: '🌟 हर लड़की IAS बन सकती है — Civil Services',
+      tagEn: '🌟 Civil Services Loading... Better India',
+      quoteHi: 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।',
+      quoteEn: 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.',
+      desktopBg: '/hero_girl_qutub_desktop.jpg',
+      mobileBg: '/hero_girl_qutub_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'female_himalaya',
+      title: 'Himalayan Monastery Aspirant',
+      tagHi: '🏔️ ऊंचे लक्ष्य, अटूट संकल्प — IAS 2026',
+      tagEn: '🏔️ Higher, Stronger, Kinder, Wiser You',
+      quoteHi: 'पहाड़ों जैसी अडिग निष्ठा ही एक दिन सर्वोच्च शिखर पर ले जाती है।',
+      quoteEn: 'Steadfast dedication like the mountains leads to the highest peaks of success.',
+      desktopBg: '/hero_girl_himalaya_desktop.jpg',
+      mobileBg: '/hero_girl_himalaya_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'female_rashtrapati',
+      title: 'Rashtrapati Bhavan Sunset',
+      tagHi: '🏛️ आज का अनुशासन, कल का गौरव',
+      tagEn: '🏛️ Disciplined Today, Stronger Tomorrow',
+      quoteHi: 'जब तक लक्ष्य प्राप्त न हो, तब तक निरंतर परिश्रम करते रहो।',
+      quoteEn: 'Keep striving relentlessly until you reach your civil services milestone.',
+      desktopBg: '/hero_girl_rashtrapati_desktop.jpg',
+      mobileBg: '/hero_girl_rashtrapati_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'female_tajmahal',
+      title: 'Taj Mahal Aspirant',
+      tagHi: '🌸 बड़े सपने, पूरी लगन — सफलता निश्चित',
+      tagEn: '🌸 Same Girl, Bigger Goals — Unstoppable',
+      quoteHi: 'सपनों को सच करने के लिए अटूट विश्वास और एकाग्रता जरूरी है।',
+      quoteEn: 'Turning dreams into reality requires unshakable belief and laser focus.',
+      desktopBg: '/hero_girl_tajmahal_desktop.jpg',
+      mobileBg: '/hero_girl_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'female_desk',
+      title: 'Parliament Window Study Desk',
+      tagHi: '🏛️ संसद भवन — सपनों की नींव',
+      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
+      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
+      desktopBg: '/parliament_cartoon_hero_desktop.jpg',
+      mobileBg: '/hero_girl_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+  ];
 
-  const girlSlide = {
-    id: 'girl_hero',
-    title: 'ET Academy Girl Aspirant',
-    tagHi: '🌟 हर लड़की IAS बन सकती है',
-    tagEn: '🌟 Every Girl Can Become an IAS Officer',
-    desktopBg: '/hero_girl_desktop.jpg',
-    mobileBg: '/hero_girl_mobile.jpg',
-    useKenBurns: true,
-    mobileObjectPosition: 'center center',
-    desktopObjectPosition: 'center center',
-  };
+  // Dedicated Male Slides (Mobile portrait + Desktop 16:9)
+  const maleSlides = [
+    {
+      id: 'male_indiagate_desk',
+      title: 'India Gate Study Desk',
+      tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
+      tagEn: '🎓 Dream Big. Work Hard. Succeed.',
+      quoteHi: 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।',
+      quoteEn: 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.',
+      desktopBg: '/hero_boy_indiagate_desk_desktop.jpg',
+      mobileBg: '/hero_boy_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'male_indiagate_sunset',
+      title: 'India Gate Sunset Aspirant',
+      tagHi: '🇮🇳 आज का अनुशासन, कल का सुनहरा भविष्य',
+      tagEn: '🇮🇳 Discipline Today, A Brighter Tomorrow',
+      quoteHi: 'संघर्ष जितना कठिन होगा, जीत उतनी ही शानदार होगी।',
+      quoteEn: 'The harder the struggle today, the more glorious the victory tomorrow.',
+      desktopBg: '/hero_boy_indiagate_sunset_desktop.jpg',
+      mobileBg: '/hero_boy_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+    {
+      id: 'male_parliament',
+      title: 'Parliament Cartoon Hero',
+      tagHi: '🏛️ संसद भवन — सपनों की नींव',
+      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
+      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
+      desktopBg: '/parliament_cartoon_hero_desktop.jpg',
+      mobileBg: '/hero_boy_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
+  ];
 
-  const boySlide = {
-    id: 'boy_hero',
-    title: 'ET Academy Boy Aspirant',
-    tagHi: '🎓 सपने देखो, मेहनत करो, सफल बनो',
-    tagEn: '🎓 Dream Big. Work Hard. Succeed.',
-    desktopBg: '/hero_boy_mobile.jpg',
-    mobileBg: '/hero_boy_mobile.jpg',
-    useKenBurns: true,
-    mobileObjectPosition: 'center center',
-    desktopObjectPosition: 'center 20%',
-  };
-
-  // For Male: Parliament Hero Boy (landscape) is strictly FIRST (index 0).
-  // For Female: Girl Hero Aspirant is FIRST (index 0), followed by Parliament Hero.
-  const HERO_SLIDES = gender === 'female'
-    ? [girlSlide, parliamentSlide]
-    : [parliamentSlide, boySlide];
+  const HERO_SLIDES = gender === 'female' ? femaleSlides : maleSlides;
 
   const [slideIdx, setSlideIdx] = useState(0);
 
   useEffect(() => {
-    // Primary slide stays 12 seconds; secondary slide stays 6 seconds
-    const slideDuration = slideIdx === 0 ? 12000 : 6000;
+    // 8 seconds per slide for a comfortable reading & visual experience
     const timer = setTimeout(() => {
       setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
-    }, slideDuration);
+    }, 8000);
     return () => clearTimeout(timer);
   }, [slideIdx, HERO_SLIDES.length]);
 
   const slide = HERO_SLIDES[slideIdx] || HERO_SLIDES[0];
 
+  const nextSlide = (e) => {
+    e?.stopPropagation();
+    setSlideIdx(prev => (prev + 1) % HERO_SLIDES.length);
+  };
+
+  const prevSlide = (e) => {
+    e?.stopPropagation();
+    setSlideIdx(prev => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
+  };
+
   return (
-    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group" style={{ minHeight: '260px' }}>
+    <div className="hero-carousel-container relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group">
       {/* Aceternity Aurora Lamp Glow */}
       <AuroraLamp intensity="medium" />
 
       {/* Dynamic Responsive Image Background with aspect-ratio-aware object-position */}
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
-        {/* Mobile image */}
+        {/* Mobile image: rendered on mobile (<768px) with native portrait aspect ratio */}
         <img
           key={`${slide.id}-mobile`}
           src={slide.mobileBg}
-          alt="Hero Background"
+          alt={slide.title}
           className="hero-mobile-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
-            objectPosition: slide.mobileObjectPosition || 'center center',
-            animation: slide.id === 'parliament_cartoon_hero'
-              ? 'kenBurnsHero 22s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
-              : 'kenBurnsSlow 18s ease-in-out infinite alternate',
+            objectPosition: slide.mobileObjectPosition || 'center 15%',
+            animation: 'kenBurnsSlow 20s ease-in-out infinite alternate',
             willChange: 'transform',
           }}
         />
-        {/* Desktop image (different src when desktopBg !== mobileBg) */}
+        {/* Desktop image: rendered on desktop (≥768px) with native 16:9 widescreen ratio */}
         <img
           key={`${slide.id}-desktop`}
           src={slide.desktopBg}
-          alt="Hero Background"
+          alt={slide.title}
           className="hero-desktop-img w-full h-full object-cover transition-opacity duration-1000 animate-fadeIn"
           style={{
             objectPosition: slide.desktopObjectPosition || 'center center',
-            animation: slide.id === 'parliament_cartoon_hero'
-              ? 'kenBurnsHero 22s cubic-bezier(0.45,0.05,0.55,0.95) infinite alternate'
-              : 'kenBurnsSlow 18s ease-in-out infinite alternate',
+            animation: 'kenBurnsHero 24s ease-in-out infinite alternate',
             willChange: 'transform',
           }}
         />
       </div>
 
-      {/* Dark Readability Overlay — lighter on gender/character slides so person is clearly visible */}
+      {/* Dark Readability Overlay — Left gradient for desktop text readability, bottom/top gradients for mobile */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: (slide.id === 'boy_hero' || slide.id === 'girl_hero')
-            ? 'linear-gradient(100deg, rgba(4,7,18,0.80) 0%, rgba(4,7,18,0.42) 45%, rgba(4,7,18,0.05) 70%, transparent 100%)'
-            : 'linear-gradient(100deg, rgba(4,7,18,0.82) 0%, rgba(4,7,18,0.55) 50%, rgba(4,7,18,0.12) 80%, transparent 100%)'
+          background: 'linear-gradient(90deg, rgba(4,7,18,0.85) 0%, rgba(4,7,18,0.52) 42%, rgba(4,7,18,0.08) 72%, transparent 100%)'
         }}
       />
       <div
-        className="absolute inset-0"
-        style={{ background: 'linear-gradient(to top, rgba(4,7,18,0.65) 0%, transparent 60%)' }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(to top, rgba(4,7,18,0.88) 0%, rgba(4,7,18,0.35) 35%, transparent 65%)'
+        }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(4,7,18,0.65) 0%, transparent 40%)'
+        }}
       />
 
+      {/* Previous / Next Arrow Controls — Visible on hover */}
+      {HERO_SLIDES.length > 1 && (
+        <>
+          <button
+            onClick={prevSlide}
+            aria-label="Previous Slide"
+            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={nextSlide}
+            aria-label="Next Slide"
+            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/75 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 shadow-lg cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </>
+      )}
+
       {/* Content Overlay */}
-      <div className="relative z-10 p-6 md:p-8 flex flex-col justify-between h-full min-h-[260px]">
+      <div className="relative z-10 p-5 sm:p-6 md:p-8 flex flex-col justify-between h-full min-h-[380px] sm:min-h-[340px] md:min-h-[440px]">
         {/* Top Badges */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span
-            className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-md"
+            className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full backdrop-blur-md shadow-sm"
             style={{ background: 'rgba(251,191,36,0.22)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.45)' }}
           >
             {activeExam === 'bpsc' ? '🦁 BPSC 72nd CCE AI' : '🏛️ UPSC 2026 AI'}
           </span>
           <span
-            className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full backdrop-blur-md text-white/80"
-            style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
+            className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full backdrop-blur-md text-white/90 shadow-sm"
+            style={{ background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.22)' }}
           >
             {isHi ? slide.tagHi : slide.tagEn}
           </span>
@@ -192,18 +287,16 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
 
         {/* Greeting & Aspirant Name with Shimmer text */}
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mb-1" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.8)' }}>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight mb-0.5" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
             {greeting},
           </h2>
           <h2
-            className="text-3xl md:text-4xl font-black leading-tight mb-2 shimmer-text"
+            className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-2 shimmer-text"
           >
             {user?.name?.split(' ')[0] || 'Alekh'}
           </h2>
-          <p className="text-xs md:text-sm font-medium text-white/80 max-w-sm leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
-            {isHi
-              ? 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।'
-              : 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.'}
+          <p className="text-xs sm:text-sm font-medium text-white/90 max-w-xs sm:max-w-sm md:max-w-md leading-relaxed" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.9)' }}>
+            {isHi ? (slide.quoteHi || 'सीखो। तैयार करो। आगे बढ़ो। आज की छोटी मेहनत कल की बड़ी कामयाबी बनती है।') : (slide.quoteEn || 'Learn. Prepare. Progress. Small steps today build the success of tomorrow.')}
           </p>
         </div>
 
@@ -238,17 +331,18 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
           {/* Carousel Slide Indicators */}
           <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
             {HERO_SLIDES.map((s, idx) => (
-            <button
-              key={s.id}
-              onClick={() => setSlideIdx(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                idx === slideIdx
-                  ? 'w-6 ' + (gender === 'female' && idx === 0 ? 'bg-pink-400' : 'bg-amber-400')
-                  : 'w-2 bg-white/40 hover:bg-white/70'
-              }`}
-              title={s.title}
-            />
-          ))}
+              <button
+                key={s.id}
+                onClick={() => setSlideIdx(idx)}
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  idx === slideIdx
+                    ? 'w-6 ' + (gender === 'female' ? 'bg-pink-400' : 'bg-amber-400')
+                    : 'w-2 bg-white/40 hover:bg-white/70'
+                }`}
+                title={s.title}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
