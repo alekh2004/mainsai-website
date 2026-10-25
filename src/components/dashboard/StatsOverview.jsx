@@ -67,7 +67,20 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   const gender = detectGender(user);
 
   // Dedicated Female Slides (Mobile portrait + Desktop 16:9 — ONLY Female Aspirants)
+  // Parliament Hero is FIRST (#1 PRIMARY) on Desktop!
   const femaleSlides = [
+    {
+      id: 'female_parliament',
+      title: 'Parliament Window Study Desk',
+      tagHi: '🏛️ संसद भवन — सपनों की नींव',
+      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
+      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
+      desktopBg: '/hero_girl_parliament_desktop.jpg',
+      mobileBg: '/hero_girl_desk_mobile.jpg',
+      mobileObjectPosition: 'center 15%',
+      desktopObjectPosition: 'center center',
+    },
     {
       id: 'female_qutub',
       title: 'Qutub Minar IAS Aspirant',
