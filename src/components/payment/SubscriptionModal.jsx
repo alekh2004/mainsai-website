@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { Crown, Check, Zap, Sparkles, X, ArrowLeft, ShieldCheck, QrCode, CreditCard, CheckCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { CardBookmark, SUBSCRIPTION_PLANS } from '../subscription/CardBookmark';
 
 export function SubscriptionModal() {
   const { user, upgradePlan, showPayModal, setShowPayModal } = useAuth();
@@ -48,19 +49,21 @@ export function SubscriptionModal() {
     }, 1200);
   };
 
+  const activePlanObj = SUBSCRIPTION_PLANS.find(p => p.id === selectedPlan) || SUBSCRIPTION_PLANS[1];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto"
       onClick={(e) => { if (e.target === e.currentTarget) setShowPayModal(false); }}
     >
-      <div className="relative w-full max-w-4xl glass-panel rounded-3xl p-5 sm:p-7 lg:p-8 border border-amber-500/40 shadow-2xl my-6 space-y-6">
+      <div className="relative w-full max-w-5xl glass-panel rounded-3xl p-5 sm:p-7 lg:p-8 border border-amber-500/40 shadow-2xl my-6 space-y-6">
         
         {/* Top Header Bar with prominent Back & Close buttons */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <button
             type="button"
             onClick={() => setShowPayModal(false)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition-all group"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition-all group cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             <span>{isHi ? 'वापस जाएं (Back)' : 'Back to App'}</span>
@@ -69,7 +72,7 @@ export function SubscriptionModal() {
           <button
             type="button"
             onClick={() => setShowPayModal(false)}
-            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all"
+            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
             title={isHi ? 'बंद करें (Close)' : 'Close'}
           >
             <X className="w-4 h-4" />
@@ -81,7 +84,7 @@ export function SubscriptionModal() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
             <Crown className="w-4 h-4 text-amber-400 fill-amber-400" /> Unlock Full Access
           </div>
-          <h2 className="text-2xl lg:text-3xl font-extrabold text-white m-0">
+          <h2 className="text-2xl lg:text-3xl font-black text-white m-0">
             Choose Your <span className="gradient-text-gold">Mains Preparation</span> Plan
           </h2>
           <p className="text-xs lg:text-sm text-gray-300 m-0">
@@ -89,118 +92,29 @@ export function SubscriptionModal() {
           </p>
         </div>
 
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          {/* Plan 1: Free Tier */}
-          <div className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
-            selectedPlan === 'free'
-              ? 'bg-white/10 border-white/40 shadow-xl'
-              : 'bg-slate-900/50 border-white/10 opacity-70 hover:opacity-100'
-          }`}>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-400 uppercase">Starter</span>
-                {user.plan === 'free' && <span className="text-[10px] px-2 py-0.5 rounded bg-gray-500/30 text-gray-300 font-bold">Current</span>}
-              </div>
-              <div className="text-2xl font-extrabold text-white">Free Trial</div>
-              <div className="text-xs text-gray-400">2 Instant AI Check passes included</div>
-              <ul className="space-y-2 text-xs text-gray-300 pt-2 list-none pl-0">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> 2 AI Answer Evaluations</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Easy & Medium PYQs</li>
-                <li className="flex items-center gap-2 text-gray-500"><X className="w-4 h-4" /> No Teacher Verification</li>
-              </ul>
-            </div>
-            <button
-              onClick={() => setSelectedPlan('free')}
-              className="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-xs font-bold text-gray-300 hover:bg-white/10 transition-all"
-            >
-              Select Free
-            </button>
-          </div>
-
-          {/* Plan 2: Pro Scholar (Popular) */}
-          <div className={`p-5 rounded-2xl border relative transition-all flex flex-col justify-between ${
-            selectedPlan === 'pro'
-              ? 'bg-gradient-to-b from-cyan-950/80 to-slate-950 border-cyan-500 shadow-2xl shadow-cyan-500/20 scale-[1.02]'
-              : 'bg-slate-900/50 border-white/10 hover:border-cyan-500/40'
-          }`}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider shadow-md">
-              Most Popular Aspirant Choice
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-cyan-400 uppercase">Pro Scholar</span>
-                {user.plan === 'pro' && <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/30 text-cyan-300 font-bold">Active Plan</span>}
-              </div>
-              <div>
-                <span className="text-3xl font-extrabold text-white">₹499</span>
-                <span className="text-xs text-gray-400"> / month</span>
-              </div>
-              <div className="text-xs text-cyan-300 font-medium">Unlimited Gemini AI Checks</div>
-              <ul className="space-y-2 text-xs text-gray-200 pt-2 list-none pl-0">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Unlimited AI Answer Checks</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Full Hard-Level Question Vault</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> 2 Teacher Check Passes / Mo</li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => setSelectedPlan('pro')}
-              className={`mt-6 w-full py-2.5 rounded-xl font-extrabold text-xs transition-all ${
-                selectedPlan === 'pro'
-                  ? 'gradient-button-primary text-white shadow-lg shadow-cyan-500/30'
-                  : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              }`}
-            >
-              Choose Pro Scholar (₹499)
-            </button>
-          </div>
-
-          {/* Plan 3: Ultimate Mentor */}
-          <div className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
-            selectedPlan === 'ultimate'
-              ? 'bg-gradient-to-b from-amber-950/80 to-slate-950 border-amber-500 shadow-2xl shadow-amber-500/20 scale-[1.02]'
-              : 'bg-slate-900/50 border-white/10 hover:border-amber-500/40'
-          }`}>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-400 uppercase">Ultimate Mentor</span>
-                {user.plan === 'ultimate' && <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/30 text-amber-300 font-bold">Active Plan</span>}
-              </div>
-              <div>
-                <span className="text-3xl font-extrabold text-white">₹999</span>
-                <span className="text-xs text-gray-400"> / month</span>
-              </div>
-              <div className="text-xs text-amber-300 font-medium">AI + 10 Teacher Reviews</div>
-              <ul className="space-y-2 text-xs text-gray-200 pt-2 list-none pl-0">
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400" /> Unlimited Gemini AI Checks</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400" /> 10 Teacher Script Reviews / Mo</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400" /> Priority Admin Question Access</li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => setSelectedPlan('ultimate')}
-              className={`mt-6 w-full py-2.5 rounded-xl font-extrabold text-xs transition-all ${
-                selectedPlan === 'ultimate'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              }`}
-            >
-              Choose Ultimate (₹999)
-            </button>
-          </div>
-
+        {/* Plans Grid — Scrolltide Card Bookmark Component */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch pt-2">
+          {SUBSCRIPTION_PLANS.map((plan) => (
+            <CardBookmark
+              key={plan.id}
+              plan={plan}
+              isHi={isHi}
+              isCurrent={user?.plan === plan.id}
+              isSelected={selectedPlan === plan.id}
+              onSelect={() => setSelectedPlan(plan.id)}
+            />
+          ))}
         </div>
 
         {/* Payment Checkout Box */}
         {selectedPlan !== 'free' && (
           <div className="p-5 rounded-2xl bg-slate-950/90 border border-white/15 space-y-4 animate-fadeIn">
             <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs font-bold text-gray-300">
-              <span>Payment Gateway Checkout</span>
-              <span className="text-amber-400 font-mono">100% Encrypted & Secure SSL</span>
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activePlanObj.accentColor }} />
+                <span>Selected: <strong className="text-white">{activePlanObj.name}</strong> ({activePlanObj.price} {activePlanObj.period})</span>
+              </span>
+              <span className="text-amber-400 font-mono">100% Encrypted &amp; Secure SSL</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -212,7 +126,7 @@ export function SubscriptionModal() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('upi')}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all ${
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       paymentMethod === 'upi' ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300' : 'bg-white/5 border-white/10 text-gray-300'
                     }`}
                   >
@@ -223,7 +137,7 @@ export function SubscriptionModal() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('qr')}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all ${
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       paymentMethod === 'qr' ? 'bg-amber-500/20 border-amber-500 text-amber-300' : 'bg-white/5 border-white/10 text-gray-300'
                     }`}
                   >
@@ -234,7 +148,7 @@ export function SubscriptionModal() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('card')}
-                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all ${
+                    className={`w-full p-2.5 rounded-xl border text-left text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       paymentMethod === 'card' ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'bg-white/5 border-white/10 text-gray-300'
                     }`}
                   >
@@ -258,9 +172,9 @@ export function SubscriptionModal() {
                 )}
 
                 {paymentMethod === 'qr' && (
-                  <div className="text-center p-3 rounded-xl bg-slate-900 border border-white/10">
-                    <QrCode className="w-16 h-16 text-cyan-400 mx-auto mb-1" />
-                    <span className="text-[11px] text-gray-400 font-mono">Scan via GPay / PhonePe App</span>
+                  <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 border border-white/10 text-center space-y-2">
+                    <QrCode className="w-20 h-20 text-white" />
+                    <span className="text-[11px] text-gray-400">Scan using any UPI App</span>
                   </div>
                 )}
 
@@ -268,46 +182,35 @@ export function SubscriptionModal() {
                   <div className="space-y-2">
                     <input
                       type="text"
-                      placeholder="Card Number (4321 •••• •••• 9876)"
-                      className="w-full px-3 py-1.5 rounded-xl glass-input text-xs font-mono"
+                      placeholder="Card Number (4532 •••• •••• ••••)"
+                      className="w-full px-3 py-2 rounded-xl glass-input text-xs font-mono"
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <input type="text" placeholder="MM/YY" className="px-3 py-1.5 rounded-xl glass-input text-xs font-mono" />
-                      <input type="password" placeholder="CVV" className="px-3 py-1.5 rounded-xl glass-input text-xs font-mono" />
+                      <input type="text" placeholder="MM/YY" className="w-full px-3 py-2 rounded-xl glass-input text-xs font-mono" />
+                      <input type="password" placeholder="CVV" maxLength={3} className="w-full px-3 py-2 rounded-xl glass-input text-xs font-mono" />
                     </div>
                   </div>
                 )}
 
-                {paySuccess ? (
-                  <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold text-center flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5" /> Payment Successful! Plan Activated 🎉
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleProcessPayment}
-                    disabled={isProcessing}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-extrabold text-xs shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 hover:scale-[1.01] transition-all disabled:opacity-50"
-                  >
-                    {isProcessing ? 'Processing Payment...' : `Pay ₹${selectedPlan === 'pro' ? 499 : 999} & Unlock Instant Access`}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  disabled={isProcessing || paySuccess}
+                  onClick={handleProcessPayment}
+                  className="w-full py-3 rounded-xl gradient-button-primary text-white font-extrabold text-sm shadow-xl shadow-cyan-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {isProcessing ? (
+                    <span>Processing Payment Securely...</span>
+                  ) : paySuccess ? (
+                    <span className="text-emerald-300">✓ Plan Activated Successfully!</span>
+                  ) : (
+                    <span>Pay {activePlanObj.price} &amp; Activate {activePlanObj.name}</span>
+                  )}
+                </button>
               </div>
 
             </div>
           </div>
         )}
-
-        {/* Bottom Back Button */}
-        <div className="pt-2 flex items-center justify-center border-t border-white/10">
-          <button
-            type="button"
-            onClick={() => setShowPayModal(false)}
-            className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/20 text-xs font-extrabold text-slate-300 hover:text-white transition-all flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>{isHi ? 'डैशबोर्ड पर वापस जाएं (Back to Dashboard)' : 'Back to Dashboard'}</span>
-          </button>
-        </div>
 
       </div>
     </div>
