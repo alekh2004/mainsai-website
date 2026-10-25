@@ -6,66 +6,7 @@ import { ScrollReveal } from '../animations/ScrollReveal';
 import { AnimatedNumber } from '../animations/AnimatedNumber';
 import { AuroraLamp } from '../animations/AuroraLamp';
 import { AceternityCard } from '../animations/AceternityCard';
-
-function AnimatedAspirantAvatar({ user }) {
-  const isFemale = user?.gender === 'female' || (user?.name && /priya|pooja|neha|sneha|anjali|swati|deepika|divya|nisha|radha|anushka|shreya|riya/i.test(user.name));
-  const characterImg = isFemale ? '/avatar_girl_cropped.jpg' : '/avatar_boy_cropped.jpg';
-
-  return (
-    <div className="relative group shrink-0 select-none animate-avatar-float">
-      {/* 1. Outer dynamic rotating aura glow */}
-      <div className="absolute -inset-2.5 rounded-full bg-gradient-to-tr from-amber-400 via-cyan-400 to-indigo-500 opacity-75 blur-xl animate-pulse pointer-events-none" />
-      
-      {/* 2. Rotating conic accent ring */}
-      <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1.5 bg-gradient-to-tr from-amber-500 via-cyan-400 to-indigo-500 shadow-2xl">
-        {/* Rotating ring effect */}
-        <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/30 animate-aura-spin pointer-events-none" />
-
-        {/* Inner circle mask */}
-        <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center relative border-2 border-white/25 shadow-inner">
-          {/* Exact Parliament cropped character portrait */}
-          <img
-            src={characterImg}
-            alt={isFemale ? 'Girl UPSC Aspirant' : 'Boy UPSC Aspirant'}
-            className="w-full h-full object-cover object-center transform transition-transform duration-700 group-hover:scale-115"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              if (e.currentTarget.nextElementSibling) {
-                e.currentTarget.nextElementSibling.style.display = 'flex';
-              }
-            }}
-          />
-          {/* Fallback emoji */}
-          <div className="hidden w-full h-full items-center justify-center text-5xl">
-            {isFemale ? '👩‍🎓' : '👨‍🎓'}
-          </div>
-
-          {/* Shimmer light sweep across the portrait */}
-          <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-light-shimmer pointer-events-none" />
-
-          {/* Vignette shadow at bottom */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-        </div>
-      </div>
-
-      {/* 3. Floating Waving Hand Badge (हाथ / पेन हिलता हुआ) */}
-      <div
-        className="absolute -top-1 -right-1 w-9 h-9 rounded-full bg-slate-900/90 border-2 border-amber-400/80 shadow-xl flex items-center justify-center text-lg z-20 cursor-default"
-        title={isFemale ? 'IAS Aspirant Aspirations!' : 'UPSC Aspirant Target!'}
-      >
-        <span className="animate-wave-hand">{isFemale ? '👋' : '✍️'}</span>
-      </div>
-
-      {/* 4. Bottom Royal Rank Badge */}
-      <div
-        className="absolute -bottom-1 -right-0.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 border border-slate-950 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1 z-20"
-      >
-        <span>{isFemale ? '🌸' : '👑'}</span>
-        <span>{user?.plan === 'ultimate' ? 'ULTIMATE' : 'PRO'}</span>
-      </div>
-    </div>
-  );
-}
+import { ProfileAvatar3D } from './ProfileAvatar3D';
 
 export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProfile }) {
   const { user, logout } = useAuth();
@@ -101,8 +42,8 @@ export function ProfileView({ onOpenSubscription, onOpenSettings, onOpenEditProf
           {/* Avatar + Name — overlapping the strip */}
           <div className="px-6 pb-6 -mt-14 flex flex-col items-center text-center space-y-3 relative z-10">
 
-            {/* Dynamic Animated Avatar with Glowing Halo */}
-            <AnimatedAspirantAvatar user={user} />
+            {/* Real 3D Interactive WebGL Avatar (Blender-Studio Lighting & Head Tracking) */}
+            <ProfileAvatar3D user={user} />
 
             {/* Name */}
             <div className="space-y-1">
