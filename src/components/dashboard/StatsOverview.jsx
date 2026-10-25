@@ -197,7 +197,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   };
 
   return (
-    <div className="relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group w-full" style={{ minHeight: '260px' }}>
+    <div className="hero-carousel-container relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-1000 group">
       {/* Aceternity Aurora Lamp Glow */}
       <AuroraLamp intensity="medium" />
 
@@ -270,7 +270,7 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       )}
 
       {/* Content Overlay */}
-      <div className="relative z-10 p-6 md:p-8 flex flex-col justify-between h-full min-h-[260px]">
+      <div className="relative z-10 p-5 sm:p-6 md:p-8 flex flex-col justify-between h-full min-h-[380px] sm:min-h-[340px] md:min-h-[440px]">
         {/* Top Badges */}
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span

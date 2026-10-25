@@ -822,7 +822,30 @@ input[type="range"]::-moz-range-thumb {
   100% { transform: scale(1.00) translate(0%, 0%); }
 }
 
-/* ── Responsive Hero Image: device-correct image switching ── */
+/* ── Responsive Hero Image: device-correct aspect ratio without pixelation ── */
+.hero-carousel-container {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  min-height: 420px;
+  max-height: 560px;
+}
+
+@media (min-width: 640px) {
+  .hero-carousel-container {
+    aspect-ratio: 16 / 10;
+    min-height: 360px;
+    max-height: 500px;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-carousel-container {
+    aspect-ratio: 16 / 9;
+    min-height: 440px;
+    max-height: 540px;
+  }
+}
+
 /* Mobile (<768px): show portrait src, hide landscape desktop image */
 .hero-desktop-img { display: none !important; }
 .hero-mobile-img  { display: block !important; }
