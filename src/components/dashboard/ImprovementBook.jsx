@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../firebase';
+import {
+  syncImprovementBookWithCloud,
+  saveSubjectToFirestore
+} from '../../utils/firestoreSync';
 import {
   BookMarked, ChevronRight, X, RotateCcw, Filter,
   CheckCircle2, XCircle, Minus, ArrowLeft, Play,
-  TrendingUp, Search, BookOpen, Sparkles, Layers
+  TrendingUp, Search, BookOpen, Sparkles, Layers, Cloud
 } from 'lucide-react';
 import { ScrollReveal } from '../animations/ScrollReveal';
 import { AnimatedNumber } from '../animations/AnimatedNumber';
@@ -19,11 +24,14 @@ export function getImprovementBook() {
 }
 
 // ── Save questions from a completed test ──
-export function saveTestToImprovementBook({ questions, selectedAnswers, exam, testDate }) {
+export function saveTestToImprovementBook({ questions, selectedAnswers, exam, testDate, userId }) {
   const book = getImprovementBook();
   const section = 'prelims';
+  const affectedSubjects = new Set();
+
   questions.forEach(q => {
     const subject = q.subject || 'General Studies';
+    affectedSubjects.add(subject);
     if (!book[section][subject]) book[section][subject] = [];
     const entry = {
       id: q.id,
@@ -55,6 +63,14 @@ export function saveTestToImprovementBook({ questions, selectedAnswers, exam, te
     }
   });
   localStorage.setItem(IB_KEY, JSON.stringify(book));
+
+  // Sync to Cloud Firestore so Mobile & Desktop stay 100% in sync
+  const targetUid = userId || auth?.currentUser?.uid;
+  if (targetUid) {
+    affectedSubjects.forEach(subject => {
+      saveSubjectToFirestore(targetUid, section, subject, book[section][subject]).catch(() => {});
+    });
+  }
 }
 
 // ── Component ──
@@ -72,11 +88,46 @@ export function ImprovementBook({ onGoBack }) {
   const [practiceIdx, setPracticeIdx] = useState(0);
   const [practiceAnswers, setPracticeAnswers] = useState({});
   const [practiceSubmitted, setPracticeSubmitted] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [book, setBook] = useState(getImprovementBook());
 
-  // Reload from localStorage whenever view changes
+  // Bi-directional cloud sync on mount and when user.uid is ready
+  useEffect(() => {
+    let active = true;
+    const runCloudSync = async () => {
+      if (!user?.uid) return;
+      try {
+        setIsSyncing(true);
+        const merged = await syncImprovementBookWithCloud(user.uid);
+        if (active && merged) {
+          setBook(merged);
+        }
+      } catch (err) {
+        console.warn('ImprovementBook sync error:', err);
+      } finally {
+        if (active) setIsSyncing(false);
+      }
+    };
+    runCloudSync();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  // Reload from localStorage whenever view or section changes
   useEffect(() => { setBook(getImprovementBook()); }, [view, selectedSection]);
+
+  const handleManualSync = async () => {
+    if (!user?.uid || isSyncing) return;
+    try {
+      setIsSyncing(true);
+      const merged = await syncImprovementBookWithCloud(user.uid);
+      if (merged) setBook(merged);
+    } catch (e) {
+      console.warn('Manual sync error:', e);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const subjectData = useMemo(() => {
     const sectionBook = book[selectedSection] || {};
@@ -417,15 +468,29 @@ export function ImprovementBook({ onGoBack }) {
             <ArrowLeft className="w-4 h-4" />
           </button>
         )}
-        <div>
-          <h1 className="text-xl font-black m-0 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <BookMarked className="w-5 h-5" style={{ color: 'rgb(var(--accent))' }} />
-            {isHi ? 'इम्प्रूवमेंट बुक' : 'Improvement Book'}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-black m-0 flex items-center gap-2 truncate" style={{ color: 'var(--text-primary)' }}>
+            <BookMarked className="w-5 h-5 shrink-0" style={{ color: 'rgb(var(--accent))' }} />
+            <span>{isHi ? 'इम्प्रूवमेंट बुक' : 'Improvement Book'}</span>
           </h1>
-          <p className="text-xs font-medium m-0 mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-xs font-medium m-0 mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>
             {isHi ? 'अपने सभी प्रश्नों को Subject-wise देखें और प्रैक्टिस करें' : 'Review & practice all your attempted questions subject-wise'}
           </p>
         </div>
+
+        {/* Cloud Sync Button */}
+        <button
+          onClick={handleManualSync}
+          disabled={isSyncing}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl border transition-all hover:bg-white/10 flex items-center gap-1.5 text-xs font-bold shrink-0 ml-auto cursor-pointer"
+          style={{ borderColor: 'var(--glass-border)', color: 'var(--text-secondary)', background: 'var(--card-bg)' }}
+          title={isHi ? 'क्लाउड सिंक करें (Mobile + Desktop दोनों में एक समान)' : 'Sync with Cloud (Unify Mobile & Desktop)'}
+        >
+          <RotateCcw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-cyan-400' : ''}`} />
+          <span className="hidden sm:inline">
+            {isSyncing ? (isHi ? 'सिंक हो रहा है...' : 'Syncing...') : (isHi ? 'क्लाउड सिंक' : 'Cloud Sync')}
+          </span>
+        </button>
       </div>
 
       {/* Section Switcher */}

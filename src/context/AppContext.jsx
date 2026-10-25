@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
 import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { sanitizeForFirestore, syncImprovementBookWithCloud } from '../utils/firestoreSync';
 
 const AppContext = createContext();
 
@@ -343,18 +344,20 @@ export function AppProvider({ children }) {
     } catch (e) {}
   }, []);
 
-  // Sync evaluations whenever user?.uid changes (login, logout, switch account)
+  // Sync evaluations whenever user?.uid changes (login, logout, switch account) with Bi-directional Reconciliation
   useEffect(() => {
     const currentUid = user?.uid || null;
     const storageKey = getEvaluationStorageKey(currentUid);
     loadedUidRef.current = currentUid;
 
     // 1. Immediate local cache load for zero UI latency
+    let localEvals = [];
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setEvaluations(purgeExpiredUploads(Array.isArray(parsed) ? parsed : []));
+        localEvals = purgeExpiredUploads(Array.isArray(parsed) ? parsed : []);
+        setEvaluations(localEvals);
       } else {
         setEvaluations([]);
       }
@@ -364,33 +367,103 @@ export function AppProvider({ children }) {
     }
     isInitialLoadRef.current = true;
 
-    // 2. Fetch latest from Cloud Firestore
+    // 2. Fetch latest from Cloud Firestore with bi-directional reconciliation
     if (currentUid) {
+      let isCancelled = false;
+
       (async () => {
         try {
-          const q = query(
-            collection(db, 'evaluations'),
-            where('userId', '==', currentUid)
-          );
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            const cloudEvals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            setEvaluations(prev => {
-              const map = new Map();
-              cloudEvals.forEach(e => map.set(e.id, e));
-              prev.forEach(e => {
-                if (!map.has(e.id)) map.set(e.id, e);
-              });
-              const merged = Array.from(map.values()).sort(
-                (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-              );
-              return purgeExpiredUploads(merged);
+          const map = new Map();
+
+          // Seed with local evaluations
+          localEvals.forEach(e => {
+            if (e?.id) map.set(e.id, { ...e, userId: e.userId || currentUid });
+          });
+
+          // Query A: Root 'evaluations' collection
+          let rootIds = new Set();
+          try {
+            const qRoot = query(
+              collection(db, 'evaluations'),
+              where('userId', '==', currentUid)
+            );
+            const snapRoot = await getDocs(qRoot);
+            snapRoot.forEach(d => {
+              rootIds.add(d.id);
+              const cloudItem = { id: d.id, ...d.data() };
+              map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
             });
+          } catch (e) {
+            console.warn('Root evaluations fetch:', e);
           }
+
+          // Query B: User subcollection 'users/{uid}/evaluations'
+          let subIds = new Set();
+          try {
+            const qSub = query(collection(db, 'users', currentUid, 'evaluations'));
+            const snapSub = await getDocs(qSub);
+            snapSub.forEach(d => {
+              subIds.add(d.id);
+              const cloudItem = { id: d.id, ...d.data() };
+              map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
+            });
+          } catch (e) {
+            console.warn('Subcollection evaluations fetch:', e);
+          }
+
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+          );
+          const cleanMerged = purgeExpiredUploads(merged);
+
+          if (!isCancelled) {
+            setEvaluations(cleanMerged);
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(cleanMerged));
+            } catch (_) {}
+          }
+
+          // 3. Bi-directional sync: If any local evaluation is missing in Cloud Firestore, push it now!
+          for (const ev of cleanMerged) {
+            const isMissingRoot = !rootIds.has(ev.id);
+            const isMissingSub = !subIds.has(ev.id);
+
+            if (isMissingRoot || isMissingSub) {
+              try {
+                const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = ev;
+                const payload = sanitizeForFirestore({
+                  ...cloudData,
+                  userId: currentUid,
+                  hasUploadedFile: !!uploadedFileBase64,
+                  syncedAt: new Date().toISOString()
+                });
+                if (isMissingRoot) {
+                  setDoc(doc(db, 'evaluations', ev.id), payload, { merge: true }).catch(() => {});
+                }
+                if (isMissingSub) {
+                  setDoc(doc(db, 'users', currentUid, 'evaluations', ev.id), payload, { merge: true }).catch(() => {});
+                }
+              } catch (_) {}
+            }
+          }
+
+          // 4. Update user's totalEvaluationsCount on user doc so profile stays exact
+          setDoc(doc(db, 'users', currentUid), {
+            totalEvaluationsCount: cleanMerged.length,
+            lastEvaluationAt: cleanMerged[0]?.createdAt || new Date().toISOString()
+          }, { merge: true }).catch(() => {});
+
         } catch (cloudErr) {
           console.warn('Firestore evaluations sync fallback:', cloudErr);
         }
       })();
+
+      // Also trigger Improvement Book cloud sync in background
+      syncImprovementBookWithCloud(currentUid).catch(() => {});
+
+      return () => {
+        isCancelled = true;
+      };
     }
   }, [user?.uid]);
 
@@ -430,17 +503,26 @@ export function AppProvider({ children }) {
       createdAt: new Date().toISOString(),
       ...evalObj
     };
-    setEvaluations(prev => purgeExpiredUploads([newEval, ...prev]));
+    setEvaluations(prev => {
+      const updated = purgeExpiredUploads([newEval, ...prev]);
+      const currentUid = user?.uid || null;
+      if (currentUid) {
+        try {
+          localStorage.setItem(getEvaluationStorageKey(currentUid), JSON.stringify(updated));
+        } catch (_) {}
+      }
+      return updated;
+    });
 
     // Sync to Cloud Firestore (strip big raw binary/base64 to stay well below Firestore's 1MB document limit)
     if (user?.uid) {
       try {
         const { uploadedFileBase64, annotatedFileBase64, ...cloudData } = newEval;
-        const payload = {
+        const payload = sanitizeForFirestore({
           ...cloudData,
           hasUploadedFile: !!uploadedFileBase64,
           syncedAt: new Date().toISOString()
-        };
+        });
 
         // 1. Root evaluations collection
         setDoc(doc(db, 'evaluations', newEval.id), payload).catch(err =>

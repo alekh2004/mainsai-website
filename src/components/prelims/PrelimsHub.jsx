@@ -65,7 +65,7 @@ function buildStaticFallback(exam, configData, count) {
 
 export function PrelimsHub({ onTestStart, onTestEnd }) {
   const { activeExam, saveEvaluationResult, language, getTeacherPrelimsMCQs } = useApp();
-  const { apiKey } = useAuth();
+  const { apiKey, user } = useAuth();
   const isHi = language === 'hi';
 
   const [step, setStep] = useState('home');
@@ -283,13 +283,14 @@ export function PrelimsHub({ onTestStart, onTestEnd }) {
     };
     setFinalResult(enrichedResult);
 
-    // ── Save all questions to Improvement Book (localStorage, permanent) ──
+    // ── Save all questions to Improvement Book (localStorage + Cloud Firestore sync) ──
     try {
       saveTestToImprovementBook({
         questions,
         selectedAnswers,
         exam: config.exam || activeExam,
         testDate: new Date().toISOString(),
+        userId: user?.uid,
       });
     } catch (e) {
       console.warn('[PrelimsHub] Could not save to ImprovementBook:', e);
