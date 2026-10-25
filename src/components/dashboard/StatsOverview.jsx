@@ -67,7 +67,20 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
   const gender = detectGender(user);
 
   // Dedicated Female Slides (Mobile portrait + Desktop 16:9)
+  // Parliament Cartoon Hero is FIRST (Index 0) as requested by user
   const femaleSlides = [
+    {
+      id: 'female_parliament',
+      title: 'Parliament Hero Aspirant',
+      tagHi: '🏛️ संसद भवन — सपनों की नींव',
+      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
+      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
+      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
+      desktopBg: '/parliament_cartoon_hero_desktop.jpg',
+      mobileBg: '/parliament_cartoon_hero_desktop.jpg',
+      mobileObjectPosition: '30% center',
+      desktopObjectPosition: 'center center',
+    },
     {
       id: 'female_qutub',
       title: 'Qutub Minar IAS Aspirant',
@@ -116,22 +129,23 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       mobileObjectPosition: 'center 15%',
       desktopObjectPosition: 'center center',
     },
+  ];
+
+  // Dedicated Male Slides (Mobile portrait + Desktop 16:9)
+  // Parliament Cartoon Hero is FIRST (Index 0) as requested by user
+  const maleSlides = [
     {
-      id: 'female_desk',
-      title: 'Parliament Window Study Desk',
+      id: 'male_parliament',
+      title: 'Parliament Cartoon Hero',
       tagHi: '🏛️ संसद भवन — सपनों की नींव',
       tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
       quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
       quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
       desktopBg: '/parliament_cartoon_hero_desktop.jpg',
-      mobileBg: '/hero_girl_desk_mobile.jpg',
-      mobileObjectPosition: 'center 15%',
+      mobileBg: '/parliament_cartoon_hero_desktop.jpg',
+      mobileObjectPosition: '30% center',
       desktopObjectPosition: 'center center',
     },
-  ];
-
-  // Dedicated Male Slides (Mobile portrait + Desktop 16:9)
-  const maleSlides = [
     {
       id: 'male_indiagate_desk',
       title: 'India Gate Study Desk',
@@ -152,18 +166,6 @@ function HeroCarousel({ user, greeting, isHi, activeExam, totalCount, safeAvgPct
       quoteHi: 'संघर्ष जितना कठिन होगा, जीत उतनी ही शानदार होगी।',
       quoteEn: 'The harder the struggle today, the more glorious the victory tomorrow.',
       desktopBg: '/hero_boy_indiagate_sunset_desktop.jpg',
-      mobileBg: '/hero_boy_desk_mobile.jpg',
-      mobileObjectPosition: 'center 15%',
-      desktopObjectPosition: 'center center',
-    },
-    {
-      id: 'male_parliament',
-      title: 'Parliament Cartoon Hero',
-      tagHi: '🏛️ संसद भवन — सपनों की नींव',
-      tagEn: '🏛️ Sansad Bhavan — Foundation of Dreams',
-      quoteHi: 'कर्तव्य, समर्पण और सेवा का संकल्प ही एक श्रेष्ठ अधिकारी की पहचान है।',
-      quoteEn: 'Duty, dedication, and service define the hallmark of a true officer.',
-      desktopBg: '/parliament_cartoon_hero_desktop.jpg',
       mobileBg: '/hero_boy_desk_mobile.jpg',
       mobileObjectPosition: 'center 15%',
       desktopObjectPosition: 'center center',
@@ -422,7 +424,7 @@ export function StatsOverview({ onQuickAction, onViewEvaluation, onOpenFlashcard
   const insights = getInsightsData();
   const realEvals = Array.isArray(evaluations) ? evaluations : [];
   const recentList = realEvals.slice(0, 3);
-  const totalCount = realEvals.length;
+  const totalCount = Math.max(realEvals.length, Number(user?.totalEvaluationsCount) || 0);
   const rawAvgPct = insights?.avgPct ?? 0;
   const safeAvgPct = Math.max(0, Math.min(100, Math.round(Number(rawAvgPct) || 0)));
   const percentile = totalCount === 0 ? '-'

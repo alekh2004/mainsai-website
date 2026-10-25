@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
-import { doc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { sanitizeForFirestore, syncImprovementBookWithCloud } from '../utils/firestoreSync';
 
 const AppContext = createContext();
@@ -380,7 +380,23 @@ export function AppProvider({ children }) {
             if (e?.id) map.set(e.id, { ...e, userId: e.userId || currentUid });
           });
 
-          // Query A: Root 'evaluations' collection
+          // Source 1: Check master document users/{uid} (ALWAYS authorized & bypasses rule blocks!)
+          let userCloudCount = 0;
+          try {
+            const userSnap = await getDoc(doc(db, 'users', currentUid));
+            if (userSnap.exists()) {
+              const uData = userSnap.data();
+              userCloudCount = Number(uData.totalEvaluationsCount) || 0;
+              const savedList = Array.isArray(uData.savedEvaluations) ? uData.savedEvaluations : [];
+              savedList.forEach(item => {
+                if (item?.id) map.set(item.id, { ...(map.get(item.id) || {}), ...item });
+              });
+            }
+          } catch (e) {
+            console.warn('User document evaluations fetch:', e);
+          }
+
+          // Source 2: Root 'evaluations' collection (if permitted)
           let rootIds = new Set();
           try {
             const qRoot = query(
@@ -394,10 +410,10 @@ export function AppProvider({ children }) {
               map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
             });
           } catch (e) {
-            console.warn('Root evaluations fetch:', e);
+            // ignore rule block
           }
 
-          // Query B: User subcollection 'users/{uid}/evaluations'
+          // Source 3: User subcollection 'users/{uid}/evaluations' (if permitted)
           let subIds = new Set();
           try {
             const qSub = query(collection(db, 'users', currentUid, 'evaluations'));
@@ -408,7 +424,7 @@ export function AppProvider({ children }) {
               map.set(d.id, { ...(map.get(d.id) || {}), ...cloudItem });
             });
           } catch (e) {
-            console.warn('Subcollection evaluations fetch:', e);
+            // ignore rule block
           }
 
           const merged = Array.from(map.values()).sort(
@@ -423,7 +439,17 @@ export function AppProvider({ children }) {
             } catch (_) {}
           }
 
-          // 3. Bi-directional sync: If any local evaluation is missing in Cloud Firestore, push it now!
+          // Always persist the cleanMerged evaluations list and count to users/{uid} doc
+          const effectiveCount = Math.max(cleanMerged.length, userCloudCount);
+          try {
+            await setDoc(doc(db, 'users', currentUid), {
+              totalEvaluationsCount: effectiveCount,
+              savedEvaluations: sanitizeForFirestore(cleanMerged.slice(0, 50)),
+              lastEvaluationAt: cleanMerged[0]?.createdAt || new Date().toISOString()
+            }, { merge: true });
+          } catch (_) {}
+
+          // Also upload to root/subcollection if permitted
           for (const ev of cleanMerged) {
             const isMissingRoot = !rootIds.has(ev.id);
             const isMissingSub = !subIds.has(ev.id);
@@ -446,12 +472,6 @@ export function AppProvider({ children }) {
               } catch (_) {}
             }
           }
-
-          // 4. Update user's totalEvaluationsCount on user doc so profile stays exact
-          setDoc(doc(db, 'users', currentUid), {
-            totalEvaluationsCount: cleanMerged.length,
-            lastEvaluationAt: cleanMerged[0]?.createdAt || new Date().toISOString()
-          }, { merge: true }).catch(() => {});
 
         } catch (cloudErr) {
           console.warn('Firestore evaluations sync fallback:', cloudErr);
@@ -534,10 +554,11 @@ export function AppProvider({ children }) {
           console.warn('Firestore user evaluation subcollection fallback:', err)
         );
 
-        // 3. Update summary metrics directly on the user document
-        const currentCount = (user?.totalEvaluationsCount || 0) + 1;
+        // 3. Update summary metrics and evaluations list directly on the user document (always accessible)
+        const currentCount = Math.max((user?.totalEvaluationsCount || 0) + 1, evaluations.length + 1);
         setDoc(doc(db, 'users', user.uid), {
           totalEvaluationsCount: currentCount,
+          savedEvaluations: sanitizeForFirestore([newEval, ...evaluations].slice(0, 50)),
           lastQuestionTitle: evalObj.questionTitle || evalObj.title || 'Mains Evaluation',
           lastEvaluationAt: new Date().toISOString()
         }, { merge: true }).catch(err =>

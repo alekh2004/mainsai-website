@@ -1,6 +1,6 @@
 import { db, auth } from '../firebase';
 import {
-  doc, setDoc, getDocs, collection
+  doc, setDoc, getDoc, getDocs, collection
 } from 'firebase/firestore';
 
 /**
@@ -76,14 +76,27 @@ export function mergeImprovementBooks(bookA, bookB) {
 
 /**
  * Load all Improvement Book questions from Firestore for a user.
+ * Reads from both users/{uid} document (guaranteed permission) and subcollections.
  */
 export async function loadImprovementBookFromFirestore(uid) {
   if (!uid) return { prelims: {}, mains: {} };
+  let cloudBook = { prelims: {}, mains: {} };
+
+  // 1. Primary: Read from user's main document (always authorized)
+  try {
+    const userDocRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists() && userSnap.data()?.improvementBook) {
+      cloudBook = userSnap.data().improvementBook;
+    }
+  } catch (err) {
+    console.warn('Error reading improvementBook from user document:', err);
+  }
+
+  // 2. Secondary: Check subcollection users/{uid}/improvement_book (if rules permit)
   try {
     const colRef = collection(db, 'users', uid, 'improvement_book');
     const snap = await getDocs(colRef);
-    const cloudBook = { prelims: {}, mains: {} };
-
     snap.forEach(d => {
       const data = d.data();
       const section = data.section || 'prelims';
@@ -91,16 +104,19 @@ export async function loadImprovementBookFromFirestore(uid) {
       const questions = Array.isArray(data.questions) ? data.questions : [];
 
       if (subject && (section === 'prelims' || section === 'mains')) {
+        if (!cloudBook[section]) cloudBook[section] = {};
         if (!cloudBook[section][subject]) cloudBook[section][subject] = [];
-        cloudBook[section][subject] = questions;
+        const map = new Map();
+        cloudBook[section][subject].forEach(q => { if (q?.id) map.set(q.id, q); });
+        questions.forEach(q => { if (q?.id) map.set(q.id, q); });
+        cloudBook[section][subject] = Array.from(map.values());
       }
     });
-
-    return cloudBook;
   } catch (err) {
-    console.warn('Error loading ImprovementBook from Firestore:', err);
-    return { prelims: {}, mains: {} };
+    // subcollection fallback
   }
+
+  return cloudBook;
 }
 
 /**
@@ -119,7 +135,7 @@ export async function saveSubjectToFirestore(uid, section, subject, questions) {
       updatedAt: new Date().toISOString()
     }), { merge: true });
   } catch (err) {
-    console.warn(`Error saving subject ${subject} to Firestore:`, err);
+    // subcollection fallback
   }
 }
 
@@ -128,10 +144,10 @@ const IB_KEY = 'improvement_book_v2';
 /**
  * Full bi-directional sync:
  * 1. Reads local localStorage ('improvement_book_v2')
- * 2. Fetches cloud data from Firestore (users/{uid}/improvement_book)
+ * 2. Fetches cloud data from Firestore (users/{uid})
  * 3. Merges without duplicate questions
  * 4. Saves merged data to localStorage
- * 5. Uploads any missing subjects/questions to Firestore
+ * 5. Saves merged data to users/{uid} document (guaranteed permission) and subcollection
  */
 export async function syncImprovementBookWithCloud(uid) {
   const currentUid = uid || auth?.currentUser?.uid;
@@ -164,20 +180,30 @@ export async function syncImprovementBookWithCloud(uid) {
     console.warn('Error saving merged ImprovementBook to localStorage:', e);
   }
 
-  // 5. Upload any subjects that have local additions not yet in cloud
+  // 5. Always persist merged book to doc(db, 'users', currentUid)
+  try {
+    await setDoc(doc(db, 'users', currentUid), {
+      improvementBook: sanitizeForFirestore(mergedBook),
+      improvementBookSummary: {
+        totalPrelims: Object.values(mergedBook.prelims || {}).reduce((s, a) => s + (a?.length || 0), 0),
+        totalMains: Object.values(mergedBook.mains || {}).reduce((s, a) => s + (a?.length || 0), 0),
+        updatedAt: new Date().toISOString()
+      }
+    }, { merge: true });
+  } catch (e) {
+    console.warn('Error saving improvementBook to user doc:', e);
+  }
+
+  // 6. Also update subcollection if accessible
   try {
     for (const section of ['prelims', 'mains']) {
       const sectionData = mergedBook[section] || {};
       for (const [subject, qs] of Object.entries(sectionData)) {
-        const cloudQs = cloudBook[section]?.[subject] || [];
-        // If local merged has more questions than cloud, push to cloud
-        if (qs.length > cloudQs.length || cloudQs.length === 0) {
-          await saveSubjectToFirestore(currentUid, section, subject, qs);
-        }
+        await saveSubjectToFirestore(currentUid, section, subject, qs);
       }
     }
   } catch (e) {
-    console.warn('Error updating cloud ImprovementBook:', e);
+    // subcollection fallback
   }
 
   return mergedBook;
