@@ -259,7 +259,13 @@ function MainAppContent() {
         </div>
 
         {/* Mobile Bottom Dock */}
-        <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        <MobileNav
+          activeTab={activeTab}
+          setActiveTab={(tab) => { setActiveTab(tab); if (tab === 'evaluate') setSelectedPaper(null); }}
+          onOpenFlashcards={() => setShowFlashcardsModal(true)}
+          onOpenMainsNotes={() => setShowMainsNotesModal(true)}
+          isTestActive={isTestActive}
+        />
       </div>
 
 
