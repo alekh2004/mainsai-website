@@ -1,226 +1,227 @@
 import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
 
 export function RibbonCanvas3D({ color = '#3b82f6', isHovered = false, theme = 'blue' }) {
+  const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const mouseRef = useRef({ x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 });
   const hoverRef = useRef(isHovered);
-  const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
 
   useEffect(() => {
     hoverRef.current = isHovered;
   }, [isHovered]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!container) return;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     let animationFrameId;
-    let renderer;
-    let scene;
-    let camera;
-    let mesh;
-    let geometry;
-    let material;
-    let bumpTexture;
+    let time = Math.random() * 10;
 
-    try {
-      const width = container.clientWidth || 320;
-      const height = container.clientHeight || 150;
+    // Theme color palettes for neon glowing ribs
+    const themeGlowMap = {
+      blue: {
+        ribbonSkin: 'rgba(59, 130, 246, 0.22)',
+        glow: 'rgba(59, 130, 246, 0.85)',
+        secondary: '#60a5fa',
+        deep: 'rgba(15, 23, 42, 0.15)',
+      },
+      orange: {
+        ribbonSkin: 'rgba(249, 115, 22, 0.22)',
+        glow: 'rgba(249, 115, 22, 0.85)',
+        secondary: '#fb923c',
+        deep: 'rgba(30, 10, 5, 0.15)',
+      },
+      purple: {
+        ribbonSkin: 'rgba(168, 85, 247, 0.22)',
+        glow: 'rgba(168, 85, 247, 0.85)',
+        secondary: '#c084fc',
+        deep: 'rgba(25, 10, 35, 0.15)',
+      },
+    };
 
-      // ── 1. Scene & Camera ──────────────────────────────────────────────
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-      camera.position.set(0, 0, 3.0);
+    const currentTheme = themeGlowMap[theme] || themeGlowMap.orange;
 
-      // ── 2. WebGL Renderer with High-DPI Support ────────────────────────
-      renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true,
-        powerPreference: 'high-performance',
-      });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(width, height);
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.25;
+    // Resize canvas for crisp High-DPI screens
+    const handleResize = () => {
+      const rect = container.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
 
-      container.innerHTML = '';
-      container.appendChild(renderer.domElement);
+    handleResize();
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
-      // ── 3. Procedural Metallic Ribbed Texture (Like Scrolltide Artwork) ──
-      const bumpCanvas = document.createElement('canvas');
-      bumpCanvas.width = 256;
-      bumpCanvas.height = 256;
-      const bCtx = bumpCanvas.getContext('2d');
-      bCtx.fillStyle = '#222222';
-      bCtx.fillRect(0, 0, 256, 256);
-      for (let y = 0; y < 256; y += 4) {
-        bCtx.fillStyle = y % 8 === 0 ? '#ffffff' : '#444444';
-        bCtx.fillRect(0, y, 256, 3);
+    // Mouse movement tracking for interactive 3D wave response
+    const handleMouseMove = (e) => {
+      const rect = container.getBoundingClientRect();
+      mouseRef.current.targetX = (e.clientX - rect.left) / rect.width;
+      mouseRef.current.targetY = (e.clientY - rect.top) / rect.height;
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.targetX = 0.5;
+      mouseRef.current.targetY = 0.5;
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+
+    // ── 60 FPS Render Loop: Serpentine Neon Ribbed 3D Wave ──
+    const render = () => {
+      animationFrameId = requestAnimationFrame(render);
+
+      const rect = container.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+      if (W === 0 || H === 0) return;
+
+      const isHov = hoverRef.current;
+      const speed = isHov ? 0.038 : 0.022;
+      time += speed;
+
+      // Smooth mouse interpolation
+      mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
+      mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Subtle ambient background illumination
+      const bgRadial = ctx.createRadialGradient(
+        W * mouseRef.current.x,
+        H * mouseRef.current.y,
+        10,
+        W / 2,
+        H / 2,
+        W * 0.7
+      );
+      bgRadial.addColorStop(0, currentTheme.ribbonSkin);
+      bgRadial.addColorStop(1, 'rgba(3, 6, 17, 0)');
+      ctx.fillStyle = bgRadial;
+      ctx.fillRect(0, 0, W, H);
+
+      const ribCount = W < 300 ? 55 : 72;
+      const topPts = [];
+      const botPts = [];
+
+      ctx.save();
+      ctx.shadowColor = currentTheme.glow;
+      ctx.shadowBlur = isHov ? 20 : 12;
+
+      const mouseOffsetY = (mouseRef.current.y - 0.5) * 28;
+      const mouseInfluenceX = (mouseRef.current.x - 0.5) * 0.8;
+
+      // ── Step 1: Calculate coordinates for all 3D serpentine ribs ──
+      for (let i = 0; i <= ribCount; i++) {
+        const progress = i / ribCount;
+        const x = 20 + progress * (W - 40);
+
+        // Multi-frequency wave calculations mimicking 3D ribbon twists
+        const wave1 = Math.sin(progress * 4.4 - time + mouseInfluenceX) * (isHov ? 32 : 26);
+        const wave2 = Math.cos(progress * 6.8 + time * 0.85) * (isHov ? 14 : 10);
+        const wave3 = Math.sin(progress * 2.2 + time * 1.2) * 8;
+
+        const centerY = H / 2 + wave1 + wave2 + wave3 + mouseOffsetY;
+
+        // Dynamic rib height gives taper at edges and fullness in center
+        const ribHeight = (isHov ? 56 : 48) + Math.sin(progress * Math.PI) * 20;
+
+        // Angle tilt generates 3D perspective orientation
+        const tiltAngle = Math.cos(progress * 3.6 - time) * 0.48;
+
+        const dx = Math.sin(tiltAngle) * (ribHeight / 2);
+        const dy = Math.cos(tiltAngle) * (ribHeight / 2);
+
+        const x1 = x - dx;
+        const y1 = centerY - dy;
+        const x2 = x + dx;
+        const y2 = centerY + dy;
+
+        topPts.push({ x: x1, y: y1 });
+        botPts.push({ x: x2, y: y2 });
+
+        // Draw individual glowing vertical rib fin
+        const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+        // Specular white tip crest
+        grad.addColorStop(0, '#ffffff');
+        // Intense saturated neon core
+        grad.addColorStop(0.25, color);
+        // Rich midtone
+        grad.addColorStop(0.65, currentTheme.secondary);
+        // Fade to translucent dark depth
+        grad.addColorStop(1, currentTheme.deep);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = isHov ? 2.4 : 1.9;
+        ctx.stroke();
       }
-      bumpTexture = new THREE.CanvasTexture(bumpCanvas);
-      bumpTexture.wrapS = THREE.RepeatWrapping;
-      bumpTexture.wrapT = THREE.RepeatWrapping;
-      bumpTexture.repeat.set(16, 1);
 
-      // ── 4. Ribbon Geometry & Physical Metallic Material ────────────────
-      geometry = new THREE.PlaneGeometry(3.8, 1.25, 75, 18);
+      // ── Step 2: Draw continuous undulating translucent ribbon skin ──
+      if (topPts.length > 0 && botPts.length > 0) {
+        ctx.beginPath();
+        ctx.moveTo(topPts[0].x, topPts[0].y);
 
-      const planColorObj = new THREE.Color(color);
-
-      material = new THREE.MeshPhysicalMaterial({
-        color: planColorObj,
-        emissive: planColorObj,
-        emissiveIntensity: 0.18,
-        metalness: 0.92,
-        roughness: 0.22,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.12,
-        reflectivity: 0.95,
-        bumpMap: bumpTexture,
-        bumpScale: 0.06,
-        side: THREE.DoubleSide,
-      });
-
-      mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
-
-      // ── 5. Cinematic Studio Lighting ──────────────────────────────────
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-      scene.add(ambientLight);
-
-      // Bright key light from above
-      const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
-      keyLight.position.set(2, 3, 3);
-      scene.add(keyLight);
-
-      // Colored Neon Rim light from below-left
-      const rimLight = new THREE.PointLight(color, 4.0, 10);
-      rimLight.position.set(-2.5, -2, 2.5);
-      scene.add(rimLight);
-
-      // Dynamic cursor point light
-      const cursorLight = new THREE.PointLight(0xffffff, 1.5, 6);
-      cursorLight.position.set(0, 0, 2);
-      scene.add(cursorLight);
-
-      // ── 6. Mouse Tracking on Container ────────────────────────────────
-      const handleMouseMove = (e) => {
-        const rect = container.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
-        mouseRef.current.targetX = x * 0.4;
-        mouseRef.current.targetY = y * 0.3;
-      };
-
-      const handleMouseLeave = () => {
-        mouseRef.current.targetX = 0;
-        mouseRef.current.targetY = 0;
-      };
-
-      container.addEventListener('mousemove', handleMouseMove);
-      container.addEventListener('mouseleave', handleMouseLeave);
-
-      // ── 7. Animation Loop (60 FPS Smooth Sinusoidal Fluid Wave) ────────
-      let time = 0;
-      const clock = new THREE.Clock();
-
-      const animate = () => {
-        animationFrameId = requestAnimationFrame(animate);
-
-        const delta = clock.getDelta();
-        const hovered = hoverRef.current;
-        const speed = hovered ? 1.7 : 0.95;
-        time += delta * speed;
-
-        // Smooth camera zoom on hover
-        const targetCamZ = hovered ? 2.65 : 3.0;
-        camera.position.z += (targetCamZ - camera.position.z) * 0.08;
-
-        // Smooth mouse tracking
-        mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.06;
-        mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.06;
-
-        cursorLight.position.x = mouseRef.current.x * 2.5;
-        cursorLight.position.y = mouseRef.current.y * 1.5;
-
-        // Bloom emissive on hover
-        const targetEmissive = hovered ? 0.36 : 0.16;
-        material.emissiveIntensity += (targetEmissive - material.emissiveIntensity) * 0.08;
-
-        // Gentle mesh rotation
-        mesh.rotation.y = Math.sin(time * 0.4) * 0.12 + mouseRef.current.x * 0.35;
-        mesh.rotation.x = Math.cos(time * 0.5) * 0.08 + mouseRef.current.y * 0.25;
-        mesh.rotation.z = Math.sin(time * 0.3) * 0.05;
-
-        // Sinusoidal 3D Wave Displacements across the metallic plane
-        const pos = geometry.attributes.position;
-        const count = pos.count;
-
-        for (let i = 0; i < count; i++) {
-          const u = pos.getX(i);
-          const v = pos.getY(i);
-
-          // Complex layered waves creating serpentine ribbon undulations
-          const w1 = Math.sin(u * 1.75 + time * 1.8) * 0.44;
-          const w2 = Math.cos(u * 2.9 - time * 1.1) * 0.22;
-          const w3 = Math.sin(u * 1.2 + time * 0.8) * v * 0.42;
-          const twist = Math.cos(u * 0.85 + time) * 0.18;
-
-          pos.setZ(i, w1 + w2 + w3 + twist);
+        for (let i = 1; i < topPts.length; i++) {
+          ctx.lineTo(topPts[i].x, topPts[i].y);
         }
-
-        pos.needsUpdate = true;
-        geometry.computeVertexNormals();
-
-        renderer.render(scene, camera);
-      };
-
-      animate();
-
-      // Handle Resize
-      const handleResize = () => {
-        if (!container) return;
-        const newW = container.clientWidth || 320;
-        const newH = container.clientHeight || 150;
-        camera.aspect = newW / newH;
-        camera.updateProjectionMatrix();
-        renderer.setSize(newW, newH);
-      };
-
-      window.addEventListener('resize', handleResize);
-
-      // Cleanup
-      return () => {
-        window.removeEventListener('resize', handleResize);
-        container.removeEventListener('mousemove', handleMouseMove);
-        container.removeEventListener('mouseleave', handleMouseLeave);
-        if (animationFrameId) cancelAnimationFrame(animationFrameId);
-        if (geometry) geometry.dispose();
-        if (material) material.dispose();
-        if (bumpTexture) bumpTexture.dispose();
-        if (renderer) {
-          renderer.dispose();
-          if (renderer.domElement && renderer.domElement.parentNode) {
-            renderer.domElement.parentNode.removeChild(renderer.domElement);
-          }
+        for (let i = botPts.length - 1; i >= 0; i--) {
+          ctx.lineTo(botPts[i].x, botPts[i].y);
         }
-      };
-    } catch (err) {
-      console.warn('RibbonCanvas3D WebGL fallback:', err);
-    }
+        ctx.closePath();
+
+        const skinGrad = ctx.createLinearGradient(0, 0, W, H);
+        skinGrad.addColorStop(0, currentTheme.ribbonSkin);
+        skinGrad.addColorStop(0.5, isHov ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)');
+        skinGrad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+
+        ctx.fillStyle = skinGrad;
+        ctx.fill();
+
+        // Subtle glowing highlight stroke along the crest edge
+        ctx.beginPath();
+        ctx.moveTo(topPts[0].x, topPts[0].y);
+        for (let i = 1; i < topPts.length; i++) {
+          ctx.lineTo(topPts[i].x, topPts[i].y);
+        }
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+    };
   }, [color, theme]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden select-none pointer-events-auto">
-      {/* Three.js Canvas Container */}
-      <div ref={containerRef} className="w-full h-full cursor-pointer" />
-
-      {/* Subtle vignette around edges for seamless blending into card background */}
-      <div
-        className="absolute inset-0 pointer-events-none transition-opacity duration-500"
-        style={{
-          background: `radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(6, 10, 20, 0.88) 100%)`,
-        }}
+    <div
+      ref={containerRef}
+      className="relative w-full h-full overflow-hidden select-none pointer-events-auto"
+      style={{
+        background: 'radial-gradient(ellipse at center, rgba(12, 18, 36, 0.9) 0%, #030611 100%)',
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full block"
+        style={{ width: '100%', height: '100%' }}
       />
     </div>
   );

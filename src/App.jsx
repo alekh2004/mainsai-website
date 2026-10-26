@@ -149,7 +149,7 @@ function MainAppContent() {
             setActiveTab={(tab) => { setActiveTab(tab); if (tab === 'evaluate') setSelectedPaper(null); }}
             onOpenFlashcards={() => setShowFlashcardsModal(true)}
             onOpenMainsNotes={() => setShowMainsNotesModal(true)}
-            onOpenSubscription={() => openPayModal(true)}
+            onOpenSubscription={(planId) => openPayModal(planId || 'pro')}
             isTestActive={isTestActive}
           />
 
@@ -233,7 +233,7 @@ function MainAppContent() {
                 {activeTab === 'profile' && (
                   <div>
                     <ProfileView
-                      onOpenSubscription={() => openPayModal(true)}
+                      onOpenSubscription={(planId) => openPayModal(planId || 'pro')}
                       onOpenSettings={() => setShowApiKeyModal(true)}
                       onOpenEditProfile={() => setShowEditProfileModal(true)}
                     />

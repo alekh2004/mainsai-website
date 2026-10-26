@@ -51,8 +51,18 @@ export function AuthProvider({ children }) {
     if (BUNDLED_API_KEY && BUNDLED_API_KEY.trim().length > 10) return BUNDLED_API_KEY.trim();
     return HARDCODED_FALLBACK_KEY;
   });
-  const [showPayModal, setShowPayModal] = useState(false);
+  const [showPayModal, setShowPayModalState] = useState(false);
+  const [payModalPlan, setPayModalPlan] = useState('pro');
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const setShowPayModal = (val) => {
+    if (typeof val === 'string') {
+      setPayModalPlan(val);
+      setShowPayModalState(true);
+    } else {
+      setShowPayModalState(Boolean(val));
+    }
+  };
 
   // ── Listen to Firebase Auth state & sync with Firestore ───────────────
   useEffect(() => {
@@ -559,6 +569,8 @@ export function AuthProvider({ children }) {
       setShowAuthModal,
       showPayModal,
       setShowPayModal,
+      payModalPlan,
+      setPayModalPlan,
     }}>
       {children}
     </AuthContext.Provider>

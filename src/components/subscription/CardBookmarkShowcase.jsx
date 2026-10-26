@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { CardBookmark, SUBSCRIPTION_PLANS } from './CardBookmark';
-import { Crown, Sparkles, CheckCircle, ArrowLeft, X } from 'lucide-react';
+import { Crown, Sparkles, CheckCircle, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export function CardBookmarkShowcase({ onSelectPlan, onBack }) {
   const { user, setShowPayModal } = useAuth();
@@ -21,44 +21,48 @@ export function CardBookmarkShowcase({ onSelectPlan, onBack }) {
 
   return (
     <div className="w-full space-y-6 my-2">
-      {/* Top Header with Back Navigation */}
-      <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--glass-border)' }}>
+      {/* ── Top Header Navigation Bar with Clear Back Button ── */}
+      <div
+        className="flex items-center justify-between pb-3 border-b"
+        style={{ borderColor: 'var(--glass-border)' }}
+      >
         {onBack ? (
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border transition-all text-xs font-bold cursor-pointer group"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-xs sm:text-sm font-extrabold cursor-pointer group shadow-sm active:scale-95"
             style={{
               borderColor: 'var(--glass-border)',
               background: 'var(--card-bg)',
               color: 'var(--text-primary)',
             }}
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" style={{ color: 'rgb(var(--accent))' }} />
-            <span>{isHi ? 'वापस जाएं (Back)' : 'Back to Profile'}</span>
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1.5 transition-transform text-blue-500" />
+            <span>{isHi ? '← प्रोफाइल पर वापस जाएं (Back to Profile)' : '← Back to Profile'}</span>
           </button>
         ) : <div />}
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
-          style={{ background: 'rgba(251,191,36,0.18)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.4)' }}
+        <div
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm"
+          style={{ background: 'rgba(251,191,36,0.18)', color: '#d97706', border: '1px solid rgba(251,191,36,0.5)' }}
         >
-          <Crown className="w-3.5 h-3.5 fill-amber-400" />
-          <span>{isHi ? 'सदस्यता योजनाएं' : 'UPSC & BPSC Plans'}</span>
+          <Crown className="w-4 h-4 fill-amber-500 text-amber-500" />
+          <span>{isHi ? 'UPSC & BPSC तैयारी सदस्यता' : 'UPSC & BPSC AI Plans'}</span>
         </div>
       </div>
 
-      {/* Main Heading — Adaptable to Theme with High Contrast */}
+      {/* ── Main Section Heading — Prelims + Mains AI Coverage with High Contrast ── */}
       <div className="text-center space-y-2 max-w-2xl mx-auto px-2">
-        <h3
-          className="text-2xl sm:text-3xl font-black tracking-tight m-0 leading-tight"
+        <h2
+          className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight m-0 leading-tight"
           style={{ color: 'var(--text-primary)' }}
         >
           {isHi
-            ? 'UPSC & BPSC संपूर्ण तैयारी (Prelims + Mains AI)'
+            ? 'UPSC & BPSC संपूर्ण AI तैयारी (प्रारंभिक + मुख्य परीक्षा)'
             : 'UPSC & BPSC Comprehensive AI Preparation (Prelims + Mains)'}
-        </h3>
+        </h2>
         <p
-          className="text-xs sm:text-sm font-medium m-0 leading-relaxed"
+          className="text-xs sm:text-sm font-semibold m-0 leading-relaxed"
           style={{ color: 'var(--text-secondary)' }}
         >
           {isHi
@@ -67,7 +71,7 @@ export function CardBookmarkShowcase({ onSelectPlan, onBack }) {
         </p>
       </div>
 
-      {/* 3 Bookmark Cards Grid */}
+      {/* ── 3 Bookmark Cards Grid (Scrolltide Card-Bookmark System) ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto items-stretch pt-2">
         {SUBSCRIPTION_PLANS.map((plan) => (
           <CardBookmark
@@ -80,6 +84,25 @@ export function CardBookmarkShowcase({ onSelectPlan, onBack }) {
           />
         ))}
       </div>
+
+      {/* ── Bottom Prominent Back Button (Never leaves the user stranded on mobile or desktop) ── */}
+      {onBack && (
+        <div className="flex justify-center pt-4 pb-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl border transition-all text-xs sm:text-sm font-extrabold cursor-pointer group shadow-md active:scale-95"
+            style={{
+              borderColor: 'var(--glass-border)',
+              background: 'var(--card-bg)',
+              color: 'var(--text-primary)',
+            }}
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1.5 transition-transform text-blue-500" />
+            <span>{isHi ? '← वापस प्रोफाइल पर जाएं (Back to Profile)' : '← Back to Profile'}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
