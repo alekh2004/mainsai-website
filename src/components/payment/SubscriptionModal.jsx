@@ -65,7 +65,7 @@ export function SubscriptionModal() {
             onClick={() => setShowPayModal(false)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white transition-all group cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-amber-400" />
             <span>{isHi ? 'वापस जाएं (Back)' : 'Back to App'}</span>
           </button>
 
@@ -79,20 +79,23 @@ export function SubscriptionModal() {
           </button>
         </div>
 
-        {/* Modal Header */}
-        <div className="text-center space-y-2 max-w-lg mx-auto">
+        {/* Modal Header — Full UPSC & BPSC (Prelims + Mains) Scope */}
+        <div className="text-center space-y-2 max-w-xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
             <Crown className="w-4 h-4 text-amber-400 fill-amber-400" /> Unlock Full Access
           </div>
-          <h2 className="text-2xl lg:text-3xl font-black text-white m-0">
-            Choose Your <span className="gradient-text-gold">Mains Preparation</span> Plan
+          <h2 className="text-2xl lg:text-3xl font-black text-white m-0 leading-tight">
+            {isHi ? 'UPSC & BPSC संपूर्ण AI तैयारी ' : 'UPSC & BPSC Comprehensive AI '}
+            <span className="gradient-text-gold">{isHi ? '(प्रारंभिक + मुख्य परीक्षा)' : '(Prelims + Mains)'}</span>
           </h2>
-          <p className="text-xs lg:text-sm text-gray-300 m-0">
-            Get unlimited Gemini AI evaluations, PYQ bank access, and expert teacher script reviews.
+          <p className="text-xs lg:text-sm text-slate-300 m-0 leading-relaxed">
+            {isHi
+              ? 'असीमित AI कॉपियां, प्रीलिम्स CBT टेस्ट, 3D नोट्स, टॉपर्स मॉडल उत्तर और शिक्षक समीक्षा।'
+              : 'Unlimited AI evaluations, Prelims CBT tests, 3D notes, model answers and faculty script reviews.'}
           </p>
         </div>
 
-        {/* Plans Grid — Scrolltide Card Bookmark Component */}
+        {/* Plans Grid — Scrolltide Card Bookmark Component with Live 3D Ribbons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch pt-2">
           {SUBSCRIPTION_PLANS.map((plan) => (
             <CardBookmark
@@ -111,7 +114,7 @@ export function SubscriptionModal() {
           <div className="p-5 rounded-2xl bg-slate-950/90 border border-white/15 space-y-4 animate-fadeIn">
             <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs font-bold text-gray-300">
               <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activePlanObj.accentColor }} />
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: activePlanObj.accentColor }} />
                 <span>Selected: <strong className="text-white">{activePlanObj.name}</strong> ({activePlanObj.price} {activePlanObj.period})</span>
               </span>
               <span className="text-amber-400 font-mono">100% Encrypted &amp; Secure SSL</span>

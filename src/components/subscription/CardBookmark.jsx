@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Check, Sparkles, Crown, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { RibbonCanvas3D } from './RibbonCanvas3D';
 
 export const SUBSCRIPTION_PLANS = [
   {
@@ -10,28 +11,26 @@ export const SUBSCRIPTION_PLANS = [
     price: 'Free Trial',
     priceNum: 0,
     period: '2 AI Check Passes',
-    description: 'Foundational answer writing for civil services aspirants.',
+    description: 'BPSC & UPSC प्रारंभिक उत्तर लेखन अभ्यास।',
     ribbonQuoteHi: 'सीखो • अभ्यास करो • शुरुआत करें',
     ribbonQuoteEn: 'Start Free. Build Momentum.',
-    ribbonImg: '/plan_pure_ribbon_blue.jpg',
     accentColor: '#3b82f6',
     accentRgb: '59, 130, 246',
-    accentGlow: 'rgba(59, 130, 246, 0.40)',
     themeName: 'blue',
-    stats: '2 AI Passes',
+    dotIndex: 0,
     badgeHi: 'निःशुल्क',
     badgeEn: 'Starter',
     featuresHi: [
-      '2 AI Answer Evaluations (Instant Marks & Model Structure)',
-      'BPSC & UPSC Easy & Medium PYQs Access',
+      '2 AI Answer Evaluations (Marks & Model Structure)',
+      'BPSC & UPSC Easy & Medium PYQs Vault',
       'Instant Weak-area Diagnostic Scorecard',
       'Hindi & English Answer Checking Support'
     ],
     featuresEn: [
-      '2 AI Answer Evaluations with instant feedback',
-      'Easy & Medium Mains PYQ Vault access',
-      'Diagnostic Weakness Assessment & Strengths',
-      'Bilingual Hindi & English evaluation'
+      '2 AI Answer Checks (Instant Marks & Breakdown)',
+      'Easy & Medium PYQ Question Bank',
+      'Diagnostic Weakness Assessment',
+      'Bilingual Hindi & English Support'
     ],
     ctaHi: 'निःशुल्क शुरू करें',
     ctaEn: 'Start Free Trial',
@@ -44,15 +43,13 @@ export const SUBSCRIPTION_PLANS = [
     price: '₹499',
     priceNum: 499,
     period: '/ month',
-    description: 'Unlimited AI Checks & Advanced Mains Mastery.',
-    ribbonQuoteHi: 'हर टेस्ट के साथ निरंतर प्रगति',
+    description: 'असीमित AI चेक + 2 शिक्षक समीक्षा पास।',
+    ribbonQuoteHi: 'हर टेस्ट के साथ निरंतर रैंक सुधार',
     ribbonQuoteEn: 'Growth that compounds every test.',
-    ribbonImg: '/plan_pure_ribbon_orange.jpg',
     accentColor: '#f97316',
     accentRgb: '249, 115, 22',
-    accentGlow: 'rgba(249, 115, 22, 0.45)',
     themeName: 'orange',
-    stats: '+240% Speed',
+    dotIndex: 1,
     popular: true,
     badgeHi: 'सर्वाधिक लोकप्रिय',
     badgeEn: 'Most Popular',
@@ -60,7 +57,7 @@ export const SUBSCRIPTION_PLANS = [
       'असीमित (Unlimited) Gemini Vision AI मूल्यांकन',
       '2 शिक्षक समीक्षा पास प्रति माह (Faculty Script Review)',
       'Full Hard-Level Questions & Ethics Case Studies',
-      'AI Model Answers, Topper Insights & Progress Tracking'
+      'AI Model Answers, Topper Insights & Roadmaps'
     ],
     featuresEn: [
       'Unlimited Gemini Vision AI Answer Evaluations',
@@ -68,7 +65,7 @@ export const SUBSCRIPTION_PLANS = [
       'Full Hard-Level PYQ Vault & Ethics Cases',
       'Model Answers & Continuous Progress Tracking'
     ],
-    ctaHi: 'Pro में अपग्रेड करें (₹499)',
+    ctaHi: 'Pro Scholar में अपग्रेड करें (₹499)',
     ctaEn: 'Upgrade to Pro (₹499)',
   },
   {
@@ -79,21 +76,19 @@ export const SUBSCRIPTION_PLANS = [
     price: '₹999',
     priceNum: 999,
     period: '/ month',
-    description: 'Complete Mentor Feedback + Top Ranker Strategy.',
-    ribbonQuoteHi: 'परिणाम आपके समर्पण की गवाही देता है',
+    description: '10 शिक्षक समीक्षाएं + 1-on-1 मेंटरशिप कॉल।',
+    ribbonQuoteHi: 'परिणाम आपके समर्पण की गवाही देगा',
     ribbonQuoteEn: 'The rank speaks before we do.',
-    ribbonImg: '/plan_pure_ribbon_purple.jpg',
     accentColor: '#a855f7',
     accentRgb: '168, 85, 247',
-    accentGlow: 'rgba(168, 85, 247, 0.45)',
     themeName: 'purple',
-    stats: 'Top 50 Rankers',
+    dotIndex: 2,
     badgeHi: 'सर्वश्रेष्ठ रैंकर्स',
     badgeEn: 'All Access',
     featuresHi: [
-      'असीमित (Unlimited) AI + 10 शिक्षक विस्तृत कॉपियां',
-      'Priority Faculty Queue & Real Mains Test Series',
-      '1-on-1 Mentor Guidance & Detailed Score Breakdown',
+      'असीमित AI + 10 शिक्षक विस्तृत कॉपियां (Faculty Evaluation)',
+      'Priority Faculty Queue & Real Test Series Access',
+      '1-on-1 Mentor Guidance & Strategy Call',
       'Full Access to 3D Flashcards, Mains Notes & Premium Hub'
     ],
     featuresEn: [
@@ -116,21 +111,21 @@ export function CardBookmark({
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // SVG Normalized Path (viewBox 0 0 100 100)
-  // Replicating the exact Scrolltide bookmark tab (top right tab) and lower bite (bottom right notch)
+  // SVG Normalized Path for the Bookmark Tab & Lower Bite Silhouette (viewBox 0 0 100 100)
+  // Left shoulder starts at y=7, smooth upward curve to top tab at y=0, lower-right bite notch at y=84
   const bookmarkPathD = `
-    M 0 6.5
-    Q 0 4.8, 1.8 4.8
-    L 27 4.8
-    C 31 4.8, 33.5 1.5, 36.5 0
+    M 0 8
+    Q 0 5.5, 2.5 5.5
+    L 28 5.5
+    C 32 5.5, 34 2, 38 0
     L 94 0
-    Q 100 0, 100 4.2
-    L 100 82.5
-    C 98.2 84.5, 94.5 86.8, 92.5 88.5
-    L 92.5 96
-    Q 92.5 100, 88 100
+    Q 100 0, 100 5
+    L 100 83
+    C 98 85, 94.5 87, 92 89
+    L 92 95.5
+    Q 92 100, 87 100
     L 4 100
-    Q 0 100, 0 95.8
+    Q 0 100, 0 95.5
     Z
   `;
 
@@ -139,7 +134,7 @@ export function CardBookmark({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onSelect}
-      className={`group relative flex flex-col justify-between cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] select-none ${
+      className={`group relative flex flex-col justify-between cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] select-none pt-3 ${
         isSelected
           ? 'scale-[1.02] -translate-y-2'
           : isHovered
@@ -147,13 +142,13 @@ export function CardBookmark({
             : 'scale-100 translate-y-0'
       }`}
       style={{
-        minHeight: '520px',
+        minHeight: '540px',
         filter: isSelected || isHovered
-          ? `drop-shadow(0 20px 40px rgba(${plan.accentRgb}, 0.35))`
-          : 'drop-shadow(0 12px 28px rgba(0,0,0,0.45))',
+          ? `drop-shadow(0 20px 45px rgba(${plan.accentRgb}, 0.38))`
+          : 'drop-shadow(0 12px 28px rgba(0,0,0,0.55))',
       }}
     >
-      {/* ── Background SVG Silhouette with Dynamic Border Glow ── */}
+      {/* ── Background SVG Silhouette with Dynamic Bloom Glow ── */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-500"
         viewBox="0 0 100 100"
@@ -163,9 +158,9 @@ export function CardBookmark({
         <defs>
           {/* Radial Bloom Gradient on Hover */}
           <radialGradient id={`glow-${plan.id}`} cx="50%" cy="30%" r="65%">
-            <stop offset="0%" stopColor={`rgba(${plan.accentRgb}, ${isHovered || isSelected ? 0.38 : 0.12})`} />
-            <stop offset="50%" stopColor={`rgba(${plan.accentRgb}, ${isHovered || isSelected ? 0.14 : 0.03})`} />
-            <stop offset="100%" stopColor="rgba(6, 9, 18, 0.96)" />
+            <stop offset="0%" stopColor={`rgba(${plan.accentRgb}, ${isHovered || isSelected ? 0.42 : 0.16})`} />
+            <stop offset="45%" stopColor={`rgba(${plan.accentRgb}, ${isHovered || isSelected ? 0.18 : 0.05})`} />
+            <stop offset="100%" stopColor="#080c18" />
           </radialGradient>
         </defs>
 
@@ -176,7 +171,7 @@ export function CardBookmark({
           className="transition-all duration-700"
         />
 
-        {/* Outer Stroke Border (1px crisp, illuminates on hover) */}
+        {/* Outer Stroke Border (illuminates on hover) */}
         <path
           d={bookmarkPathD}
           fill="none"
@@ -185,24 +180,23 @@ export function CardBookmark({
               ? plan.accentColor
               : isHovered
                 ? plan.accentColor
-                : 'rgba(255, 255, 255, 0.12)'
+                : 'rgba(255, 255, 255, 0.16)'
           }
-          strokeWidth={isSelected || isHovered ? '0.75' : '0.4'}
+          strokeWidth={isSelected || isHovered ? '0.75' : '0.45'}
           vectorEffect="non-scaling-stroke"
           className="transition-all duration-400"
         />
       </svg>
 
-      {/* ── Top Header / Bookmark Tab Label ── */}
-      <div className="relative z-10 pt-2.5 px-4 flex items-center justify-between text-right">
-        {/* Left shoulder indicator */}
+      {/* ── Top Bookmark Tab Header (Unclipped, Crisp & 100% Legible) ── */}
+      <div className="relative z-10 pt-2 px-5 flex items-center justify-between">
+        {/* Left shoulder badge */}
         <div className="flex items-center gap-1.5">
           {plan.popular && (
             <span
-              className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm"
+              className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-md text-white"
               style={{
                 background: `linear-gradient(135deg, ${plan.accentColor}, #ef4444)`,
-                color: '#fff',
               }}
             >
               ★ {isHi ? 'बेस्ट चॉइस' : 'Popular'}
@@ -210,10 +204,10 @@ export function CardBookmark({
           )}
           {isCurrent && (
             <span
-              className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border"
+              className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-sm"
               style={{
-                background: 'rgba(34, 197, 94, 0.20)',
-                borderColor: 'rgba(34, 197, 94, 0.5)',
+                background: 'rgba(34, 197, 94, 0.25)',
+                borderColor: 'rgba(34, 197, 94, 0.6)',
                 color: '#4ade80',
               }}
             >
@@ -222,64 +216,55 @@ export function CardBookmark({
           )}
         </div>
 
-        {/* Right tab text */}
+        {/* Right Tab Text */}
         <span
-          className="font-mono text-[11px] font-extrabold tracking-tight transition-colors duration-300"
+          className="font-mono text-[11px] font-extrabold tracking-tight transition-colors duration-300 drop-shadow-sm"
           style={{
-            color: isSelected || isHovered ? plan.accentColor : 'rgba(255, 255, 255, 0.75)',
+            color: isSelected || isHovered ? plan.accentColor : 'rgba(255, 255, 255, 0.85)',
           }}
         >
           {plan.tag}
         </span>
       </div>
 
-      {/* ── Inner 3D Metallic Ribbon Artwork Box ── */}
-      <div className="relative z-10 px-3.5 pt-3">
+      {/* ── Inner Live 3D Metallic Ribbon Artwork (WebGL 60 FPS, Zero Pixelation) ── */}
+      <div className="relative z-10 px-4 pt-3">
         <div
           className="relative w-full rounded-2xl overflow-hidden border transition-all duration-500"
           style={{
-            height: '150px',
-            backgroundColor: '#030712',
-            borderColor: isHovered || isSelected ? `rgba(${plan.accentRgb}, 0.5)` : 'rgba(255, 255, 255, 0.08)',
-            boxShadow: isHovered || isSelected ? `inset 0 0 20px rgba(${plan.accentRgb}, 0.3)` : 'none',
+            height: '148px',
+            backgroundColor: '#040712',
+            borderColor: isHovered || isSelected ? `rgba(${plan.accentRgb}, 0.55)` : 'rgba(255, 255, 255, 0.10)',
+            boxShadow: isHovered || isSelected ? `0 0 25px rgba(${plan.accentRgb}, 0.35)` : 'inset 0 0 20px rgba(0,0,0,0.8)',
           }}
         >
-          {/* 3D Flowing Ribbon Image */}
-          <img
-            src={plan.ribbonImg}
-            alt={plan.name}
-            className={`w-full h-full object-cover transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isHovered || isSelected
-                ? 'scale-105 filter saturate-150 brightness-110'
-                : 'scale-100 filter saturate-90 brightness-95 opacity-90'
-            }`}
-          />
-
-          {/* Vignette & Soft Gradient Overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none transition-opacity duration-500"
-            style={{
-              background: `linear-gradient(to top, rgba(3,7,18,0.92) 0%, rgba(3,7,18,0.35) 45%, transparent 100%)`,
-            }}
+          {/* Live 3D Undulating Metallic Ribbon */}
+          <RibbonCanvas3D
+            color={plan.accentColor}
+            isHovered={isHovered || isSelected}
+            theme={plan.themeName}
           />
 
           {/* Text inside artwork */}
-          <div className="absolute inset-x-3 bottom-2.5 z-10">
-            <p className="text-xs sm:text-[13px] font-extrabold text-white leading-snug drop-shadow-md m-0">
+          <div className="absolute inset-x-3.5 bottom-2.5 z-10 pointer-events-none">
+            <p
+              className="text-xs sm:text-[13px] font-black leading-snug drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] m-0 text-white"
+              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}
+            >
               {isHi ? plan.ribbonQuoteHi : plan.ribbonQuoteEn}
             </p>
           </div>
         </div>
       </div>
 
-      {/* ── Middle: Big Typography & Price ── */}
+      {/* ── Middle: Big Typography & Pricing (High-Contrast Crisp) ── */}
       <div className="relative z-10 px-5 pt-3 pb-1 space-y-1">
         <div className="flex items-baseline justify-between gap-2">
           {/* Big Punchy Headline */}
           <div
-            className="text-2xl sm:text-3xl font-black tracking-tight text-white transition-colors duration-300"
+            className="text-2xl sm:text-3xl font-black tracking-tight text-white transition-all duration-300 drop-shadow-md"
             style={{
-              textShadow: isHovered || isSelected ? `0 0 24px rgba(${plan.accentRgb}, 0.6)` : 'none',
+              textShadow: isHovered || isSelected ? `0 0 22px rgba(${plan.accentRgb}, 0.7)` : 'none',
             }}
           >
             {plan.title}
@@ -288,39 +273,39 @@ export function CardBookmark({
           {/* Price */}
           <div className="text-right">
             <span
-              className="text-2xl font-black tracking-tight"
+              className="text-2xl font-black tracking-tight drop-shadow-sm"
               style={{ color: plan.accentColor }}
             >
               {plan.price}
             </span>
-            <span className="text-[11px] font-bold text-gray-400">
+            <span className="text-[11px] font-bold text-slate-300">
               {plan.period}
             </span>
           </div>
         </div>
 
-        <p className="text-[11px] font-medium text-gray-300/80 m-0 leading-tight">
+        <p className="text-[11px] font-semibold text-slate-300 m-0 leading-tight">
           {plan.description}
         </p>
       </div>
 
-      {/* ── Feature Checklist ── */}
+      {/* ── Feature Checklist (White/Silver on Dark Background — 100% Legible) ── */}
       <div className="relative z-10 px-5 py-2 space-y-2 flex-1">
-        <div className="h-px w-full bg-white/10" />
+        <div className="h-px w-full bg-white/15" />
         <ul className="space-y-1.5 list-none pl-0 m-0">
           {(isHi ? plan.featuresHi : plan.featuresEn).map((feat, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-[11px] leading-tight text-gray-200">
+            <li key={idx} className="flex items-start gap-2 text-[11px] leading-tight text-slate-100 font-medium">
               <Check
                 className="w-3.5 h-3.5 shrink-0 mt-0.5"
                 style={{ color: plan.accentColor }}
               />
-              <span className="opacity-90">{feat}</span>
+              <span className="opacity-95">{feat}</span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* ── Bottom CTA Button & Micro-dots ── */}
+      {/* ── Bottom CTA Button & Interactive Dots ── */}
       <div className="relative z-10 px-5 pb-5 pt-1 space-y-3">
         {/* Upgrade / Select Button */}
         <button
@@ -329,55 +314,48 @@ export function CardBookmark({
             e.stopPropagation();
             onSelect?.();
           }}
-          className={`w-full py-2.5 px-4 rounded-xl font-extrabold text-xs flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer shadow-md ${
-            isSelected
-              ? 'text-white shadow-lg'
-              : isHovered
-                ? 'text-white shadow-md'
-                : 'bg-white/10 text-white/90 hover:bg-white/15'
+          className={`w-full py-2.5 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer shadow-md active:scale-95 text-white ${
+            isSelected || isHovered ? 'shadow-lg' : 'bg-white/10 hover:bg-white/20'
           }`}
           style={{
             background: isSelected || isHovered
-              ? `linear-gradient(135deg, ${plan.accentColor}, #1e40af)`
+              ? `linear-gradient(135deg, ${plan.accentColor}, #1e3a8a)`
               : undefined,
-            boxShadow: isSelected || isHovered ? `0 8px 24px rgba(${plan.accentRgb}, 0.35)` : undefined,
+            boxShadow: isSelected || isHovered ? `0 8px 24px rgba(${plan.accentRgb}, 0.45)` : undefined,
           }}
         >
           <span>{isHi ? plan.ctaHi : plan.ctaEn}</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </button>
 
-        {/* Bottom Bar: 3 Glowing Dots & Guarantee */}
+        {/* Bottom Bar: 3 Dots Indicating Current Plan Tier & Guarantee */}
         <div className="flex items-center justify-between pt-1">
-          {/* 3 Accent Micro-dots */}
-          <div className="flex items-center gap-1.5">
-            <span
-              className="w-2 h-2 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: plan.accentColor,
-                boxShadow: isHovered || isSelected ? `0 0 8px ${plan.accentColor}` : 'none',
-              }}
-            />
-            <span
-              className="w-2 h-2 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: isHovered || isSelected ? plan.accentColor : 'rgba(255,255,255,0.25)',
-                opacity: 0.7,
-              }}
-            />
-            <span
-              className="w-2 h-2 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: isHovered || isSelected ? plan.accentColor : 'rgba(255,255,255,0.15)',
-                opacity: 0.4,
-              }}
-            />
+          {/* 3 Accent Micro-dots: Current plan's dot is glowing and active */}
+          <div className="flex items-center gap-1.5" title={`Tier ${plan.dotIndex + 1} of 3`}>
+            {[0, 1, 2].map((idx) => {
+              const isActive = plan.dotIndex === idx;
+              return (
+                <span
+                  key={idx}
+                  className="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                  style={{
+                    backgroundColor: isActive
+                      ? plan.accentColor
+                      : isHovered
+                        ? `rgba(${plan.accentRgb}, 0.5)`
+                        : 'rgba(255,255,255,0.25)',
+                    boxShadow: isActive ? `0 0 10px ${plan.accentColor}` : 'none',
+                    transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                />
+              );
+            })}
           </div>
 
           {/* Secure label */}
-          <div className="flex items-center gap-1 text-[10px] text-gray-400 font-mono">
+          <div className="flex items-center gap-1 text-[10px] text-slate-300 font-mono font-semibold">
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>100% Encrypted</span>
+            <span>100% Encrypted SSL</span>
           </div>
         </div>
       </div>
