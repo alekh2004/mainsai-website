@@ -83,15 +83,23 @@ export function AuthProvider({ children }) {
             students[firebaseUser.uid] = profile;
             saveStudents(students);
             setUser(profile);
+          } else if (!profile) {
+            // Only create a new profile if there's absolutely nothing in localStorage either.
+            // This prevents overwriting profileCompleted for existing users on Firestore resets.
+            profile = await saveStudentProfile(firebaseUser, {});
           } else {
-            // Document doesn't exist in Firestore yet, sync it up
-            profile = await saveStudentProfile(firebaseUser, profile || {});
+            // Local profile exists but Firestore doc missing — just silently sync it up
+            // without re-computing profileCompleted (which could accidentally reset it to false)
+            try {
+              await setDoc(doc(db, 'users', firebaseUser.uid), profile, { merge: true });
+            } catch (_) {}
           }
         } catch (err) {
           console.warn('Firestore user fetch fallback:', err);
           if (!profile) {
             profile = await saveStudentProfile(firebaseUser);
           }
+          // If profile IS present in local cache, keep using it — do not overwrite
         }
       } else {
         // If no Firebase Auth user (e.g. Phone login with stable UID), restore local session
@@ -159,7 +167,14 @@ export function AuthProvider({ children }) {
       gender: resolvedGender,
       dob: extra.dob || existing?.dob || '',
       targetExam: extra.targetExam || existing?.targetExam || 'upsc',
-      profileCompleted: Boolean(resolvedName && (extra.dob || existing?.dob) && (resolvedGender)),
+      // ── CRITICAL: Never reset profileCompleted to false for existing users.
+      // If user already has profileCompleted: true OR already has a real name set,
+      // they are an existing user and must never be forced to re-setup profile.
+      profileCompleted: Boolean(
+        existing?.profileCompleted === true ||
+        (existing?.name && !isNameInvalid(existing?.name)) ||
+        (resolvedName && !isNameInvalid(resolvedName) && Boolean(extra.profileCompleted || existing?.dob || extra.dob))
+      ),
       evaluationsLeft: existing?.evaluationsLeft ?? 9999,
       teacherReviewsLeft: existing?.teacherReviewsLeft ?? 5,
       verificationStatus: 'approved',
@@ -318,13 +333,16 @@ export function AuthProvider({ children }) {
 
     if (exists && existingProfile) {
       // ── Returning user: restore full saved session ────────────────────
+      const isComplete = Boolean(
+        existingProfile.profileCompleted === true ||
+        (existingProfile.name && !isNameInvalid(existingProfile.name))
+      );
       const refreshed = {
         ...existingProfile,
         uid: existingProfile.uid || stableUid, // ensure uid is set
         phone: existingProfile.phone || `+91${cleanPhone}`,
         lastLoginAt: new Date().toISOString(),
-        // Keep profileCompleted as-is — don't reset it
-        profileCompleted: existingProfile.profileCompleted,
+        profileCompleted: isComplete,
       };
       const students = getStudents();
       students[stableUid] = refreshed;

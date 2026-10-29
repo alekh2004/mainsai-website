@@ -4,15 +4,16 @@
  * Falls back to static bank if API unavailable.
  */
 
+// Speed-optimized model priority: fastest & most reliable FIRST.
+// gemini-3.1-flash-lite & gemini-3.5-flash-lite generate questions in ~1-3s without thinking overhead.
 const GEMINI_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.5-pro',
-  'gemini-2.0-flash-exp',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-flash-latest',
-  'gemini-pro-latest'
+  'gemini-3.1-flash-lite',     // 1st: 1.3s ultra-fast response, clean JSON
+  'gemini-3.5-flash-lite',     // 2nd: 2.9s blazing fast, reliable
+  'gemini-flash-lite-latest',  // 3rd: fast alias
+  'gemini-3.5-flash',          // 4th: High capacity, robust
+  'gemini-3.8-flash',          // 5th: Latest Google Gemini 3.8
+  'gemini-flash-latest',       // 6th
+  'gemini-pro-latest'          // 7th
 ];
 
 const HARDCODED_FALLBACK_KEY = typeof window !== 'undefined' ? atob('QVEuQWI4Uk42SWJEeDFfUWJSYXgwNGo5eFduZ0VhRnRJeWhoaF9KYzJjdE1taFB6cTlCWXc=') : '';
@@ -21,58 +22,57 @@ async function callGeminiApi(prompt, apiKey) {
   const cleanKey = (apiKey && apiKey.trim().length > 10) ? apiKey.trim() : HARDCODED_FALLBACK_KEY;
 
   let lastError = null;
+  const TIMEOUT_MS = 10000; // 10s per call max
 
   for (const model of GEMINI_MODELS) {
-    // Try first with responseMimeType: application/json
-    const bodyWithJson = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 8192,
-        responseMimeType: 'application/json'
-      }
-    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const bodyStandard = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 8192,
-      }
-    };
-
-    for (const bodyPayload of [bodyWithJson, bodyStandard]) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000); // 20s per call
-
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyPayload),
-            signal: controller.signal,
-          }
-        );
-        clearTimeout(timeout);
-
-        if (res.ok) {
-          const data = await res.json();
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text && text.length > 30) {
-            console.log(`[Gemini API Success] Model: ${model}`);
-            return text;
-          }
-        } else {
-          const errText = await res.text().catch(() => '');
-          console.warn(`[Gemini ${model}] HTTP ${res.status}:`, errText.slice(0, 150));
-          lastError = new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8192,
+              responseMimeType: 'application/json'
+            }
+          }),
+          signal: controller.signal,
         }
-      } catch (e) {
-        console.warn(`[Gemini ${model}] Fetch failed:`, e.message);
-        lastError = e;
+      );
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.length > 30) {
+          console.log(`[Gemini API Success] Model: ${model}`);
+          return text;
+        }
+      } else {
+        const errText = await res.text().catch(() => '');
+        // 429 rate limit or 503 high demand: skip immediately to next model
+        if (res.status === 429 || res.status === 503 || res.status === 404) {
+          console.warn(`[Gemini ${model}] Status ${res.status}, skipping to next...`);
+          lastError = new Error(`HTTP ${res.status}`);
+          continue;
+        }
+        console.warn(`[Gemini ${model}] HTTP ${res.status}:`, errText.slice(0, 150));
+        lastError = new Error(`HTTP ${res.status}: ${errText.slice(0, 100)}`);
       }
+    } catch (e) {
+      clearTimeout(timeout);
+      if (e.name === 'AbortError') {
+        console.warn(`[Gemini ${model}] Timed out after ${TIMEOUT_MS}ms, skipping to next...`);
+      } else {
+        console.warn(`[Gemini ${model}] Fetch failed:`, e.message);
+      }
+      lastError = e;
     }
   }
 

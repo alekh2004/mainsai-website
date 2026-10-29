@@ -356,14 +356,14 @@ export function AuthModal({ isFullScreen = false }) {
             <div className="relative w-full bg-white/85 hover:bg-white/90 transition-all duration-300 backdrop-blur-2xl rounded-[2.2rem] p-6 sm:p-8 border border-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.30),0_0_0_1px_rgba(255,255,255,0.7)_inset] space-y-5 overflow-hidden">
               <AuroraLamp intensity="low" />
 
-            {/* Card Header: Title + Switch Link */}
+            {/* Card Header: Title */}
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight m-0">
                   {authView === 'forgot_password'
                     ? 'Reset Password'
                     : authView === 'phone'
-                    ? 'Phone Sign In'
+                    ? (!isSignUp ? 'Mobile Login' : 'New Mobile Account')
                     : isSignUp
                     ? 'Create Account'
                     : 'Welcome Back'}
@@ -372,24 +372,43 @@ export function AuthModal({ isFullScreen = false }) {
                   {authView === 'forgot_password'
                     ? 'Enter your email to receive recovery instructions'
                     : authView === 'phone'
-                    ? 'Enter mobile number to receive 6-digit OTP'
+                    ? (!isSignUp ? 'Enter your registered mobile to enter dashboard directly' : 'Register your mobile number to create your profile')
                     : isSignUp
                     ? 'Join thousands of serious aspirants today'
                     : 'Sign in to continue to ET Academy'}
                 </p>
               </div>
+            </div>
 
-              {/* Toggle Sign Up / Sign In */}
-              {authView === 'email' && (
+            {/* ── Login / Sign-Up Prominent Tab Switcher (Visible for all views) ── */}
+            {authView !== 'forgot_password' && (
+              <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/80">
                 <button
                   type="button"
-                  onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); setSuccessMsg(''); }}
-                  className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors text-right shrink-0 pt-1"
+                  onClick={() => { setIsSignUp(false); setPhoneStatus(null); setErrorMsg(''); setSuccessMsg(''); }}
+                  className={`py-2.5 rounded-xl text-center text-xs font-black transition-all border cursor-pointer ${
+                    !isSignUp
+                      ? 'bg-white text-blue-700 border-blue-500/80 shadow-md shadow-blue-500/10'
+                      : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'
+                  }`}
                 >
-                  {isSignUp ? 'Sign in' : 'Create an account'}
+                  <LogIn className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                  Login (मौजूदा यूजर)
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => { setIsSignUp(true); setPhoneStatus(null); setErrorMsg(''); setSuccessMsg(''); }}
+                  className={`py-2.5 rounded-xl text-center text-xs font-black transition-all border cursor-pointer ${
+                    isSignUp
+                      ? 'bg-white text-emerald-700 border-emerald-500/80 shadow-md shadow-emerald-500/10'
+                      : 'bg-transparent border-transparent text-slate-500 hover:bg-white/50'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+                  New Account (नया यूजर)
+                </button>
+              </div>
+            )}
 
             {/* ── Mode Selector: Student Mode vs Teacher Mode (Exact Match with Image 1) ── */}
             <div className="grid grid-cols-2 gap-2.5 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/80">
@@ -549,7 +568,7 @@ export function AuthModal({ isFullScreen = false }) {
                     <RefreshCw className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                      <span>{isSignUp ? 'Create Account & Continue (नया अकाउंट)' : 'Login to Dashboard (लॉगिन करें)'}</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -665,7 +684,11 @@ export function AuthModal({ isFullScreen = false }) {
                       ) : (
                         <ArrowRight className="w-4 h-4" />
                       )}
-                      <span>{isPhoneChecking ? 'Verifying...' : 'Verify & Continue'}</span>
+                      <span>
+                        {isPhoneChecking
+                          ? 'Verifying...'
+                          : (!isSignUp ? 'Login with Mobile Number (लॉगिन करें)' : 'Verify & Create New Account (नया अकाउंट)')}
+                      </span>
                     </button>
                   </form>
                 ) : (
@@ -728,8 +751,8 @@ export function AuthModal({ isFullScreen = false }) {
                         {isLoggingInPhone
                           ? 'Entering Portal...'
                           : phoneStatus.exists
-                          ? 'Sign In Directly to Dashboard'
-                          : 'Create Profile & Enter Dashboard'}
+                          ? 'Login Directly to Dashboard (सीधे डैशबोर्ड में जाएं)'
+                          : 'Create Profile & Enter Dashboard (प्रोफाइल बनाएं)'}
                       </span>
                     </button>
 

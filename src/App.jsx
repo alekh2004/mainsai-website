@@ -66,15 +66,19 @@ function MainAppContent() {
     }
   }, [activeTab]);
 
-  // Detect if user logged in via Phone / OAuth but has incomplete name/dob/gender
+  // Detect if user logged in via Phone / OAuth but is truly a new user without a profile
+  // PRIMARY gate: if user has completed profile OR has a real name, NEVER show setup modal.
+  // SECONDARY gate: only show for brand-new users who haven't set their name yet.
   const isProfileIncomplete = Boolean(
-    user && (
-      !user.profileCompleted ||
+    user &&
+    !user.profileCompleted &&
+    (
       !user.name ||
+      user.name.trim() === '' ||
       user.name.startsWith('Candidate') ||
       user.name === 'Aspirant Student' ||
-      !user.dob ||
-      !user.gender
+      user.name === 'New Aspirant' ||
+      user.name === 'New Phone Aspirant'
     )
   );
 
